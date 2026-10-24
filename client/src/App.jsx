@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getHealth } from './api'
 import './App.css'
+import DevCollect from './pages/DevCollect'
 import DevRoundtrip from './pages/DevRoundtrip'
 import VoiceApp from './pages/VoiceApp'
 
@@ -87,6 +88,20 @@ function App() {
             >
               /dev/roundtrip
             </button>
+            <button
+              type="button"
+              onClick={() => navigate('/dev/collect')}
+              style={{
+                background: currentPath === '/dev/collect' ? '#3b82f6' : '#334155',
+                color: '#fff',
+                border: 'none',
+                padding: '0.25rem 0.6rem',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              /dev/collect
+            </button>
           </div>
         </nav>
       )}
@@ -94,6 +109,8 @@ function App() {
       {/* Route matching */}
       {currentPath === '/app' ? (
         <VoiceApp />
+      ) : isDev && currentPath === '/dev/collect' ? (
+        <DevCollect />
       ) : isDev && currentPath === '/dev/roundtrip' ? (
         <DevRoundtrip />
       ) : (

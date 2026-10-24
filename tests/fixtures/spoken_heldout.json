@@ -1,0 +1,177 @@
+[
+  {
+    "field_id": "aadhaar",
+    "spoken": "0000 0000 0006",
+    "expected": "0000 0000 0006",
+    "difficulty": "easy",
+    "note": "fake digits"
+  },
+  {
+    "field_id": "aadhaar",
+    "spoken": "zero zero zero zero 0000 0002",
+    "expected": "0000 0000 0002",
+    "difficulty": "hard",
+    "note": "mixed"
+  },
+  {
+    "field_id": "address",
+    "spoken": "5 Example Street",
+    "expected": "5 Example Street",
+    "difficulty": "easy",
+    "note": "fixture"
+  },
+  {
+    "field_id": "address",
+    "spoken": "eight Example Street",
+    "expected": "8 Example Street",
+    "difficulty": "medium",
+    "note": "words"
+  },
+  {
+    "field_id": "applicant_name",
+    "spoken": "Demo Farah Six",
+    "expected": "Demo Farah Six",
+    "difficulty": "easy",
+    "note": "fixture"
+  },
+  {
+    "field_id": "applicant_name",
+    "spoken": "Demo Verylong Exampleperson Name",
+    "expected": "Demo Verylong Exampleperson Name",
+    "difficulty": "hard",
+    "note": "long"
+  },
+  {
+    "field_id": "applicant_name",
+    "spoken": "K. Muthulakshmi",
+    "expected": "K. Demo Muthulakshmi",
+    "difficulty": "medium",
+    "note": "initial"
+  },
+  {
+    "field_id": "bank_account",
+    "spoken": "000000000000001",
+    "expected": "000000000000001",
+    "difficulty": "easy",
+    "note": "digits"
+  },
+  {
+    "field_id": "bank_account",
+    "spoken": "noise 000000000000005",
+    "expected": "000000000000005",
+    "difficulty": "hard",
+    "note": "garbage"
+  },
+  {
+    "field_id": "bank_account",
+    "spoken": "0000000 00000003",
+    "expected": "000000000000003",
+    "difficulty": "medium",
+    "note": "mixed"
+  },
+  {
+    "field_id": "date_of_birth",
+    "spoken": "5 May 1958",
+    "expected": "1958-05-05",
+    "difficulty": "easy",
+    "note": "digits"
+  },
+  {
+    "field_id": "date_of_birth",
+    "spoken": "noise May five nineteen fifty eight",
+    "expected": "1958-05-05",
+    "difficulty": "hard",
+    "note": "garbage"
+  },
+  {
+    "field_id": "date_of_birth",
+    "spoken": "nineteen fifty-eight May five",
+    "expected": "1958-05-05",
+    "difficulty": "medium",
+    "note": "words"
+  },
+  {
+    "field_id": "district",
+    "spoken": "uh Sampledistrict",
+    "expected": "Sampledistrict",
+    "difficulty": "medium",
+    "note": "filler"
+  },
+  {
+    "field_id": "gender",
+    "spoken": "Other",
+    "expected": "Other",
+    "difficulty": "easy",
+    "note": "choice"
+  },
+  {
+    "field_id": "gender",
+    "spoken": "பெண்",
+    "expected": "Female",
+    "difficulty": "medium",
+    "note": "Tamil"
+  },
+  {
+    "field_id": "nominee",
+    "spoken": "Demo Nominee Five",
+    "expected": "Demo Nominee Five",
+    "difficulty": "easy",
+    "note": "fixture"
+  },
+  {
+    "field_id": "nominee",
+    "spoken": "uh Demo Nominee Three",
+    "expected": "Demo Nominee Three",
+    "difficulty": "medium",
+    "note": "filler"
+  },
+  {
+    "field_id": "parent_spouse_name",
+    "spoken": "Demo Parent Five",
+    "expected": "Demo Parent Five",
+    "difficulty": "easy",
+    "note": "fixture"
+  },
+  {
+    "field_id": "parent_spouse_name",
+    "spoken": "uh Demo Parent Three",
+    "expected": "Demo Parent Three",
+    "difficulty": "medium",
+    "note": "filler"
+  },
+  {
+    "field_id": "phone",
+    "spoken": "00000 00002",
+    "expected": "00000 00002",
+    "difficulty": "easy",
+    "note": "digits"
+  },
+  {
+    "field_id": "phone",
+    "spoken": "noise 00000 00005",
+    "expected": "00000 00005",
+    "difficulty": "hard",
+    "note": "garbage"
+  },
+  {
+    "field_id": "readback_confirmation",
+    "spoken": "aama",
+    "expected": "yes",
+    "difficulty": "easy",
+    "note": "test fixture; not a printed field"
+  },
+  {
+    "field_id": "taluk",
+    "spoken": "taluk Testtaluk",
+    "expected": "Testtaluk",
+    "difficulty": "medium",
+    "note": "mixed"
+  },
+  {
+    "field_id": "village",
+    "spoken": "Mock Azhagiyapandipuram",
+    "expected": "Mock Azhagiyapandipuram",
+    "difficulty": "hard",
+    "note": "long"
+  }
+]

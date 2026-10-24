@@ -2,6 +2,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
 import multer from 'multer'
+import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { GNANI_CONFIG } from './config.js'
@@ -100,6 +101,50 @@ app.get('/api/stats', (_req, res) => {
     maxLiveCallsPerHour: getMaxLiveCallsPerHour(),
   })
 })
+
+// POST /api/dev/samples — Save real spoken transcript sample (Dev mode only, max 2 KB)
+if (process.env.NODE_ENV !== 'production') {
+  app.post('/api/dev/samples', express.json({ limit: '2kb' }), (req, res) => {
+    console.log('[route] POST /api/dev/samples')
+    const { field_id, transcript, expected, condition, speaker, timestamp } = req.body || {}
+
+    if (!field_id || !transcript || !expected) {
+      return res.status(400).json({ error: 'field_id, transcript, and expected are required' })
+    }
+
+    const sample = {
+      field_id: String(field_id).trim(),
+      spoken: String(transcript).trim(),
+      expected: String(expected).trim(),
+      condition: ['quiet', 'noisy', 'phone'].includes(condition) ? condition : 'quiet',
+      difficulty: 'medium',
+      speaker: String(speaker || 'anonymous').trim(),
+      timestamp: timestamp || new Date().toISOString(),
+    }
+
+    const samplesDir = path.resolve(__dirname, '../samples')
+    const samplesFile = path.join(samplesDir, 'real_transcripts.json')
+
+    if (!fs.existsSync(samplesDir)) {
+      fs.mkdirSync(samplesDir, { recursive: true })
+    }
+
+    let existing = []
+    if (fs.existsSync(samplesFile)) {
+      try {
+        existing = JSON.parse(fs.readFileSync(samplesFile, 'utf8'))
+        if (!Array.isArray(existing)) existing = []
+      } catch (_) {
+        existing = []
+      }
+    }
+
+    existing.push(sample)
+    fs.writeFileSync(samplesFile, JSON.stringify(existing, null, 2), 'utf8')
+
+    res.json({ success: true, count: existing.length })
+  })
+}
 
 // ----------------------------------------------------
 // Form Engine API Routes (Stateless, Zero-Network)

@@ -32,7 +32,22 @@ npm run evon:smoke           # Default 10 fixtures
 npm run evon:smoke -- --limit 20
 ```
 
-See [docs/EVON_DECISION.md](docs/EVON_DECISION.md) for the decision matrix and evaluation runbook.
+## Extraction Evaluation & Real Collector (`extract:eval`)
+
+Phase 9 established a stratified evaluation pipeline with zero data leakage:
+- **Dev Set (`tests/fixtures/spoken_dev.json`, 53 items):** Used for rule tuning and few-shot calibration. Current accuracy: **98.1%**.
+- **Held-out Set (`tests/fixtures/spoken_heldout.json`, 25 items):** Strictly isolated for reporting. Current accuracy: **96.0%**. CI test `server/tests/heldout-guard.test.js` prevents leakage.
+- **Real Collector (`/dev/collect`):** Dev-only UI (`import.meta.env.DEV`) to speak FAKE answers via Prisma STT and append records to git-ignored `samples/real_transcripts.json`.
+
+```bash
+cd server
+npm run extract:eval -- --set dev       # Run on development set
+npm run extract:eval -- --set heldout   # Run on strict held-out set
+npm run extract:eval -- --set real      # Run on empirical collected transcripts
+npm run extract:eval -- --set all       # Run across dev + held-out combined
+```
+
+See [docs/EXTRACTION_REPORT.md](docs/EXTRACTION_REPORT.md) for full baseline comparisons, breakdown tables, and failure analyses.
 
 ## Scope
 

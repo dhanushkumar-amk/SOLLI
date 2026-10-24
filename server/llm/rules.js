@@ -1,4 +1,8 @@
 // Baseline rule-based extractor (Route A) for Solli form fields
+import { loadForm } from '../forms/formEngine.js'
+import { evaluateConfidenceAndConfirmation } from './confidence.js'
+import { getExtractorForType } from './extractors/index.js'
+import { normalizeTranscript } from './normalize.js'
 
 const MONTH_NAMES = {
   january: '01', jan: '01',
@@ -18,26 +22,6 @@ const MONTH_NAMES = {
 const DIGIT_WORDS = {
   zero: '0', one: '1', two: '2', three: '3', four: '4',
   five: '5', six: '6', seven: '7', eight: '8', nine: '9',
-}
-
-const COMMON_FILLERS = [
-  /^noise\s+/i,
-  /^uh\s+/i,
-  /^um\s+/i,
-  /^er\s+/i,
-  /^ah\s+/i,
-]
-
-/**
- * Strips leading fillers and noise tokens
- */
-function cleanTranscript(raw) {
-  if (!raw) return ''
-  let cleaned = String(raw).trim()
-  for (const regex of COMMON_FILLERS) {
-    cleaned = cleaned.replace(regex, '').trim()
-  }
-  return cleaned
 }
 
 /**
@@ -108,14 +92,14 @@ function extractDate(text) {
 }
 
 /**
- * Detect explicit conversational commands
+ * Detect conversational intent or navigational command
  */
 function detectCommand(text) {
-  const lower = text.toLowerCase()
-  if (/^(aama|aamang|aamaa|aama correct|yes|sari|seri|correct|ok|okay)$/i.test(lower)) {
+  const lower = text.toLowerCase().trim()
+  if (/^(yes|aama|aamam|sari|correct|ok)$/i.test(lower)) {
     return 'yes'
   }
-  if (/^(illai|illa|illenga|no|wrong|thappu|not correct)$/i.test(lower)) {
+  if (/^(no|illai|illa|wrong|ille)$/i.test(lower)) {
     return 'no'
   }
   if (/marubadiyum|repeat|one more time|again|enna sonneenga/i.test(lower)) {
@@ -138,68 +122,73 @@ function detectCommand(text) {
  */
 export async function extract({ field, transcript, context = {} }) {
   const startTime = Date.now()
-  let cleaned = cleanTranscript(transcript)
 
-  let isCorrection = false
-  // Check for spoken self-correction (e.g. "March la... illai, May 5 1958")
-  if (/\b(illai|illa|no|not)\b/i.test(cleaned) && field !== 'readback_confirmation') {
-    isCorrection = true
-    const parts = cleaned.split(/\b(?:illai|illa|no|not)\b/i)
-    if (parts.length > 1 && parts[parts.length - 1].trim()) {
-      cleaned = cleanTranscript(parts[parts.length - 1])
-    }
-  }
-
-  const command = detectCommand(cleaned)
-  let value = null
-  let confidence = 0.5
-  let needsConfirmation = true
-  let reason = 'Extracted using baseline rules'
-
-  // If this is a confirmation field (readback)
-  if (field === 'readback_confirmation') {
-    if (command === 'yes' || /aama|yes|sari|correct/i.test(cleaned)) {
-      value = 'yes'
-      confidence = 0.95
-      needsConfirmation = false
-      reason = 'Affirmative response detected'
-    } else if (command === 'no' || /illai|illa|no|wrong/i.test(cleaned)) {
-      value = 'no'
-      confidence = 0.95
-      needsConfirmation = false
-      reason = 'Negative response detected'
-    }
+  // 1. Run normalization pipeline (Unicode NFC, noise check, self-correction, fillers)
+  const norm = normalizeTranscript(transcript)
+  if (norm.isNoise) {
     return {
-      value,
-      confidence,
-      needsConfirmation,
-      isCorrection,
-      command: value,
-      reason,
+      value: null,
+      confidence: 0,
+      needsConfirmation: false,
+      isCorrection: false,
+      command: null,
+      reason: 'Noise-only or empty transcript detected',
       latencyMs: Date.now() - startTime,
       provider: 'rules',
     }
   }
 
-  // Handle specific form fields
-  switch (field) {
-    case 'gender': {
-      if (/female|பெண்|^f$/i.test(cleaned)) {
-        value = 'Female'
-        confidence = 0.95
-        needsConfirmation = false
-      } else if (/male|ஆண்|^m$/i.test(cleaned)) {
-        value = 'Male'
-        confidence = 0.95
-        needsConfirmation = false
-      } else if (/other|மற்றவை/i.test(cleaned)) {
-        value = 'Other'
-        confidence = 0.9
-        needsConfirmation = false
-      }
-      break
-    }
+  let cleaned = norm.text
+  const isCorrection = norm.isCorrection
+  const command = detectCommand(cleaned)
 
+  // 2. Identify field definition and type
+  let fieldDef = context.fieldDef
+  if (!fieldDef) {
+    if (field === 'readback_confirmation') {
+      fieldDef = { id: 'readback_confirmation', type: 'yes_no', confirm: 'never' }
+    } else {
+      try {
+        const form = loadForm('pension')
+        fieldDef = form.fields.find((f) => f.id === field)
+      } catch (_) {}
+    }
+  }
+
+  const fieldType = fieldDef?.type || (field === 'readback_confirmation' ? 'yes_no' : 'text')
+
+  // 3. Check for dedicated type extractor in registry (name, text, address, yes_no, choice)
+  const dedicatedExtractor = getExtractorForType(fieldType)
+  if (dedicatedExtractor) {
+    const extResult = dedicatedExtractor(cleaned, { fieldDef, context })
+    const confEval = evaluateConfidenceAndConfirmation({
+      value: extResult.value,
+      baseConfidence: extResult.confidence,
+      isCorrection,
+      valid: extResult.value !== null,
+      fieldDef,
+      rawTranscript: transcript,
+    })
+
+    return {
+      value: extResult.value,
+      confidence: confEval.confidence,
+      needsConfirmation: isCorrection ? true : confEval.needsConfirmation,
+      isCorrection,
+      command,
+      reason: extResult.reason,
+      latencyMs: Date.now() - startTime,
+      provider: 'rules',
+    }
+  }
+
+  // 4. Fallback to specific Phase 6/7 extractors for dates, numbers, phone, aadhaar, bank_account
+  let value = null
+  let confidence = 0.5
+  let needsConfirmation = true
+  let reason = 'Extracted using baseline rules'
+
+  switch (field) {
     case 'date_of_birth': {
       const parsedDate = extractDate(cleaned)
       if (parsedDate) {
@@ -244,65 +233,9 @@ export async function extract({ field, transcript, context = {} }) {
       break
     }
 
-    case 'taluk': {
-      let t = cleaned.replace(/^(my\s+taluk|taluk)\s+/i, '').trim()
-      t = t.replace(/\s+taluk$/i, '')
-      t = t.replace(/\s+/g, '') // Test taluk -> Testtaluk
-      if (t) {
-        value = t
-        confidence = 0.85
-        needsConfirmation = true
-      }
-      break
-    }
-
-    case 'district': {
-      let d = cleaned.replace(/^(en\s+district|district)\s+/i, '').trim()
-      d = d.replace(/\s+district$/i, '')
-      d = d.replace(/\s+/g, '') // Sample district -> Sampledistrict
-      if (d) {
-        value = d
-        confidence = 0.85
-        needsConfirmation = true
-      }
-      break
-    }
-
-    case 'address': {
-      let addr = wordsToDigits(cleaned).replace(/^(number|no\.?)\s+/i, '').trim()
-      if (addr) {
-        value = addr
-        confidence = 0.8
-        needsConfirmation = true
-      }
-      break
-    }
-
-    case 'parent_spouse_name': {
-      let name = cleaned.replace(/^(appa\s+peru|father\s+name|husband\s+name)\s+/i, '').trim()
-      if (name) {
-        value = name
-        confidence = 0.85
-        needsConfirmation = true
-      }
-      break
-    }
-
-    case 'nominee': {
-      let nom = cleaned.replace(/^(en\s+nominee|nominee)\s+/i, '').trim()
-      if (nom) {
-        value = nom
-        confidence = 0.85
-        needsConfirmation = true
-      }
-      break
-    }
-
     default: {
-      // General text / names
-      let val = cleaned
-      if (val) {
-        value = val
+      if (cleaned) {
+        value = cleaned
         confidence = 0.75
         needsConfirmation = true
       }
@@ -310,16 +243,23 @@ export async function extract({ field, transcript, context = {} }) {
     }
   }
 
-  const latencyMs = Date.now() - startTime
+  const confEval = evaluateConfidenceAndConfirmation({
+    value,
+    baseConfidence: confidence,
+    isCorrection,
+    valid: value !== null,
+    fieldDef,
+    rawTranscript: transcript,
+  })
 
   return {
     value,
-    confidence,
-    needsConfirmation,
+    confidence: confEval.confidence,
+    needsConfirmation: isCorrection ? true : confEval.needsConfirmation,
     isCorrection,
     command,
     reason,
-    latencyMs,
+    latencyMs: Date.now() - startTime,
     provider: 'rules',
   }
 }

@@ -33,6 +33,9 @@ export const GNANI_CONFIG = {
   maxTtsChars: 300,
 }
 
+// Extraction confidence threshold below which user confirmation is required
+export const CONFIRM_THRESHOLD = Number(process.env.CONFIRM_THRESHOLD) || 0.8
+
 export function getApiKey() {
   const key = process.env.GNANI_API_KEY
   if (!key || typeof key !== 'string' || key.trim() === '') {
