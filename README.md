@@ -19,6 +19,10 @@ Paper forms can be difficult for elderly and first-time rural applicants to comp
 
 The product boundary, priorities, limitations, and intended users are defined in [docs/SCOPE.md](docs/SCOPE.md).
 
+## Form
+
+The current inventory is in [docs/FORM_FIELDS.md](docs/FORM_FIELDS.md). It remains UNVERIFIED until a public blank source form is supplied.
+
 ## Setup
 
 Use two terminals from this folder.
