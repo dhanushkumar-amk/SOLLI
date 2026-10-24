@@ -89,6 +89,16 @@ The voice conversation loop runs at route `/app` (or click "Open Voice Form Help
 
 See [docs/CONVERSATION_FLOW.md](docs/CONVERSATION_FLOW.md) for the complete state machine diagram and transition table.
 
+## Read-back, Confirmation & Review (Phase 11)
+
+- **Confirmation Policy (`server/forms/confirmPolicy.js`):** Pure matrix (`shouldConfirm`) based on field schema (`always`, `if_uncertain`, `never`), extraction confidence, and self-corrections. Critical identifiers always require confirmation.
+- **Split Read-Back Audio:** Dynamically synthesized values are decoupled from static confirmation prompts. The static prompt (`"இது சரியா? ஆம் அல்லது இல்லை என்று சொல்லுங்கள்."`) achieves a 100% cache HIT on subsequent fields, preserving the 5,000 credit budget.
+- **Accessible Touch Fallbacks:** Prominent on-screen **"👍 ஆம் / Yes"** and **"👎 இல்லை / No"** buttons are visible during all confirmation steps, allowing instant tap-based verification with zero latency and 0 API calls.
+- **Confirmation Loop Guardrails:** Silence during confirmation is strictly treated as unclear (never as "yes"). A maximum of 3 confirmation rounds per field prevents endless loops; unresolved fields are marked `needsOperatorHelp`.
+- **Review Screen & Single-Field Tap Edit:** After the last field, an interactive review screen lists all fields with masked sensitive values, status badges, and tap-based "Edit" buttons. "Read everything to me" speaks the summary with pause/stop controls and character budget capping (`MAX_SUMMARY_CHARS=1200`). Final confirmation leads to `readyForPdf`.
+
+See [docs/CONFIRMATION_POLICY.md](docs/CONFIRMATION_POLICY.md) for the policy matrix, read-back rules, and privacy trade-offs.
+
 ## Setup
 
 Use two terminals from this folder.

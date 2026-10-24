@@ -10,7 +10,7 @@
 - [x] Phase 8: Question loop
 - [x] Phase 9: Speech-to-field extraction
 - [x] Phase 10: Dates, numbers and names
-- [ ] Phase 11: Read-back and confirmation
+- [x] Phase 11: Read-back and confirmation
 - [ ] Phase 12: Voice corrections and commands
 - [ ] Phase 13: Frontend polish
 - [ ] Phase 14: PDF generation
@@ -21,4 +21,4 @@
 - [ ] Phase 19: Record demo and post
 - [ ] Phase 20: Final submission
 
-**Current status:** Phase 10 complete.
+**Current status:** Phase 11 complete.
