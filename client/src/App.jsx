@@ -1,24 +1,116 @@
 import { useEffect, useState } from 'react'
 import { getHealth } from './api'
 import './App.css'
+import DevRoundtrip from './pages/DevRoundtrip'
 
 function App() {
   const [connected, setConnected] = useState(false)
+  const [currentPath, setCurrentPath] = useState(window.location.pathname)
 
   useEffect(() => {
     getHealth().then(() => setConnected(true)).catch(() => setConnected(false))
+
+    const onLocationChange = () => {
+      setCurrentPath(window.location.pathname)
+    }
+
+    window.addEventListener('popstate', onLocationChange)
+    return () => window.removeEventListener('popstate', onLocationChange)
   }, [])
 
-  return <main className="welcome">
-    <section aria-labelledby="solli-title">
-      <p className="eyebrow">Voice form helper</p>
-      <h1 id="solli-title">Solli</h1>
-      <p className="tagline">Just say it. We&apos;ll fill the form.</p>
-      <p className={`status ${connected ? 'connected' : 'offline'}`} role="status">
-        {connected ? 'Server connected' : 'Server not reachable'}
-      </p>
-    </section>
-  </main>
+  const navigate = (path) => {
+    window.history.pushState({}, '', path)
+    setCurrentPath(path)
+  }
+
+  const isDev = Boolean(import.meta.env.DEV)
+
+  return (
+    <div>
+      {/* Dev Navigation Bar (Visible only in development mode) */}
+      {isDev && (
+        <nav
+          style={{
+            background: '#1e293b',
+            color: '#f8fafc',
+            padding: '0.5rem 1rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '0.85rem',
+          }}
+        >
+          <span>
+            <strong>Solli DEV</strong> — Route: <code>{currentPath}</code>
+          </span>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              style={{
+                background: currentPath === '/' ? '#3b82f6' : '#334155',
+                color: '#fff',
+                border: 'none',
+                padding: '0.25rem 0.6rem',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Home
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/dev/roundtrip')}
+              style={{
+                background: currentPath === '/dev/roundtrip' ? '#3b82f6' : '#334155',
+                color: '#fff',
+                border: 'none',
+                padding: '0.25rem 0.6rem',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              /dev/roundtrip
+            </button>
+          </div>
+        </nav>
+      )}
+
+      {/* Route matching */}
+      {isDev && currentPath === '/dev/roundtrip' ? (
+        <DevRoundtrip />
+      ) : (
+        <main className="welcome">
+          <section aria-labelledby="solli-title">
+            <p className="eyebrow">Voice form helper</p>
+            <h1 id="solli-title">Solli</h1>
+            <p className="tagline">Just say it. We&apos;ll fill the form.</p>
+            <p className={`status ${connected ? 'connected' : 'offline'}`} role="status">
+              {connected ? 'Server connected' : 'Server not reachable'}
+            </p>
+            {isDev && (
+              <p style={{ marginTop: '1.5rem' }}>
+                <a
+                  href="/dev/roundtrip"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    navigate('/dev/roundtrip')
+                  }}
+                  style={{
+                    color: '#2563eb',
+                    fontWeight: 600,
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Go to /dev/roundtrip (Prisma & Timbre Tester) →
+                </a>
+              </p>
+            )}
+          </section>
+        </main>
+      )}
+    </div>
+  )
 }
 
 export default App
