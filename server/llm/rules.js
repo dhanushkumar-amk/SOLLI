@@ -213,20 +213,20 @@ export async function extract({ field, transcript, context = {} }) {
 
     case 'phone': {
       let digits = wordsToDigits(cleaned).replace(/\D/g, '')
-      if (digits.length === 10) {
-        value = `${digits.slice(0, 5)} ${digits.slice(5)}`
-        confidence = 0.9
+      if (digits.length > 0) {
+        value = digits.length === 10 ? `${digits.slice(0, 5)} ${digits.slice(5)}` : digits
+        confidence = digits.length === 10 ? 0.9 : 0.4
         needsConfirmation = true
-        reason = '10-digit phone number formatted with space'
+        reason = digits.length === 10 ? '10-digit phone number formatted with space' : 'Incomplete or invalid phone digits extracted'
       }
       break
     }
 
     case 'bank_account': {
       let digits = wordsToDigits(cleaned).replace(/\D/g, '')
-      if (digits.length >= 9 && digits.length <= 18) {
+      if (digits.length > 0) {
         value = digits
-        confidence = 0.85
+        confidence = digits.length >= 9 && digits.length <= 18 ? 0.85 : 0.4
         needsConfirmation = true
         reason = 'Bank account digits extracted'
       }
@@ -235,11 +235,11 @@ export async function extract({ field, transcript, context = {} }) {
 
     case 'aadhaar': {
       let digits = wordsToDigits(cleaned).replace(/\D/g, '')
-      if (digits.length === 12) {
-        value = `${digits.slice(0, 4)} ${digits.slice(4, 8)} ${digits.slice(8)}`
-        confidence = 0.9
+      if (digits.length > 0) {
+        value = digits.length === 12 ? `${digits.slice(0, 4)} ${digits.slice(4, 8)} ${digits.slice(8)}` : digits
+        confidence = digits.length === 12 ? 0.9 : 0.4
         needsConfirmation = true
-        reason = '12-digit Aadhaar formatted in 4-digit groups'
+        reason = digits.length === 12 ? '12-digit Aadhaar formatted in 4-digit groups' : 'Invalid length Aadhaar digits extracted'
       }
       break
     }

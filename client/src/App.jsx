@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getHealth } from './api'
 import './App.css'
 import DevRoundtrip from './pages/DevRoundtrip'
+import VoiceApp from './pages/VoiceApp'
 
 function App() {
   const [connected, setConnected] = useState(false)
@@ -60,6 +61,20 @@ function App() {
             </button>
             <button
               type="button"
+              onClick={() => navigate('/app')}
+              style={{
+                background: currentPath === '/app' ? '#3b82f6' : '#334155',
+                color: '#fff',
+                border: 'none',
+                padding: '0.25rem 0.6rem',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              /app (Voice Form)
+            </button>
+            <button
+              type="button"
               onClick={() => navigate('/dev/roundtrip')}
               style={{
                 background: currentPath === '/dev/roundtrip' ? '#3b82f6' : '#334155',
@@ -77,7 +92,9 @@ function App() {
       )}
 
       {/* Route matching */}
-      {isDev && currentPath === '/dev/roundtrip' ? (
+      {currentPath === '/app' ? (
+        <VoiceApp />
+      ) : isDev && currentPath === '/dev/roundtrip' ? (
         <DevRoundtrip />
       ) : (
         <main className="welcome">
@@ -88,6 +105,25 @@ function App() {
             <p className={`status ${connected ? 'connected' : 'offline'}`} role="status">
               {connected ? 'Server connected' : 'Server not reachable'}
             </p>
+            <p style={{ marginTop: '2rem' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/app')}
+                style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  padding: '1rem 2rem',
+                  background: '#2563eb',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '9999px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.3)',
+                }}
+              >
+                Open Voice Form Helper (/app) →
+              </button>
+            </p>
             {isDev && (
               <p style={{ marginTop: '1.5rem' }}>
                 <a
@@ -97,8 +133,8 @@ function App() {
                     navigate('/dev/roundtrip')
                   }}
                   style={{
-                    color: '#2563eb',
-                    fontWeight: 600,
+                    color: '#64748b',
+                    fontSize: '0.9rem',
                     textDecoration: 'underline',
                   }}
                 >

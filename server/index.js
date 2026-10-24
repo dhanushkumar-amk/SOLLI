@@ -6,14 +6,23 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { GNANI_CONFIG } from './config.js'
 import {
+  assertLiveCallAllowed,
+  getLiveCallsInLastHour,
+  getMaxLiveCallsPerHour,
+  recordLiveCall,
+} from './creditGuard.js'
+import { extractField } from './extract.js'
+import {
   buildFullSummary,
   getNextField,
   getProgress,
   loadForm,
   validateAnswer,
 } from './forms/formEngine.js'
+import { maskValue } from './forms/validators.js'
 import { speak, transcribe } from './gnani.js'
 import { getEvonStatus } from './llm/index.js'
+import { getCachedAudio, setCachedAudio } from './ttsCache.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // Load environment variables from server/.env or parent .env
@@ -31,6 +40,8 @@ const stats = {
   },
   speak: {
     calls: 0,
+    hits: 0,
+    misses: 0,
     totalCharacters: 0,
   },
 }
@@ -85,6 +96,8 @@ app.get('/api/stats', (_req, res) => {
   res.json({
     transcribe: { ...stats.transcribe },
     speak: { ...stats.speak },
+    liveCallsInLastHour: getLiveCallsInLastHour(),
+    maxLiveCallsPerHour: getMaxLiveCallsPerHour(),
   })
 })
 
@@ -145,6 +158,58 @@ app.post('/api/form/:id/validate', (req, res) => {
       return res.status(404).json({ error: `Form "${formId}" not found` })
     }
     res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/form/:id/answer — Extract answer, validate, and return masked display
+app.post('/api/form/:id/answer', async (req, res, next) => {
+  const formId = req.params.id
+  const { fieldId, transcript, context } = req.body || {}
+  const startTime = Date.now()
+
+  if (!fieldId || typeof fieldId !== 'string') {
+    return res.status(400).json({ error: 'fieldId is required' })
+  }
+
+  try {
+    const form = loadForm(formId)
+    const field = form.fields.find((f) => f.id === fieldId)
+    if (!field) {
+      return res.status(404).json({ error: `Field "${fieldId}" not found in form "${formId}"` })
+    }
+
+    const extraction = await extractField(
+      fieldId,
+      typeof transcript === 'string' ? transcript : '',
+      context || {}
+    )
+    const latencyMs = Date.now() - startTime
+
+    // Log ONLY route name, field id, and latency — NEVER transcripts or values
+    console.log(`[route] POST /api/form/${formId}/answer fieldId=${fieldId} latencyMs=${latencyMs}`)
+
+    // Mask value if sensitive
+    let display = ''
+    if (extraction.value !== null && extraction.value !== undefined) {
+      display = field.sensitive ? maskValue(extraction.value, field.type) : String(extraction.value)
+    }
+
+    res.json({
+      value: extraction.value,
+      display,
+      valid: extraction.valid,
+      validationError: extraction.validationError,
+      confidence: extraction.confidence,
+      needsConfirmation: extraction.needsConfirmation,
+      isCorrection: extraction.isCorrection,
+      command: extraction.command,
+      provider: extraction.provider,
+    })
+  } catch (err) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: `Form "${formId}" not found` })
+    }
+    next(err)
   }
 })
 
@@ -228,7 +293,11 @@ app.post(
         })
       }
 
+      // Enforce live call rate limit
+      assertLiveCallAllowed()
+
       const result = await transcribe(audioBuffer, { mimeType, language })
+      recordLiveCall()
 
       // Update call stats
       stats.transcribe.calls += 1
@@ -244,10 +313,10 @@ app.post(
   }
 )
 
-// Text-to-Speech endpoint
+// Text-to-Speech endpoint (Cached & Rate-Limited)
 app.post('/api/speak', async (req, res, next) => {
   try {
-    const { text, voice, language } = req.body || {}
+    const { text, voice, language, sensitive } = req.body || {}
     if (!text || typeof text !== 'string' || text.trim() === '') {
       return res.status(400).json({ error: 'Text string is required' })
     }
@@ -258,13 +327,34 @@ app.post('/api/speak', async (req, res, next) => {
       })
     }
 
+    // 1. Check in-memory TTS cache (skips if sensitive)
+    const cached = getCachedAudio(text, { voice, language, sensitive })
+    if (cached) {
+      stats.speak.calls += 1
+      stats.speak.hits += 1
+      res.set('Content-Type', cached.mimeType)
+      res.set('X-Cache', 'HIT')
+      res.set('X-Latency-Ms', '0')
+      return res.send(cached.audioBuffer)
+    }
+
+    // 2. Check live call rate limit
+    assertLiveCallAllowed()
+
+    // 3. Perform live synthesis
     const result = await speak(text, { voice, language })
+    recordLiveCall()
 
     // Update call stats
     stats.speak.calls += 1
+    stats.speak.misses += 1
     stats.speak.totalCharacters += text.length
 
+    // 4. Cache audio (never caches if marked sensitive)
+    setCachedAudio(text, { voice, language, sensitive }, result)
+
     res.set('Content-Type', result.mimeType)
+    res.set('X-Cache', 'MISS')
     res.set('X-Latency-Ms', String(result.latencyMs))
     res.send(result.audioBuffer)
   } catch (error) {

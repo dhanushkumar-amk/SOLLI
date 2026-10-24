@@ -54,6 +54,17 @@ cd server
 npm run form:check
 ```
 
+## Voice Question Loop (`/app`)
+
+The voice conversation loop runs at route `/app` (or click "Open Voice Form Helper" on the home page):
+1. **Autoplay Compliance:** Starts with a prominent "தொடங்கு / Start" button to initialize audio playback.
+2. **Conversation Flow:** Synthesizes question via Timbre TTS -> records applicant speech (with 15s auto-stop) -> transcribes with Prisma STT -> extracts & validates value -> stores in session memory -> queries next field via `/api/form/:id/next`.
+3. **Retry & Silence Rules:** Maximum 2 attempts per field. Silence plays help prompt once. Repeated failures or silence courteously defer with *"இதை அப்புறம் பார்க்கலாம் / Let us come back to this"* and advance to the next field, marking the question for operator help.
+4. **Zero-Credit Typed Test Mode:** In development mode, toggle **"Typed Test Mode"** and **"Mute Voice"** to complete the entire form with fake data using 0 API credits.
+5. **Credit Guard & Caching:** Static form questions hit an in-memory cache (`X-Cache: HIT`), and live calls are guarded by `MAX_LIVE_CALLS_PER_HOUR=120` returning 429 before exhausting credits.
+
+See [docs/CONVERSATION_FLOW.md](docs/CONVERSATION_FLOW.md) for the complete state machine diagram and transition table.
+
 ## Setup
 
 Use two terminals from this folder.

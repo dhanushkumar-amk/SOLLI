@@ -7,7 +7,7 @@
 - [x] Phase 5: First API round trip (Prisma and Timbre round trip)
 - [x] Phase 6: Check Evon access (Evon routes and swappable extractor)
 - [x] Phase 7: Form definition file
-- [ ] Phase 8: Question loop
+- [x] Phase 8: Question loop
 - [ ] Phase 9: Speech-to-field extraction
 - [ ] Phase 10: Dates, numbers and names
 - [ ] Phase 11: Read-back and confirmation
@@ -21,4 +21,4 @@
 - [ ] Phase 19: Record demo and post
 - [ ] Phase 20: Final submission
 
-**Current status:** Phase 7 complete.
+**Current status:** Phase 8 complete.

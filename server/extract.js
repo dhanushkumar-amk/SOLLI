@@ -23,6 +23,10 @@ export async function extractField(field, transcript, context = {}) {
         const vResult = validateAnswer(fieldDef, result.value)
         valid = vResult.ok
         validationError = vResult.ok ? null : vResult.error
+      } else if (typeof transcript === 'string' && transcript.trim().length > 0) {
+        // Spoken or typed input was provided, but could not be parsed into a valid value
+        valid = false
+        validationError = 'INVALID_FORMAT'
       } else if (fieldDef.required) {
         valid = false
         validationError = 'REQUIRED'
