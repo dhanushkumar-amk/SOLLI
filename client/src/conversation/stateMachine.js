@@ -1,5 +1,5 @@
 /**
- * Solli Conversation Loop State Machine (Phase 11: Read-back & Confirmation)
+ * Solli Conversation Loop State Machine (Phase 12: Voice Commands & Corrections)
  *
  * Explicit Transition Table:
  *
@@ -16,6 +16,16 @@
  * listening            SKIP_FIELD              speakingQuestion | review
  * listening            REPEAT_QUESTION         speakingQuestion
  * listening            STOP                    idle
+ * listening            COMMAND_REPEAT          speakingQuestion
+ * listening            COMMAND_SKIP (optional) speakingQuestion | review
+ * listening            COMMAND_SKIP (required) speakingHelp (refused, offers dont_know)
+ * listening            COMMAND_DONT_KNOW       speakingQuestion | review (operator help)
+ * listening            COMMAND_BACK            speakingQuestion (previous spoken field)
+ * listening            COMMAND_CHANGE_FIELD    speakingQuestion (keeps old answer until confirmed)
+ * listening            COMMAND_HELP            speakingHelp
+ * listening            COMMAND_OPERATOR        operatorPaused (operator needed banner)
+ * listening            COMMAND_STOP            paused (shows Resume)
+ * listening            COMMAND_START_OVER      confirmStartOver (needs confirmation)
  * transcribing         TRANSCRIBE_SUCCESS      processing
  * transcribing         TRANSCRIBE_SILENCE      speakingHelp | speakingError
  * transcribing         FAIL                    error
@@ -32,6 +42,9 @@
  * listeningConfirm     CONFIRM_YES             speakingQuestion | review
  * listeningConfirm     CONFIRM_NO              speakingError (re-ask)
  * listeningConfirm     CONFIRM_UNCLEAR         speakingReadback | speakingError
+ * listeningConfirm     COMMAND_REPEAT          speakingReadback
+ * listeningConfirm     COMMAND_HELP            speakingHelp
+ * listeningConfirm     COMMAND_OPERATOR        operatorPaused
  * listeningConfirm     STOP                    idle
  * processingConfirm    CONFIRM_YES             speakingQuestion | review
  * processingConfirm    CONFIRM_NO              speakingError (re-ask)
@@ -45,7 +58,13 @@
  * speakingError        SKIP_AUDIO_RETRY        listening
  * speakingError        SKIP_AUDIO_ADVANCE      speakingQuestion | review
  * speakingError        STOP                    idle
+ * paused               RESUME_FROM_PAUSE       listening | review
+ * operatorPaused       RESUME_FROM_PAUSE       listening | review
+ * confirmStartOver     CONFIRM_START_OVER_YES  speakingQuestion (clears all answers)
+ * confirmStartOver     CONFIRM_START_OVER_NO   listening | review (preserves all answers)
  * review               START_EDIT_FIELD        speakingQuestion
+ * review               COMMAND_CHANGE_FIELD    speakingQuestion
+ * review               COMMAND_START_OVER      confirmStartOver
  * review               CONFIRM_FULL_FORM       readyForPdf
  * review               RESTART                 idle
  * readyForPdf          RESTART                 idle
@@ -71,6 +90,9 @@ export const STATES = {
   READY_FOR_PDF: 'readyForPdf',
   FINISHED: 'finished',
   ERROR: 'error',
+  PAUSED: 'paused',
+  OPERATOR_PAUSED: 'operatorPaused',
+  CONFIRM_START_OVER: 'confirmStartOver',
 }
 
 export const MAX_ATTEMPTS_PER_FIELD = 2
@@ -109,6 +131,14 @@ export const RETRY_PROMPTS = {
   },
 }
 
+export function getPreviousSpokenField(form, currentFieldId) {
+  if (!form?.fields) return null
+  const spoken = form.fields.filter((f) => f.spoken)
+  const idx = spoken.findIndex((f) => f.id === currentFieldId)
+  if (idx > 0) return spoken[idx - 1]
+  return spoken[0] || null
+}
+
 export function createInitialContext(options = {}) {
   return {
     state: STATES.IDLE,
@@ -132,6 +162,13 @@ export function createInitialContext(options = {}) {
       sttMs: 0,
       extractMs: 0,
     },
+    // Phase 12: Voice commands & session safety
+    sessionNeedsOperatorHelp: false,
+    operatorReason: null,
+    stateBeforePause: null,
+    choosingField: false,
+    ambiguousCandidates: null,
+    showStartOverConfirm: false,
   }
 }
 
@@ -761,6 +798,297 @@ export function conversationReducer(state, action) {
 
     case 'SET_VOICE_MUTED': {
       return { ...state, voiceMuted: Boolean(action.payload) }
+    }
+
+    case 'EXECUTE_COMMAND': {
+      const { command, target, ambiguous, candidates, payload } = action.payload || {}
+
+      // Guard: Ignore commands while Solli is actively speaking audio
+      const isSpeakingState =
+        state.state === STATES.SPEAKING_QUESTION ||
+        state.state === STATES.SPEAKING_READBACK ||
+        state.state === STATES.SPEAKING_HELP ||
+        state.state === STATES.SPEAKING_ERROR
+
+      if (isSpeakingState) {
+        return state
+      }
+
+      // Guard: In confirmation states, only repeat, help, and operator are permitted
+      const isConfirmState =
+        state.state === STATES.LISTENING_CONFIRM ||
+        state.state === STATES.PROCESSING_CONFIRM
+
+      if (isConfirmState && command !== 'repeat' && command !== 'help' && command !== 'operator') {
+        return state
+      }
+
+      switch (command) {
+        case 'repeat': {
+          if (state.state === STATES.LISTENING_CONFIRM) {
+            return {
+              ...state,
+              state: STATES.SPEAKING_READBACK,
+              activePromptText: {
+                ta: state.pendingConfirmation?.readbackText || 'விவரத்தை சரிபார்க்கவும்.',
+                en: state.pendingConfirmation?.readbackText || 'Please verify the details.',
+              },
+            }
+          }
+          if (state.state === STATES.LISTENING) {
+            return {
+              ...state,
+              state: STATES.SPEAKING_QUESTION,
+              activePromptText: state.currentField?.question || null,
+            }
+          }
+          return state
+        }
+
+        case 'skip': {
+          if (state.state !== STATES.LISTENING) return state
+          if (state.currentField?.required) {
+            // Required field cannot be skipped: explain and offer "dont_know"
+            return {
+              ...state,
+              state: STATES.SPEAKING_HELP,
+              activePromptText: {
+                ta: 'இந்த விவரம் கண்டிப்பாக தேவை. தெரியவில்லை என்றால் "தெரியாது" என்று சொல்லுங்கள்.',
+                en: 'This field is required. If you do not know, you can say "I don\'t know".',
+              },
+            }
+          }
+          // Non-required field: mark skipped
+          const { nextField, progress, isFinished, summary } = payload || {}
+          const fieldId = state.currentFieldId
+          const updatedAnswers = {
+            ...state.answers,
+            [fieldId]: {
+              value: null,
+              display: '(Skipped)',
+              confirmed: false,
+              attempts: 0,
+              skipped: true,
+            },
+          }
+          if (state.editingFromReview || isFinished || !nextField) {
+            return {
+              ...state,
+              answers: updatedAnswers,
+              currentField: null,
+              currentFieldId: null,
+              editingFromReview: false,
+              progress: progress || state.progress,
+              summary: summary || state.summary,
+              state: STATES.REVIEW,
+            }
+          }
+          return {
+            ...state,
+            answers: updatedAnswers,
+            currentField: nextField,
+            currentFieldId: nextField.id,
+            progress: progress || state.progress,
+            state: STATES.SPEAKING_QUESTION,
+            activePromptText: nextField.question,
+          }
+        }
+
+        case 'dont_know': {
+          if (state.state !== STATES.LISTENING) return state
+          const { nextField, progress, isFinished, summary } = payload || {}
+          const fieldId = state.currentFieldId
+          const updatedAnswers = {
+            ...state.answers,
+            [fieldId]: {
+              value: null,
+              display: '(Needs operator help)',
+              confirmed: false,
+              attempts: 0,
+              needsOperatorHelp: true,
+              reason: 'dont_know',
+            },
+          }
+          if (state.editingFromReview || isFinished || !nextField) {
+            return {
+              ...state,
+              answers: updatedAnswers,
+              currentField: null,
+              currentFieldId: null,
+              editingFromReview: false,
+              progress: progress || state.progress,
+              summary: summary || state.summary,
+              state: STATES.REVIEW,
+            }
+          }
+          return {
+            ...state,
+            answers: updatedAnswers,
+            currentField: nextField,
+            currentFieldId: nextField.id,
+            progress: progress || state.progress,
+            state: STATES.SPEAKING_QUESTION,
+            activePromptText: nextField.question,
+          }
+        }
+
+        case 'back': {
+          if (state.state !== STATES.LISTENING) return state
+          const prevField = getPreviousSpokenField(state.form, state.currentFieldId)
+          if (!prevField) return state
+          return {
+            ...state,
+            currentField: prevField,
+            currentFieldId: prevField.id,
+            state: STATES.SPEAKING_QUESTION,
+            activePromptText: prevField.question,
+          }
+        }
+
+        case 'change_field': {
+          if (state.state !== STATES.LISTENING && state.state !== STATES.REVIEW) {
+            return state
+          }
+          if (ambiguous) {
+            return {
+              ...state,
+              ambiguousCandidates: candidates || [],
+              activePromptText: {
+                ta: 'எந்த விவரத்தை மாற்ற வேண்டும்?',
+                en: `Which field: ${(candidates || []).join(' or ')}?`,
+              },
+            }
+          }
+          if (!target) {
+            // Generic "change" without target: show tappable field selection
+            return {
+              ...state,
+              choosingField: true,
+              activePromptText: {
+                ta: 'எந்த விவரத்தை மாற்ற வேண்டும்?',
+                en: 'Which field would you like to change?',
+              },
+            }
+          }
+          const targetField = state.form?.fields?.find((f) => f.id === target)
+          if (!targetField) return state
+          // Safety: The existing value in answers[target] is NOT wiped out!
+          return {
+            ...state,
+            currentField: targetField,
+            currentFieldId: targetField.id,
+            editingFromReview: state.state === STATES.REVIEW || state.editingFromReview,
+            state: STATES.SPEAKING_QUESTION,
+            activePromptText: targetField.question,
+            choosingField: false,
+            ambiguousCandidates: null,
+          }
+        }
+
+        case 'help': {
+          const helpPrompt = state.currentField?.helpPrompt || {
+            ta: 'கேள்வியை கவனமாக கேட்டு பதிலளிக்கவும்.',
+            en: 'Please listen carefully and answer clearly.',
+          }
+          return {
+            ...state,
+            state: STATES.SPEAKING_HELP,
+            activePromptText: helpPrompt,
+          }
+        }
+
+        case 'operator': {
+          return {
+            ...state,
+            state: STATES.OPERATOR_PAUSED,
+            sessionNeedsOperatorHelp: true,
+            operatorReason: 'operator_requested',
+            stateBeforePause: state.state,
+          }
+        }
+
+        case 'stop': {
+          return {
+            ...state,
+            state: STATES.PAUSED,
+            stateBeforePause: state.state,
+          }
+        }
+
+        case 'start_over': {
+          return {
+            ...state,
+            state: STATES.CONFIRM_START_OVER,
+            stateBeforePause: state.state,
+            showStartOverConfirm: true,
+            activePromptText: {
+              ta: 'அனைத்தையும் அழித்து மீண்டும் தொடங்கவா?',
+              en: 'Delete everything and start again?',
+            },
+          }
+        }
+
+        default:
+          return state
+      }
+    }
+
+    case 'RESUME_FROM_PAUSE': {
+      if (state.state !== STATES.PAUSED && state.state !== STATES.OPERATOR_PAUSED) {
+        return state
+      }
+      return {
+        ...state,
+        state: state.stateBeforePause || STATES.LISTENING,
+        stateBeforePause: null,
+      }
+    }
+
+    case 'CONFIRM_START_OVER_YES': {
+      if (state.state !== STATES.CONFIRM_START_OVER) return state
+      const firstField = state.form?.fields?.find((f) => f.spoken)
+      return {
+        ...createInitialContext({ mode: state.mode, voiceMuted: state.voiceMuted }),
+        form: state.form,
+        currentField: firstField || null,
+        currentFieldId: firstField?.id || null,
+        state: firstField ? STATES.SPEAKING_QUESTION : STATES.IDLE,
+        activePromptText: firstField?.question || null,
+      }
+    }
+
+    case 'CONFIRM_START_OVER_NO': {
+      if (state.state !== STATES.CONFIRM_START_OVER) return state
+      return {
+        ...state,
+        state: state.stateBeforePause || STATES.LISTENING,
+        stateBeforePause: null,
+        showStartOverConfirm: false,
+      }
+    }
+
+    case 'CHOOSE_TARGET_FIELD': {
+      const { fieldId } = action.payload || {}
+      const targetField = state.form?.fields?.find((f) => f.id === fieldId)
+      if (!targetField) return state
+      return {
+        ...state,
+        currentField: targetField,
+        currentFieldId: targetField.id,
+        editingFromReview: state.state === STATES.REVIEW || state.editingFromReview,
+        state: STATES.SPEAKING_QUESTION,
+        activePromptText: targetField.question,
+        choosingField: false,
+        ambiguousCandidates: null,
+      }
+    }
+
+    case 'CANCEL_CHOOSE_FIELD': {
+      return {
+        ...state,
+        choosingField: false,
+        ambiguousCandidates: null,
+      }
     }
 
     case 'STOP':

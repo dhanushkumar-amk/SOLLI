@@ -114,7 +114,7 @@ describe('Conversation State Machine Reducer', () => {
     assert.equal(next.progress.done, 1)
   })
 
-  test('valid answer on final field transitions to finished', () => {
+  test('valid answer on final field transitions to review screen', () => {
     const currentField = { id: 'aadhaar' }
     const ctx = {
       ...createInitialContext(),
@@ -136,7 +136,7 @@ describe('Conversation State Machine Reducer', () => {
       },
     })
 
-    assert.equal(next.state, STATES.FINISHED)
+    assert.equal(next.state, STATES.REVIEW)
     assert.equal(next.currentField, null)
     assert.equal(next.summary?.length, 1)
   })

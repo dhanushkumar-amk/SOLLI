@@ -27,6 +27,8 @@ import { maskValue } from './forms/validators.js'
 import { speak, transcribe } from './gnani.js'
 import { extractYesNo } from './llm/extractors/yesno.js'
 import { getEvonStatus } from './llm/index.js'
+import { detectCommand } from './llm/commands/detect.js'
+import { handlePartialCorrection } from './llm/commands/partial.js'
 import { getCachedAudio, setCachedAudio } from './ttsCache.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -53,6 +55,17 @@ const stats = {
     speaks: 0,
     estimatedTimbreCharacters: 0,
     confirmationRounds: 0,
+  },
+  commands: {
+    repeat: 0,
+    skip: 0,
+    dont_know: 0,
+    back: 0,
+    change_field: 0,
+    help: 0,
+    operator: 0,
+    start_over: 0,
+    stop: 0,
   },
 }
 
@@ -107,6 +120,7 @@ app.get('/api/stats', (_req, res) => {
     transcribe: { ...stats.transcribe },
     speak: { ...stats.speak },
     readback: { ...stats.readback },
+    commands: { ...stats.commands },
     evon: getEvonStatus(),
     liveCallsInLastHour: getLiveCallsInLastHour(),
     maxLiveCallsPerHour: getMaxLiveCallsPerHour(),
@@ -390,6 +404,79 @@ app.post('/api/form/:id/confirm-input', (req, res) => {
     confidence: extraction.confidence,
     provider: 'rules',
   })
+})
+
+// POST /api/form/:id/command — Detect voice commands and field targets
+app.post('/api/form/:id/command', (req, res) => {
+  const formId = req.params.id
+  const { transcript, state, fieldId } = req.body || {}
+
+  // Safe logging: Never log transcript text or values
+  console.log(`[route] POST /api/form/${formId}/command state=${state || 'unknown'} fieldId=${fieldId || 'none'}`)
+
+  try {
+    const form = loadForm(formId)
+    const field = fieldId ? form.fields.find((f) => f.id === fieldId) : null
+
+    const detection = detectCommand(transcript || '', {
+      state: state || 'listening',
+      field,
+      fields: form.fields,
+    })
+
+    if (detection.command && stats.commands[detection.command] !== undefined) {
+      stats.commands[detection.command] += 1
+    }
+
+    res.json({
+      command: detection.command,
+      target: detection.target,
+      ambiguous: detection.ambiguous,
+      confidence: detection.confidence,
+    })
+  } catch (err) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: `Form "${formId}" not found` })
+    }
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/form/:id/partial-correction — Handle safe in-answer or digit corrections
+app.post('/api/form/:id/partial-correction', (req, res) => {
+  const formId = req.params.id
+  const { currentValue, fieldId, transcript } = req.body || {}
+
+  // Safe logging: Never log transcript text or values
+  console.log(`[route] POST /api/form/${formId}/partial-correction fieldId=${fieldId || 'unknown'}`)
+
+  if (!fieldId || typeof fieldId !== 'string') {
+    return res.status(400).json({ error: 'fieldId is required' })
+  }
+
+  try {
+    const form = loadForm(formId)
+    const field = form.fields.find((f) => f.id === fieldId)
+    if (!field) {
+      return res.status(404).json({ error: `Field "${fieldId}" not found in form "${formId}"` })
+    }
+
+    const result = handlePartialCorrection(transcript || '', {
+      currentValue,
+      field,
+    })
+
+    res.json({
+      handled: Boolean(result.handled),
+      value: result.value !== undefined ? result.value : null,
+      needsConfirmation: Boolean(result.needsConfirmation),
+    })
+  } catch (err) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: `Form "${formId}" not found` })
+    }
+    res.status(500).json({ error: err.message })
+  }
 })
 
 // ----------------------------------------------------

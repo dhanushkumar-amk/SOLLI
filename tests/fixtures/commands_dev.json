@@ -1,0 +1,450 @@
+[
+  {
+    "transcript": "repeat",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "repeat",
+    "expected_target": null,
+    "note": "English exact repeat command"
+  },
+  {
+    "transcript": "meendum sollunga",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "repeat",
+    "expected_target": null,
+    "note": "Roman Tamil repeat command"
+  },
+  {
+    "transcript": "thirumba sollunga pa",
+    "state": "listening",
+    "field_type": "name",
+    "expected_command": "repeat",
+    "expected_target": null,
+    "note": "Roman Tamil repeat with filler"
+  },
+  {
+    "transcript": "மீண்டும் சொல்லுங்கள்",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "repeat",
+    "expected_target": null,
+    "note": "Tamil script repeat command"
+  },
+  {
+    "transcript": "kelvi thirumba sollunga",
+    "state": "listening",
+    "field_type": "phone",
+    "expected_command": "repeat",
+    "expected_target": null,
+    "note": "Re-ask question repeat"
+  },
+  {
+    "transcript": "again please",
+    "state": "listeningConfirm",
+    "field_type": "yes_no",
+    "expected_command": "repeat",
+    "expected_target": null,
+    "note": "Repeat during confirmation state is allowed"
+  },
+  {
+    "transcript": "skip",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "skip",
+    "expected_target": null,
+    "note": "English single-word skip"
+  },
+  {
+    "transcript": "next",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "skip",
+    "expected_target": null,
+    "note": "Next question keyword"
+  },
+  {
+    "transcript": "aduthadhu",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "skip",
+    "expected_target": null,
+    "note": "Tamil aduthadhu command"
+  },
+  {
+    "transcript": "idha thavirthudunga",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "skip",
+    "expected_target": null,
+    "note": "Tamil skip phrase"
+  },
+  {
+    "transcript": "skip",
+    "state": "listeningConfirm",
+    "field_type": "yes_no",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "Skip NOT allowed during confirmation state"
+  },
+  {
+    "transcript": "theriyadhu",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "dont_know",
+    "expected_target": null,
+    "note": "Roman Tamil dont know"
+  },
+  {
+    "transcript": "theriyala",
+    "state": "listening",
+    "field_type": "phone",
+    "expected_command": "dont_know",
+    "expected_target": null,
+    "note": "Colloquial dont know"
+  },
+  {
+    "transcript": "I don't know",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "dont_know",
+    "expected_target": null,
+    "note": "English standard dont know"
+  },
+  {
+    "transcript": "enakku theriyadhu",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "dont_know",
+    "expected_target": null,
+    "note": "Full sentence Tamil dont know"
+  },
+  {
+    "transcript": "தெரியாது",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "dont_know",
+    "expected_target": null,
+    "note": "Tamil script theriyadhu"
+  },
+  {
+    "transcript": "back",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "back",
+    "expected_target": null,
+    "note": "English back command"
+  },
+  {
+    "transcript": "previous",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "back",
+    "expected_target": null,
+    "note": "English previous command"
+  },
+  {
+    "transcript": "munnadi ponga",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "back",
+    "expected_target": null,
+    "note": "Tamil munnadi ponga"
+  },
+  {
+    "transcript": "back",
+    "state": "listeningConfirm",
+    "field_type": "yes_no",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "Back NOT allowed in confirmation state"
+  },
+  {
+    "transcript": "change the village",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "change_field",
+    "expected_target": "village",
+    "note": "Change field targeting village"
+  },
+  {
+    "transcript": "ooru maathunga",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "change_field",
+    "expected_target": "village",
+    "note": "Tamil alias for village"
+  },
+  {
+    "transcript": "change mobile number",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "change_field",
+    "expected_target": "phone",
+    "note": "Change field targeting phone"
+  },
+  {
+    "transcript": "pirandha thethi maathunga",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "change_field",
+    "expected_target": "date_of_birth",
+    "note": "Tamil change date of birth"
+  },
+  {
+    "transcript": "vangi kanakku maathunga",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "change_field",
+    "expected_target": "bank_account",
+    "note": "Tamil change bank account"
+  },
+  {
+    "transcript": "change",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "change_field",
+    "expected_target": null,
+    "note": "Change with no target asks which field"
+  },
+  {
+    "transcript": "change the village",
+    "state": "listeningConfirm",
+    "field_type": "yes_no",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "Change field NOT allowed in confirmation state"
+  },
+  {
+    "transcript": "help",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "help",
+    "expected_target": null,
+    "note": "English help command"
+  },
+  {
+    "transcript": "udhavi",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "help",
+    "expected_target": null,
+    "note": "Tamil udhavi command"
+  },
+  {
+    "transcript": "help please",
+    "state": "listeningConfirm",
+    "field_type": "yes_no",
+    "expected_command": "help",
+    "expected_target": null,
+    "note": "Help allowed in confirmation state"
+  },
+  {
+    "transcript": "operator",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "operator",
+    "expected_target": null,
+    "note": "English operator command"
+  },
+  {
+    "transcript": "adhigaari venum",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "operator",
+    "expected_target": null,
+    "note": "Tamil officer requested"
+  },
+  {
+    "transcript": "operator sir",
+    "state": "listeningConfirm",
+    "field_type": "yes_no",
+    "expected_command": "operator",
+    "expected_target": null,
+    "note": "Operator allowed in confirmation state"
+  },
+  {
+    "transcript": "start over",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "start_over",
+    "expected_target": null,
+    "note": "English start over command"
+  },
+  {
+    "transcript": "modhalilirundhu",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "start_over",
+    "expected_target": null,
+    "note": "Tamil modhalilirundhu command"
+  },
+  {
+    "transcript": "start over",
+    "state": "listeningConfirm",
+    "field_type": "yes_no",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "Start over NOT allowed during confirmation state"
+  },
+  {
+    "transcript": "stop",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "stop",
+    "expected_target": null,
+    "note": "English stop command"
+  },
+  {
+    "transcript": "niruthunga",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "stop",
+    "expected_target": null,
+    "note": "Tamil niruthunga command"
+  },
+  {
+    "transcript": "pause",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": "stop",
+    "expected_target": null,
+    "note": "Pause session command"
+  },
+  {
+    "transcript": "stop",
+    "state": "listeningConfirm",
+    "field_type": "yes_no",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "Stop NOT allowed during confirmation state"
+  },
+  {
+    "transcript": "Skandan",
+    "state": "listening",
+    "field_type": "name",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Proper name containing 'an' sound must remain answer"
+  },
+  {
+    "transcript": "24 back street",
+    "state": "listening",
+    "field_type": "address",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Street address with 'back street' must remain answer"
+  },
+  {
+    "transcript": "next to temple",
+    "state": "listening",
+    "field_type": "address",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Address location with 'next to' must remain answer"
+  },
+  {
+    "transcript": "bus stop street",
+    "state": "listening",
+    "field_type": "address",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Address containing 'stop' must remain answer"
+  },
+  {
+    "transcript": "theriyum",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: 'theriyum' means I know, must NOT match dont_know"
+  },
+  {
+    "transcript": "enakku theriyum sir",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: 'enakku theriyum' affirmative knowledge, not command"
+  },
+  {
+    "transcript": "Muthu Raman",
+    "state": "listening",
+    "field_type": "name",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Applicant full name answer"
+  },
+  {
+    "transcript": "railway stop theru",
+    "state": "listening",
+    "field_type": "address",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Tamil street name with 'stop'"
+  },
+  {
+    "transcript": "Kallidaikurichi village",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Village answer mentioning village keyword"
+  },
+  {
+    "transcript": "ooru Madurai",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Answer stating town name"
+  },
+  {
+    "transcript": "en peyar Selvam",
+    "state": "listening",
+    "field_type": "name",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Name answer starting with en peyar"
+  },
+  {
+    "transcript": "chillara change illa",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Utterance containing word change in sentence"
+  },
+  {
+    "transcript": "en paiyan help pannuvan",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Sentence containing help"
+  },
+  {
+    "transcript": "vangi kanakku illai",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Answer stating no bank account"
+  },
+  {
+    "transcript": "marupadiyum hospital ponum",
+    "state": "listening",
+    "field_type": "text",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Sentence containing marupadiyum"
+  },
+  {
+    "transcript": "This is a very long descriptive answer from the applicant about their residence in rural district",
+    "state": "listening",
+    "field_type": "address",
+    "expected_command": null,
+    "expected_target": null,
+    "note": "NEGATIVE: Over-length utterance exceeding COMMAND_MAX_WORDS"
+  }
+]

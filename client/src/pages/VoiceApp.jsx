@@ -37,6 +37,12 @@ export default function VoiceApp() {
     setMode,
     setVoiceMuted,
     restart,
+    speakChangeReview,
+    resumeFromPause,
+    confirmStartOver,
+    chooseTargetField,
+    cancelChooseField,
+    executeCommand,
   } = useConversation({
     mode: isDev ? 'typed' : 'voice',
     voiceMuted: false,
@@ -138,6 +144,24 @@ export default function VoiceApp() {
           bg: '#f1f5f9',
           color: '#475569',
         }
+      case STATES.PAUSED:
+        return {
+          text: '⏸️ நிறுத்தி வைக்கப்பட்டுள்ளது / Conversation Paused',
+          bg: '#f1f5f9',
+          color: '#475569',
+        }
+      case STATES.OPERATOR_PAUSED:
+        return {
+          text: '👤 பணியாளர் உதவி தேவை / Operator Needed',
+          bg: '#fee2e2',
+          color: '#b91c1c',
+        }
+      case STATES.CONFIRM_START_OVER:
+        return {
+          text: '⚠️ மீண்டும் தொடங்குவதை உறுதிப்படுத்தவும் / Confirm Start Over',
+          bg: '#fef3c7',
+          color: '#92400e',
+        }
       default:
         return null
     }
@@ -210,6 +234,219 @@ export default function VoiceApp() {
               Mute Voice (Skip Timbre)
             </label>
           </div>
+
+          {/* Phase 12: Quick on-screen voice command buttons in dev mode */}
+          <div
+            style={{
+              width: '100%',
+              borderTop: '1px solid #cbd5e1',
+              paddingTop: '0.5rem',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.4rem',
+              alignItems: 'center',
+            }}
+          >
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>Commands:</span>
+            <button type="button" onClick={() => executeCommand('repeat')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', cursor: 'pointer' }}>Repeat</button>
+            <button type="button" onClick={() => executeCommand('skip')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', cursor: 'pointer' }}>Skip</button>
+            <button type="button" onClick={() => executeCommand('dont_know')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: '4px', cursor: 'pointer' }}>Don't Know</button>
+            <button type="button" onClick={() => executeCommand('back')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
+            <button type="button" onClick={() => executeCommand('change_field', { target: 'village' })} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', cursor: 'pointer' }}>Change Village</button>
+            <button type="button" onClick={() => executeCommand('change_field', { target: 'phone' })} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', cursor: 'pointer' }}>Change Phone</button>
+            <button type="button" onClick={() => executeCommand('help')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#fef9c3', border: '1px solid #fef08a', borderRadius: '4px', cursor: 'pointer' }}>Help</button>
+            <button type="button" onClick={() => executeCommand('operator')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: '4px', cursor: 'pointer' }}>Operator</button>
+            <button type="button" onClick={() => executeCommand('stop')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' }}>Stop</button>
+            <button type="button" onClick={() => executeCommand('start_over')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '4px', cursor: 'pointer' }}>Start Over</button>
+          </div>
+        </div>
+      )}
+
+      {/* Operator Needed Banner */}
+      {(state === STATES.OPERATOR_PAUSED || context.sessionNeedsOperatorHelp) && (
+        <div
+          style={{
+            background: '#fef2f2',
+            border: '2px solid #ef4444',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            marginBottom: '1.25rem',
+            textAlign: 'center',
+          }}
+        >
+          <h2 style={{ color: '#b91c1c', margin: '0 0 0.5rem', fontSize: '1.35rem' }}>
+            👤 பணியாளர் உதவி தேவை / Operator Needed
+          </h2>
+          <p style={{ color: '#7f1d1d', margin: '0 0 1rem', fontSize: '1rem' }}>
+            விண்ணப்பதாரருக்கு உதவி தேவைப்படுகிறது. தயவுசெய்து விண்ணப்பதாரரிடம் பேசி படிவத்தை தொடரவும்.
+          </p>
+          <button
+            type="button"
+            onClick={resumeFromPause}
+            style={{
+              padding: '0.75rem 1.75rem',
+              background: '#dc2626',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: 700,
+              fontSize: '1.05rem',
+              cursor: 'pointer',
+            }}
+          >
+            ▶️ பணியாளர் உதவினார், தொடரவும் / Resume Session
+          </button>
+        </div>
+      )}
+
+      {/* Paused Banner */}
+      {state === STATES.PAUSED && (
+        <div
+          style={{
+            background: '#f8fafc',
+            border: '2px solid #94a3b8',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            marginBottom: '1.25rem',
+            textAlign: 'center',
+          }}
+        >
+          <h2 style={{ color: '#334155', margin: '0 0 0.5rem', fontSize: '1.35rem' }}>
+            ⏸️ உரையாடல் இடைநிறுத்தப்பட்டுள்ளது / Conversation Paused
+          </h2>
+          <p style={{ color: '#64748b', margin: '0 0 1rem', fontSize: '0.95rem' }}>
+            மைக்ரோஃபோன் அணைக்கப்பட்டுள்ளது. / The microphone has been released.
+          </p>
+          <button
+            type="button"
+            onClick={resumeFromPause}
+            style={{
+              padding: '0.75rem 1.75rem',
+              background: '#2563eb',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: 700,
+              fontSize: '1.05rem',
+              cursor: 'pointer',
+            }}
+          >
+            ▶️ மீண்டும் தொடரவும் / Resume
+          </button>
+        </div>
+      )}
+
+      {/* Start Over Confirmation Modal */}
+      {state === STATES.CONFIRM_START_OVER && (
+        <div
+          style={{
+            background: '#fffbeb',
+            border: '2px solid #f59e0b',
+            borderRadius: '12px',
+            padding: '1.5rem',
+            marginBottom: '1.5rem',
+            textAlign: 'center',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <h2 style={{ color: '#92400e', margin: '0 0 0.5rem', fontSize: '1.4rem' }}>
+            ⚠️ அனைத்தையும் அழித்து மீண்டும் தொடங்கவா? / Delete everything and start again?
+          </h2>
+          <p style={{ color: '#b45309', margin: '0 0 1.25rem', fontSize: '1rem' }}>
+            இதுவரை உள்ளிட்ட அனைத்து விவரங்களும் நீக்கப்படும். / All entered answers will be cleared.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+            <button
+              type="button"
+              onClick={() => confirmStartOver(true)}
+              style={{
+                padding: '0.85rem 1.75rem',
+                background: '#dc2626',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                cursor: 'pointer',
+              }}
+            >
+              🗑️ ஆம், அனைத்தையும் அழி / Yes, delete all
+            </button>
+            <button
+              type="button"
+              onClick={() => confirmStartOver(false)}
+              style={{
+                padding: '0.85rem 1.75rem',
+                background: '#e2e8f0',
+                color: '#1e293b',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                cursor: 'pointer',
+              }}
+            >
+              ❌ வேண்டாம், ரத்து செய் / No, keep answers
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tappable Field Selection for Generic Change or Ambiguous Target */}
+      {(context.choosingField || (context.ambiguousCandidates && context.ambiguousCandidates.length > 0)) && (
+        <div
+          style={{
+            background: '#f0f9ff',
+            border: '2px solid #0284c7',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            marginBottom: '1.25rem',
+          }}
+        >
+          <h3 style={{ color: '#0369a1', margin: '0 0 0.75rem', fontSize: '1.15rem' }}>
+            {context.ambiguousCandidates
+              ? 'எந்த விவரத்தை மாற்ற வேண்டும்? / Which field?'
+              : 'மாற்ற வேண்டிய விவரத்தைத் தேர்ந்தெடுக்கவும் / Select field to change:'}
+          </h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            {(context.ambiguousCandidates || context.form?.fields?.filter((f) => f.spoken).map((f) => f.id) || []).map(
+              (fid) => {
+                const fObj = context.form?.fields?.find((f) => f.id === fid)
+                return (
+                  <button
+                    key={fid}
+                    type="button"
+                    onClick={() => chooseTargetField(fid)}
+                    style={{
+                      padding: '0.5rem 0.85rem',
+                      background: '#ffffff',
+                      border: '1px solid #0284c7',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      color: '#0369a1',
+                    }}
+                  >
+                    ✏️ {fObj?.labels?.ta || fid} ({fObj?.labels?.en || fid})
+                  </button>
+                )
+              }
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={cancelChooseField}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#64748b',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+            }}
+          >
+            ரத்து செய் / Cancel
+          </button>
         </div>
       )}
 
@@ -432,6 +669,26 @@ export default function VoiceApp() {
                 }}
               >
                 {summaryReading?.active ? '⏹ நிறுத்து / Stop Reading' : '🔊 அனைத்தையும் படிக்கவும் / Read everything'}
+              </button>
+
+              <button
+                type="button"
+                onClick={speakChangeReview}
+                style={{
+                  padding: '0.65rem 1.25rem',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  background: isRecording ? '#fee2e2' : '#f0fdf4',
+                  color: isRecording ? '#b91c1c' : '#166534',
+                  border: isRecording ? '2px solid #ef4444' : '2px solid #22c55e',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                🎙️ {isRecording ? 'பேசுங்கள் (8s)... / Listening...' : 'பேசி மாற்றவும் / Speak a change'}
               </button>
 
               <label style={{ fontSize: '0.95rem', color: '#334155', cursor: 'pointer' }}>

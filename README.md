@@ -99,6 +99,37 @@ See [docs/CONVERSATION_FLOW.md](docs/CONVERSATION_FLOW.md) for the complete stat
 
 See [docs/CONFIRMATION_POLICY.md](docs/CONFIRMATION_POLICY.md) for the policy matrix, read-back rules, and privacy trade-offs.
 
+## Voice Commands & Field Editing (Phase 12)
+
+Solli provides a "false-positives first" voice command detection and field targeting layer (`server/llm/commands/`):
+- **Safety First:** A command misheard as an answer, or an answer misheard as a command, never corrupts data. Utterances > 6 words are strictly treated as answers.
+- **In-Answer Partial Corrections:** Supports whole-value contrast resolution ("Madurai not Salem", "Salem illa Madurai") and digit-level edits ("last digit is 7") on numeric fields with mandatory read-back confirmation.
+- **Zero-Network Command Evaluation:** Benchmark command detection accuracy and false-positive rates with `npm run commands:eval`.
+- **Review Screen Voice Editing:** Tap "Speak a change" on the review screen to record an 8-second clip, resolve target field aliases, and immediately jump to edit.
+
+### Voice Commands Quick Reference for Helpdesk Operators
+
+| Command | English Examples | Tamil Examples (Roman & Script) | Safe Action |
+|---|---|---|---|
+| `repeat` | "repeat", "say again", "once more" | "thirumba sollunga", "meendum sollunga", "மீண்டும்", "ரிப்பீட்" | Replays question or read-back. Never counts as a failed attempt. |
+| `skip` | "skip", "next question", "pass" | "aduthadhu", "vittudunga", "idha thavir", "தவிர்" | Allowed on optional fields only (`nominee`). Refused on required fields. |
+| `dont_know` | "I don't know", "no idea", "not sure" | "theriyadhu", "theriyala", "puriyala", "தெரியாது", "ஐ டோன்ட் நோ" | Marks field `needsOperatorHelp` with reason `"dont_know"`. Never invents data. |
+| `back` | "back", "go back", "previous" | "munnadi ponga", "munthaiya kelvi", "முன்னாடி போங்க" | Re-asks previous spoken field, keeping current value visible. Halts at first field. |
+| `change_field` | "change the village", "change phone" | "ooru maathunga", "maathanum", "சேஞ்ச் த வில்லேஜ்", "மாத்துங்க" | Fuzzy matches target against all 12 spoken fields. Retains old value until new value confirmed. |
+| `help` | "help", "help me", "explain" | "udhavi venum", "vilakkam", "vilakkavum", "உதவி", "ஹெல்ப்" | Speaks field's `helpPrompt` then resumes listening. |
+| `operator` | "operator", "call operator", "staff" | "adhigaari venum", "panithalar", "ஆபரேட்டர்", "பணியாளர்" | Pauses loop, shows large "Operator Needed" banner, awaits resume tap. |
+| `stop` | "stop", "pause", "hold on", "wait" | "niruthunga", "nillu", "oru nimisham", "நிறுத்து", "வெயிட்" | Releases microphone, displays "Conversation Paused" banner with Resume button. |
+| `start_over` | "start over", "restart", "delete all" | "modhalla irundhu", "mutrilum azhi", "முதலில் இருந்து ஆரம்பி" | **High risk:** ALWAYS prompts modal confirmation ("Delete everything and start again?"). |
+
+To run voice command evaluation:
+```bash
+cd server
+npm run commands:eval -- --set dev       # Accuracy: 100.0%, FPR: 0.0%, FNR: 0.0%
+npm run commands:eval -- --set heldout   # Held-out FPR: 0.0%, Accuracy: 41.7%
+```
+
+See [docs/COMMANDS.md](docs/COMMANDS.md) for full phrase tables, safety gating, and architecture details.
+
 ## Setup
 
 Use two terminals from this folder.

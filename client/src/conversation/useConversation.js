@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react'
 import {
+  detectCommandApi,
   fetchForm,
   fetchNextField,
   fetchSummary,
   submitAnswer,
   submitConfirm,
+  submitPartialCorrection,
   synthesizeSpeech,
   transcribeAudio,
 } from '../api'
@@ -278,6 +280,101 @@ export function useConversation(initialOptions = {}) {
         abortControllerRef.current = new AbortController()
         const signal = abortControllerRef.current.signal
 
+        // 1. Check for voice commands first (zero-network when rules, conservative)
+        const cmdRes = await detectCommandApi({
+          formId: 'pension',
+          transcript: rawText,
+          state: state.state,
+          fieldId: currentField.id,
+          signal,
+        })
+
+        if (cmdRes.command) {
+          if (cmdRes.command === 'skip' || cmdRes.command === 'dont_know') {
+            const nextRes = await fetchNextField({
+              formId: 'pension',
+              answers: state.answers,
+              currentId: currentField.id,
+              signal,
+            })
+            let summary = null
+            const isFinished = !nextRes.next
+            if (isFinished || state.editingFromReview) {
+              const summaryRes = await fetchSummary({
+                formId: 'pension',
+                answers: state.answers,
+                lang: 'ta',
+                signal,
+              })
+              summary = summaryRes.summary
+            }
+            dispatch({
+              type: 'EXECUTE_COMMAND',
+              payload: {
+                command: cmdRes.command,
+                payload: {
+                  nextField: nextRes.next,
+                  progress: nextRes.progress,
+                  isFinished,
+                  summary,
+                },
+              },
+            })
+            return
+          }
+
+          dispatch({
+            type: 'EXECUTE_COMMAND',
+            payload: {
+              command: cmdRes.command,
+              target: cmdRes.target,
+              ambiguous: cmdRes.ambiguous,
+              candidates: cmdRes.candidates,
+            },
+          })
+          return
+        }
+
+        // 2. Check for in-answer partial & digit corrections on numbers
+        const currentValue = state.answers[currentField.id]?.value
+        if (currentValue) {
+          const partialRes = await submitPartialCorrection({
+            formId: 'pension',
+            currentValue,
+            fieldId: currentField.id,
+            transcript: rawText,
+            signal,
+          })
+
+          if (partialRes.handled && partialRes.value !== null) {
+            const nextRes = await fetchNextField({
+              formId: 'pension',
+              answers: {
+                ...state.answers,
+                [currentField.id]: { value: partialRes.value },
+              },
+              currentId: currentField.id,
+              signal,
+            })
+
+            dispatch({
+              type: 'ANSWER_VALID',
+              payload: {
+                fieldId: currentField.id,
+                value: partialRes.value,
+                display: String(partialRes.value),
+                nextField: nextRes.next,
+                progress: nextRes.progress,
+                isFinished: !nextRes.next,
+                summary: null,
+                shouldConfirm: true, // Always confirm partial/digit corrections!
+                readbackText: `${currentField.labels?.ta || currentField.id}: ${partialRes.value}. சரியா?`,
+              },
+            })
+            return
+          }
+        }
+
         const answerRes = await submitAnswer({
           formId: 'pension',
           fieldId: currentField.id,
@@ -522,6 +619,24 @@ export function useConversation(initialOptions = {}) {
         }
 
         const fieldId = state.pendingConfirmation?.fieldId || state.currentFieldId
+
+        // Check if user spoke an allowed confirmation-state command (repeat, help, operator)
+        const cmdRes = await detectCommandApi({
+          formId: 'pension',
+          transcript: text,
+          state: state.state,
+          fieldId,
+          signal,
+        })
+
+        if (cmdRes.command === 'repeat' || cmdRes.command === 'help' || cmdRes.command === 'operator') {
+          dispatch({
+            type: 'EXECUTE_COMMAND',
+            payload: { command: cmdRes.command },
+          })
+          return
+        }
+
         const confirmRes = await submitConfirm({
           formId: 'pension',
           fieldId,
@@ -538,7 +653,7 @@ export function useConversation(initialOptions = {}) {
         inFlightRef.current = false
       }
     },
-    [state.pendingConfirmation, state.currentFieldId]
+    [state.pendingConfirmation, state.currentFieldId, state.state]
   )
 
   // Accessibility & Fast Tap: On-screen Yes / No button tap
@@ -578,8 +693,25 @@ export function useConversation(initialOptions = {}) {
         return
       }
 
+      const fieldId = state.pendingConfirmation?.fieldId || state.currentFieldId
+
+      // Check if command was typed in confirmation state
       try {
-        const fieldId = state.pendingConfirmation?.fieldId || state.currentFieldId
+        const cmdRes = await detectCommandApi({
+          formId: 'pension',
+          transcript: text,
+          state: state.state,
+          fieldId,
+        })
+
+        if (cmdRes.command === 'repeat' || cmdRes.command === 'help' || cmdRes.command === 'operator') {
+          dispatch({
+            type: 'EXECUTE_COMMAND',
+            payload: { command: cmdRes.command },
+          })
+          return
+        }
+
         const confirmRes = await submitConfirm({
           formId: 'pension',
           fieldId,
@@ -780,6 +912,134 @@ export function useConversation(initialOptions = {}) {
     dispatch({ type: 'RESTART' })
   }, [stopAll])
 
+  // Phase 12: Voice-guided change on review screen (short 8s recording)
+  const speakChangeReview = useCallback(async () => {
+    if (state.state !== STATES.REVIEW || isRecordingRef.current) return
+    stopAudio()
+
+    try {
+      isRecordingRef.current = true
+      await startRecording({
+        maxSeconds: 8,
+        onAutoStop: async (wavBlob) => {
+          isRecordingRef.current = false
+          inFlightRef.current = true
+          try {
+            abortControllerRef.current = new AbortController()
+            const signal = abortControllerRef.current.signal
+            const transcribeRes = await transcribeAudio(wavBlob, 'ta-IN', { signal })
+            const text = (transcribeRes.text || '').trim()
+            if (!text) return
+
+            const cmdRes = await detectCommandApi({
+              formId: 'pension',
+              transcript: text,
+              state: 'review',
+              signal,
+            })
+
+            if (cmdRes.command === 'change_field') {
+              dispatch({
+                type: 'EXECUTE_COMMAND',
+                payload: {
+                  command: 'change_field',
+                  target: cmdRes.target,
+                  ambiguous: cmdRes.ambiguous,
+                  candidates: cmdRes.candidates,
+                },
+              })
+            } else if (cmdRes.command === 'start_over') {
+              dispatch({
+                type: 'EXECUTE_COMMAND',
+                payload: { command: 'start_over' },
+              })
+            }
+          } catch (err) {
+            console.warn('Error during speakChangeReview:', err)
+          } finally {
+            inFlightRef.current = false
+          }
+        },
+      })
+    } catch (err) {
+      isRecordingRef.current = false
+      console.warn('Could not start review change recording:', err)
+    }
+  }, [state.state, stopAudio])
+
+  const resumeFromPause = useCallback(() => {
+    dispatch({ type: 'RESUME_FROM_PAUSE' })
+  }, [])
+
+  const confirmStartOver = useCallback((confirmYes) => {
+    if (confirmYes) {
+      dispatch({ type: 'CONFIRM_START_OVER_YES' })
+    } else {
+      dispatch({ type: 'CONFIRM_START_OVER_NO' })
+    }
+  }, [])
+
+  const chooseTargetField = useCallback((fieldId) => {
+    dispatch({ type: 'CHOOSE_TARGET_FIELD', payload: { fieldId } })
+  }, [])
+
+  const cancelChooseField = useCallback(() => {
+    dispatch({ type: 'CANCEL_CHOOSE_FIELD' })
+  }, [])
+
+  const executeCommand = useCallback(
+    async (command, options = {}) => {
+      stopAudio()
+      if (command === 'skip' || command === 'dont_know') {
+        const currentField = state.currentField
+        if (!currentField) return
+
+        if (command === 'skip' && currentField.required) {
+          dispatch({
+            type: 'EXECUTE_COMMAND',
+            payload: { command: 'skip' },
+          })
+          return
+        }
+
+        const nextRes = await fetchNextField({
+          formId: 'pension',
+          answers: state.answers,
+          currentId: currentField.id,
+        })
+        let summary = null
+        const isFinished = !nextRes.next
+        if (isFinished || state.editingFromReview) {
+          const summaryRes = await fetchSummary({
+            formId: 'pension',
+            answers: state.answers,
+            lang: 'ta',
+          })
+          summary = summaryRes.summary
+        }
+        dispatch({
+          type: 'EXECUTE_COMMAND',
+          payload: {
+            command,
+            payload: {
+              nextField: nextRes.next,
+              progress: nextRes.progress,
+              isFinished,
+              summary,
+            },
+          },
+        })
+        return
+      }
+
+      dispatch({
+        type: 'EXECUTE_COMMAND',
+        payload: { command, ...options },
+      })
+    },
+    [state.currentField, state.answers, state.editingFromReview, stopAudio]
+  )
+
   return {
     state: state.state,
     context: state,
@@ -810,5 +1070,11 @@ export function useConversation(initialOptions = {}) {
     setMode,
     setVoiceMuted,
     restart,
+    speakChangeReview,
+    resumeFromPause,
+    confirmStartOver,
+    chooseTargetField,
+    cancelChooseField,
+    executeCommand,
   }
 }

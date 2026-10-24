@@ -9,7 +9,8 @@
     "test": "node --test tests/**/*.test.js",
     "evon:smoke": "node scripts/evon-smoke.js",
     "form:check": "node scripts/form-check.js",
-    "extract:eval": "node scripts/extract-eval.js"
+    "extract:eval": "node scripts/extract-eval.js",
+    "commands:eval": "node scripts/commands-eval.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

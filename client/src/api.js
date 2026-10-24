@@ -193,3 +193,46 @@ export async function fetchSummary({ formId = 'pension', answers = {}, lang = 't
 
   return response.json()
 }
+
+/**
+ * Detect voice command & target field
+ * @param {Object} params - { formId, transcript, state, fieldId, signal }
+ */
+export async function detectCommandApi({ formId = 'pension', transcript, state, fieldId, signal } = {}) {
+  const response = await fetch(`/api/form/${formId}/command`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ transcript, state, fieldId }),
+    signal,
+  })
+
+  if (!response.ok) {
+    const error = new Error(`Command detection failed: ${response.status}`)
+    error.status = response.status
+    throw error
+  }
+
+  return response.json()
+}
+
+/**
+ * Submit partial or digit-level correction
+ * @param {Object} params - { formId, currentValue, fieldId, transcript, signal }
+ */
+export async function submitPartialCorrection({ formId = 'pension', currentValue, fieldId, transcript, signal } = {}) {
+  const response = await fetch(`/api/form/${formId}/partial-correction`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ currentValue, fieldId, transcript }),
+    signal,
+  })
+
+  if (!response.ok) {
+    const error = new Error(`Partial correction failed: ${response.status}`)
+    error.status = response.status
+    throw error
+  }
+
+  return response.json()
+}
+

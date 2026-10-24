@@ -1,6 +1,6 @@
 # Solli Conversation Loop Specification
 
-> **Phase:** Phase 11: Read-back, Confirmation & Review  
+> **Phase:** Phase 12: Voice Commands, Field Targeting & In-Answer Corrections  
 > **Status:** Built and verified with unit tests and live speech verification.
 
 ---
@@ -19,8 +19,12 @@ stateDiagram-v2
 
     Listening --> Transcribing: Audio recorded (tap stop or 15s auto-stop)
     Listening --> Processing: Typed answer submitted (Dev Typed Mode)
-    Listening --> SpeakingQuestion: User taps "Repeat question"
-    Listening --> SpeakingQuestion: User taps "Skip" (optional field)
+    Listening --> SpeakingQuestion: Command: repeat / back / help
+    Listening --> SpeakingQuestion: Command: skip (optional field)
+    Listening --> SpeakingQuestion: Command: change_field (target resolved)
+    Listening --> Paused: Command: stop
+    Listening --> OperatorPaused: Command: operator
+    Listening --> ConfirmStartOver: Command: start_over
     Listening --> Review: User skips final field
     Listening --> Idle: User taps Stop / Restart
 
@@ -34,6 +38,9 @@ stateDiagram-v2
     Processing --> Review: Answer valid & shouldConfirm=false -> final field
     Processing --> SpeakingHelp: Silence or partial number capture
     Processing --> SpeakingError: Validation error (Attempt 1..2)
+    Processing --> Paused: Command detected in transcript: stop
+    Processing --> OperatorPaused: Command detected: operator
+    Processing --> ConfirmStartOver: Command detected: start_over
     Processing --> Error: Server / quota error
 
     SpeakingReadback --> ListeningConfirm: Read-back audio completes (or skipped)
@@ -43,6 +50,8 @@ stateDiagram-v2
     ListeningConfirm --> SpeakingQuestion: On-screen Yes tapped -> advance next field
     ListeningConfirm --> Review: On-screen Yes tapped -> advance to review
     ListeningConfirm --> SpeakingError: On-screen No tapped -> clear value & re-ask
+    ListeningConfirm --> SpeakingQuestion: Command: repeat / help
+    ListeningConfirm --> OperatorPaused: Command: operator
     ListeningConfirm --> Idle: User taps Stop / Restart
 
     ProcessingConfirm --> SpeakingQuestion: Answer "yes" -> confirmed, advance next field
@@ -57,9 +66,17 @@ stateDiagram-v2
     SpeakingError --> SpeakingQuestion: "Let us come back to this" completes -> advance to next field
     SpeakingError --> Review: "Let us come back to this" completes -> final field
 
-    Review --> SpeakingQuestion: User taps "Edit" on any field
+    Review --> SpeakingQuestion: User taps "Edit" or speaks change on review
     Review --> ReadyForPdf: User taps "Yes, everything is correct"
+    Review --> ConfirmStartOver: Command / tap: start_over
     Review --> Idle: User taps "Start New"
+
+    Paused --> Listening: User taps "Resume"
+    OperatorPaused --> Listening: Operator taps "Resume"
+
+    ConfirmStartOver --> Idle: Confirmed YES ("Delete everything")
+    ConfirmStartOver --> Listening: Cancelled NO (Keep answers, resume)
+    ConfirmStartOver --> Review: Cancelled NO from review (Keep answers)
 
     ReadyForPdf --> Idle: User taps "Start New"
     Error --> Idle: User taps "Restart"
@@ -96,7 +113,21 @@ stateDiagram-v2
 | `processingConfirm` | `CONFIRM_ANSWER` ("unclear", < 3) | `speakingReadback` | Ambiguous answer or silence re-asks "Please say yes or no". |
 | `processingConfirm` | `CONFIRM_ANSWER` ("unclear", >= 3) | `speakingError` -> advance | 3 rounds exceeded; marks `needsOperatorHelp: true` and moves on. |
 | `review` | `START_EDIT_FIELD` | `speakingQuestion` | Tap-based edit: re-asks single field through normal flow and returns to review. |
+| `review` | `START_SPEAK_CHANGE` | `listening` | Voice editing on review: records 8s, matches command & target field, jumps to field. |
 | `review` | `CONFIRM_FULL_FORM` | `readyForPdf` | User confirms "Is everything correct?" -> ready for PDF generation. |
+| `listening` / `review` | `EXECUTE_COMMAND` (`repeat`) | `speakingQuestion` | Replays current question prompt audio without penalizing attempts. |
+| `listening` | `EXECUTE_COMMAND` (`skip`) | `speakingQuestion` \| `review` | Skips optional field; if required, explains and offers "I don't know". |
+| `listening` | `EXECUTE_COMMAND` (`dont_know`) | `speakingQuestion` \| `review` | Marks field `needsOperatorHelp` with reason `"dont_know"` and advances. |
+| `listening` | `EXECUTE_COMMAND` (`back`) | `speakingQuestion` | Re-asks previous spoken field, keeping stored value visible. |
+| `listening` / `review` | `EXECUTE_COMMAND` (`change_field`) | `speakingQuestion` | Jumps to targeted field. Old answer retained until new one confirmed. |
+| `listening` / `listeningConfirm` | `EXECUTE_COMMAND` (`help`) | `speakingHelp` | Speaks field's `helpPrompt` then resumes listening. |
+| any state | `EXECUTE_COMMAND` (`operator`) | `operatorPaused` | Pauses loop, shows large "Operator Needed" banner, awaits Resume tap. |
+| `listening` / `listeningConfirm` | `EXECUTE_COMMAND` (`stop`) | `paused` | Pauses loop, releases microphone, shows "Conversation Paused" banner. |
+| `listening` / `review` | `EXECUTE_COMMAND` (`start_over`) | `confirmStartOver` | Displays confirmation dialog ("Delete everything and start again?"). |
+| `confirmStartOver` | `CONFIRM_START_OVER_YES` | `idle` | Clears all answers, resets conversation state machine. |
+| `confirmStartOver` | `CONFIRM_START_OVER_NO` | `listening` \| `review` | Cancels restart, preserves all existing answers untouched. |
+| `paused` | `RESUME_FROM_PAUSE` | `listening` | Resumes conversation loop from pause. |
+| `operatorPaused` | `RESUME_FROM_PAUSE` | `listening` | Operator taps Resume to return to current question. |
 | `readyForPdf` | `RESTART` | `idle` | Resets conversation loop. |
 | `error` | `RESTART` | `idle` | Resets conversation loop from error screen. |
 

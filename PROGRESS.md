@@ -11,7 +11,7 @@
 - [x] Phase 9: Speech-to-field extraction
 - [x] Phase 10: Dates, numbers and names
 - [x] Phase 11: Read-back and confirmation
-- [ ] Phase 12: Voice corrections and commands
+- [x] Phase 12: Voice corrections and commands
 - [ ] Phase 13: Frontend polish
 - [ ] Phase 14: PDF generation
 - [ ] Phase 15: Staff dashboard (optional)
@@ -21,4 +21,4 @@
 - [ ] Phase 19: Record demo and post
 - [ ] Phase 20: Final submission
 
-**Current status:** Phase 11 complete.
+**Current status:** Phase 12 complete.
