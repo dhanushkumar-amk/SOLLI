@@ -1,0 +1,8 @@
+.welcome { align-items: center; display: flex; justify-content: center; min-height: 100vh; padding: 24px; text-align: center; }
+.welcome section { background: #fff; border-radius: 20px; box-shadow: 0 8px 24px rgba(35, 73, 71, .12); max-width: 480px; padding: 48px 28px; width: 100%; }
+.eyebrow { color: #47716f; font-size: 1rem; margin: 0 0 12px; }
+h1 { color: #173d3b; font-size: clamp(3rem, 14vw, 5rem); margin: 0; }
+.tagline { color: #315553; font-size: 1.25rem; line-height: 1.5; margin: 16px 0 32px; }
+.status { border-radius: 999px; font-size: 1.125rem; margin: 0; padding: 12px 18px; }
+.connected { background: #dcefe6; color: #175c42; }
+.offline { background: #f8e2dc; color: #8a3f2d; }
