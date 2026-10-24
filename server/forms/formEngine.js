@@ -16,6 +16,8 @@ import {
   validatePhone,
   validateYesNo,
 } from './validators.js'
+import { buildDigitReadback } from '../llm/numbers/chunk.js'
+import { READBACK_SPEAK_FULL_SENSITIVE } from '../config.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const formCache = new Map()
@@ -323,13 +325,155 @@ export function validateAnswer(field, rawValue) {
   }
 }
 
+const MONTH_NAMES_EN = [
+  '',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
+const MONTH_NAMES_TA = [
+  '',
+  'ஜனவரி',
+  'பிப்ரவரி',
+  'மார்ச்',
+  'ஏப்ரல்',
+  'மே',
+  'ஜூன்',
+  'ஜூலை',
+  'ஆகஸ்ட்',
+  'செப்டம்பர்',
+  'அக்டோபர்',
+  'நவம்பர்',
+  'டிசம்பர்',
+]
+
+export const STATIC_CONFIRM_PROMPT = {
+  ta: 'இது சரியா? ஆம் அல்லது இல்லை என்று சொல்லுங்கள்.',
+  en: 'Is this correct? Please say yes or no.',
+}
+
 /**
- * Interpolates value into read-back text
+ * Formats ISO date (YYYY-MM-DD) into natural spoken date: Day, Month Name, Year.
+ * E.g., '1958-05-05' -> '5 மே 1958' (ta) / '5 May 1958' (en).
+ */
+export function formatDateForReadback(dateStr, lang = 'ta') {
+  if (!dateStr) return ''
+  const str = String(dateStr).trim()
+  const match = str.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/)
+  if (!match) return str
+
+  const year = match[1]
+  const monthNum = parseInt(match[2], 10)
+  const day = parseInt(match[3], 10)
+
+  if (monthNum < 1 || monthNum > 12) return str
+
+  const monthName = lang === 'en' ? MONTH_NAMES_EN[monthNum] : MONTH_NAMES_TA[monthNum]
+  return `${day} ${monthName} ${year}`
+}
+
+/**
+ * Formats field value for spoken read-back.
+ * Trade-off: On screen, sensitive fields (Phone, Aadhaar, Bank Account) are masked to prevent
+ * shoulder-surfing (last 4 digits visible). But for spoken read-back, the speaker must say all
+ * digits so the applicant or operator can verify the exact value captured by speech recognition.
+ * Config flag READBACK_SPEAK_FULL_SENSITIVE defaults to true for private/operator contexts.
+ */
+export function formatValueForReadback(field, rawValue, lang = 'ta') {
+  if (rawValue === null || rawValue === undefined || rawValue === '') return ''
+  if (!field) return String(rawValue)
+
+  if (field.type === 'date') {
+    return formatDateForReadback(rawValue, lang)
+  }
+
+  if (field.type === 'phone' || field.type === 'aadhaar' || field.type === 'bank_account') {
+    if (field.sensitive && !READBACK_SPEAK_FULL_SENSITIVE) {
+      // If full sensitive speech is explicitly disabled in config, speak masked form
+      const masked = maskValue(rawValue, field.type)
+      return masked
+    }
+    // Speak all digits grouped naturally with pauses
+    return buildDigitReadback(rawValue, lang, field.type)
+  }
+
+  if (field.type === 'choice') {
+    const val = String(rawValue).trim()
+    if (lang === 'ta') {
+      if (val === 'Female') return 'பெண்'
+      if (val === 'Male') return 'ஆண்'
+      if (val === 'Other') return 'மற்றவை'
+    }
+    return val
+  }
+
+  return String(rawValue)
+}
+
+/**
+ * Builds per-field read-back text in Tamil or English from the field's readback template.
+ * - Always stays under 200 characters.
+ * - Never includes more than one field.
  */
 export function buildReadback(field, value, lang = 'ta') {
-  if (!field.readback) return ''
+  if (!field?.readback) return ''
   const template = field.readback[lang] || field.readback.ta || field.readback.en || ''
-  return template.replace('{value}', String(value ?? ''))
+  const formattedVal = formatValueForReadback(field, value, lang)
+  let text = template.replace('{value}', formattedVal)
+  if (text.length > 200) {
+    text = text.slice(0, 197) + '...'
+  }
+  return text
+}
+
+/**
+ * Splits read-back into two parts for optimal TTS caching:
+ * 1. dynamic value read-back (never cached, costs credits)
+ * 2. static question (cached, zero credits on HIT)
+ */
+export function getReadbackAudioParts(field, value, lang = 'ta') {
+  const fullText = buildReadback(field, value, lang)
+  const staticPrompt = STATIC_CONFIRM_PROMPT[lang] || STATIC_CONFIRM_PROMPT.ta
+
+  if (!field?.readback) {
+    return {
+      valuePrompt: fullText,
+      staticConfirmPrompt: staticPrompt,
+      fullText,
+    }
+  }
+
+  const template = field.readback[lang] || field.readback.ta || field.readback.en || ''
+  // Strip trailing "சரியா?" or "Is this correct?" to isolate the dynamic statement
+  const cleanedTemplate = template
+    .replace(/\s*(?:\.\s*)?(?:சரியா\?|Is this correct\?)\s*$/i, '')
+    .trim()
+
+  const formattedVal = formatValueForReadback(field, value, lang)
+  let valuePrompt = cleanedTemplate.replace('{value}', formattedVal)
+  if (valuePrompt && !valuePrompt.endsWith('.')) {
+    valuePrompt += '.'
+  }
+
+  if (valuePrompt.length > 150) {
+    valuePrompt = valuePrompt.slice(0, 147) + '...'
+  }
+
+  return {
+    valuePrompt,
+    staticConfirmPrompt: staticPrompt,
+    fullText,
+  }
 }
 
 /**
@@ -339,7 +483,8 @@ export function buildFullSummary(form, answers = {}, lang = 'en') {
   const summary = []
 
   for (const field of form.fields) {
-    const rawVal = answers[field.id]?.value ?? null
+    const ans = answers[field.id]
+    const rawVal = ans?.value ?? null
     const label = field.labels?.[lang] || field.labels?.en || field.id
 
     let displayVal = ''
@@ -350,7 +495,7 @@ export function buildFullSummary(form, answers = {}, lang = 'en') {
         displayVal = String(rawVal)
       }
     } else {
-      displayVal = field.spoken ? '(Not provided)' : `[${field.skipReason || 'Unspoken'}]`
+      displayVal = field.spoken ? (ans?.skipped ? '(Skipped)' : '(Not provided)') : `[${field.skipReason || 'Unspoken'}]`
     }
 
     summary.push({
@@ -360,7 +505,9 @@ export function buildFullSummary(form, answers = {}, lang = 'en') {
       display: displayVal,
       sensitive: Boolean(field.sensitive),
       spoken: Boolean(field.spoken),
-      confirmed: Boolean(answers[field.id]?.confirmed),
+      confirmed: Boolean(ans?.confirmed),
+      needsOperatorHelp: Boolean(ans?.needsOperatorHelp),
+      skipped: Boolean(ans?.skipped),
     })
   }
 

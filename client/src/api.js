@@ -49,17 +49,20 @@ export async function transcribeAudio(audioBlob, language = 'ta-IN', { signal } 
 /**
  * Synthesize speech from text
  * @param {string} text - text to speak
- * @param {Object} [options] - { voice, language, sensitive, signal }
+ * @param {Object} [options] - { voice, language, sensitive, noCache, isReadback, signal }
  * @returns {Promise<{ audioBlob: Blob, latencyMs: number, cacheHit: boolean }>}
  */
-export async function synthesizeSpeech(text, { voice, language, sensitive = false, signal } = {}) {
+export async function synthesizeSpeech(
+  text,
+  { voice, language, sensitive = false, noCache = false, isReadback = false, signal } = {}
+) {
   const startTime = Date.now()
   const response = await fetch('/api/speak', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ text, voice, language, sensitive }),
+    body: JSON.stringify({ text, voice, language, sensitive, noCache, isReadback }),
     signal,
   })
 
@@ -110,6 +113,33 @@ export async function submitAnswer({ formId = 'pension', fieldId, transcript, co
 
   if (!response.ok) {
     let errMsg = 'Failed to process answer'
+    try {
+      const errData = await response.json()
+      errMsg = errData.error || errMsg
+    } catch (_) {}
+    const error = new Error(errMsg)
+    error.status = response.status
+    throw error
+  }
+
+  return response.json()
+}
+
+/**
+ * Submit spoken or typed confirmation for a field
+ * @param {Object} params - { formId, fieldId, transcript, signal }
+ * @returns {Promise<{ answer: "yes"|"no"|"unclear", confidence: number, provider: string }>}
+ */
+export async function submitConfirm({ formId = 'pension', fieldId, transcript, signal } = {}) {
+  const response = await fetch(`/api/form/${formId}/confirm-input`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fieldId, transcript }),
+    signal,
+  })
+
+  if (!response.ok) {
+    let errMsg = 'Failed to process confirmation'
     try {
       const errData = await response.json()
       errMsg = errData.error || errMsg

@@ -16,13 +16,13 @@ function createKey(text, voice = '', language = '') {
 }
 
 /**
- * Retrieves cached audio buffer if available and not sensitive
+ * Retrieves cached audio buffer if available and not sensitive / noCache
  * @param {string} text
- * @param {Object} options - { voice, language, sensitive }
+ * @param {Object} options - { voice, language, sensitive, noCache }
  * @returns {{ audioBuffer: Buffer, mimeType: string, latencyMs: number } | null}
  */
-export function getCachedAudio(text, { voice, language, sensitive } = {}) {
-  if (sensitive || !text) return null
+export function getCachedAudio(text, { voice, language, sensitive, noCache } = {}) {
+  if (sensitive || noCache || !text) return null
 
   const key = createKey(text, voice, language)
   const entry = cache.get(key)
@@ -35,13 +35,13 @@ export function getCachedAudio(text, { voice, language, sensitive } = {}) {
 }
 
 /**
- * Caches TTS audio buffer if not sensitive
+ * Caches TTS audio buffer if not sensitive and caching is allowed
  * @param {string} text
- * @param {Object} options - { voice, language, sensitive }
+ * @param {Object} options - { voice, language, sensitive, noCache }
  * @param {{ audioBuffer: Buffer, mimeType: string, latencyMs: number }} data
  */
-export function setCachedAudio(text, { voice, language, sensitive } = {}, data) {
-  if (sensitive || !text || !data?.audioBuffer) return
+export function setCachedAudio(text, { voice, language, sensitive, noCache } = {}, data) {
+  if (sensitive || noCache || !text || !data?.audioBuffer) return
 
   const key = createKey(text, voice, language)
 
@@ -57,6 +57,20 @@ export function setCachedAudio(text, { voice, language, sensitive } = {}, data) 
     latencyMs: data.latencyMs || 0,
     createdAt: Date.now(),
   })
+}
+
+/**
+ * Clears the in-memory TTS cache (for test isolation)
+ */
+export function clearCache() {
+  cache.clear()
+}
+
+/**
+ * Returns cache size
+ */
+export function getCacheSize() {
+  return cache.size
 }
 
 /**

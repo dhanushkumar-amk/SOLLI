@@ -36,6 +36,18 @@ export const GNANI_CONFIG = {
 // Extraction confidence threshold below which user confirmation is required
 export const CONFIRM_THRESHOLD = Number(process.env.CONFIRM_THRESHOLD) || 0.8
 
+/**
+ * Spoken readback policy for sensitive identifiers:
+ * On-screen display is always masked (last 4 digits visible) to prevent shoulder surfing.
+ * Spoken readback speaks all digits so the applicant can verify each digit.
+ * Trade-off: In private booth/desk settings, full spoken readback is required for verification.
+ */
+export const READBACK_SPEAK_FULL_SENSITIVE =
+  process.env.READBACK_SPEAK_FULL_SENSITIVE !== 'false'
+
+// Maximum characters spoken per click during full form summary read-back
+export const MAX_SUMMARY_CHARS = Number(process.env.MAX_SUMMARY_CHARS) || 1200
+
 export function getApiKey() {
   const key = process.env.GNANI_API_KEY
   if (!key || typeof key !== 'string' || key.trim() === '') {

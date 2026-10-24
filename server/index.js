@@ -13,15 +13,19 @@ import {
   recordLiveCall,
 } from './creditGuard.js'
 import { extractField } from './extract.js'
+import { shouldConfirm } from './forms/confirmPolicy.js'
 import {
   buildFullSummary,
+  buildReadback,
   getNextField,
   getProgress,
+  getReadbackAudioParts,
   loadForm,
   validateAnswer,
 } from './forms/formEngine.js'
 import { maskValue } from './forms/validators.js'
 import { speak, transcribe } from './gnani.js'
+import { extractYesNo } from './llm/extractors/yesno.js'
 import { getEvonStatus } from './llm/index.js'
 import { getCachedAudio, setCachedAudio } from './ttsCache.js'
 
@@ -44,6 +48,11 @@ const stats = {
     hits: 0,
     misses: 0,
     totalCharacters: 0,
+  },
+  readback: {
+    speaks: 0,
+    estimatedTimbreCharacters: 0,
+    confirmationRounds: 0,
   },
 }
 
@@ -97,6 +106,8 @@ app.get('/api/stats', (_req, res) => {
   res.json({
     transcribe: { ...stats.transcribe },
     speak: { ...stats.speak },
+    readback: { ...stats.readback },
+    evon: getEvonStatus(),
     liveCallsInLastHour: getLiveCallsInLastHour(),
     maxLiveCallsPerHour: getMaxLiveCallsPerHour(),
   })
@@ -240,6 +251,10 @@ app.post('/api/form/:id/answer', async (req, res, next) => {
       display = field.sensitive ? maskValue(extraction.value, field.type) : String(extraction.value)
     }
 
+    const requiresConfirmation = extraction.valid ? shouldConfirm(field, extraction) : false
+    const readbackText = extraction.valid && extraction.value ? buildReadback(field, extraction.value, 'ta') : ''
+    const readbackParts = extraction.valid && extraction.value ? getReadbackAudioParts(field, extraction.value, 'ta') : null
+
     res.json({
       value: extraction.value,
       display,
@@ -248,6 +263,9 @@ app.post('/api/form/:id/answer', async (req, res, next) => {
       confidence: extraction.confidence,
       needsConfirmation: extraction.needsConfirmation,
       isCorrection: extraction.isCorrection,
+      shouldConfirm: requiresConfirmation,
+      readbackText,
+      readbackParts,
       command: extraction.command,
       provider: extraction.provider,
       partial: extraction.partial || false,
@@ -316,6 +334,64 @@ app.post('/api/form/:id/summary', (req, res) => {
   }
 })
 
+// POST /api/form/:id/readback — Generate read-back text and split audio parts
+app.post('/api/form/:id/readback', (req, res) => {
+  const formId = req.params.id
+  const { fieldId, value, lang } = req.body || {}
+  try {
+    const form = loadForm(formId)
+    const field = form.fields.find((f) => f.id === fieldId)
+    if (!field) {
+      return res.status(404).json({ error: `Field "${fieldId}" not found` })
+    }
+    const readbackText = buildReadback(field, value, lang || 'ta')
+    const audioParts = getReadbackAudioParts(field, value, lang || 'ta')
+    res.json({
+      fieldId,
+      readbackText,
+      audioParts,
+    })
+  } catch (err) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: `Form "${formId}" not found` })
+    }
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/form/:id/confirm-input — Evaluate user confirmation answer
+app.post('/api/form/:id/confirm-input', (req, res) => {
+  const formId = req.params.id
+  const { fieldId, transcript } = req.body || {}
+
+  // Safe logging: Never log transcript text or values
+  console.log(`[route] POST /api/form/${formId}/confirm-input fieldId=${fieldId || 'unknown'}`)
+
+  if (!transcript || typeof transcript !== 'string' || !transcript.trim()) {
+    return res.json({
+      answer: 'unclear',
+      confidence: 0,
+      provider: 'rules',
+    })
+  }
+
+  const extraction = extractYesNo(transcript)
+  let answer = 'unclear'
+  if (extraction.value === 'yes' && extraction.confidence >= 0.6) {
+    answer = 'yes'
+  } else if (extraction.value === 'no' && extraction.confidence >= 0.6) {
+    answer = 'no'
+  }
+
+  stats.readback.confirmationRounds += 1
+
+  res.json({
+    answer,
+    confidence: extraction.confidence,
+    provider: 'rules',
+  })
+})
+
 // ----------------------------------------------------
 // Speech API Routes (Gnani AI)
 // ----------------------------------------------------
@@ -368,7 +444,7 @@ app.post(
 // Text-to-Speech endpoint (Cached & Rate-Limited)
 app.post('/api/speak', async (req, res, next) => {
   try {
-    const { text, voice, language, sensitive } = req.body || {}
+    const { text, voice, language, sensitive, noCache, isReadback } = req.body || {}
     if (!text || typeof text !== 'string' || text.trim() === '') {
       return res.status(400).json({ error: 'Text string is required' })
     }
@@ -379,8 +455,13 @@ app.post('/api/speak', async (req, res, next) => {
       })
     }
 
-    // 1. Check in-memory TTS cache (skips if sensitive)
-    const cached = getCachedAudio(text, { voice, language, sensitive })
+    if (isReadback) {
+      stats.readback.speaks += 1
+      stats.readback.estimatedTimbreCharacters += text.length
+    }
+
+    // 1. Check in-memory TTS cache (skips if sensitive or noCache)
+    const cached = getCachedAudio(text, { voice, language, sensitive, noCache })
     if (cached) {
       stats.speak.calls += 1
       stats.speak.hits += 1
@@ -402,8 +483,8 @@ app.post('/api/speak', async (req, res, next) => {
     stats.speak.misses += 1
     stats.speak.totalCharacters += text.length
 
-    // 4. Cache audio (never caches if marked sensitive)
-    setCachedAudio(text, { voice, language, sensitive }, result)
+    // 4. Cache audio (never caches if marked sensitive or noCache)
+    setCachedAudio(text, { voice, language, sensitive, noCache }, result)
 
     res.set('Content-Type', result.mimeType)
     res.set('X-Cache', 'MISS')
