@@ -9,7 +9,7 @@
 - [x] Phase 7: Form definition file
 - [x] Phase 8: Question loop
 - [x] Phase 9: Speech-to-field extraction
-- [ ] Phase 10: Dates, numbers and names
+- [x] Phase 10: Dates, numbers and names
 - [ ] Phase 11: Read-back and confirmation
 - [ ] Phase 12: Voice corrections and commands
 - [ ] Phase 13: Frontend polish
@@ -21,4 +21,4 @@
 - [ ] Phase 19: Record demo and post
 - [ ] Phase 20: Final submission
 
-**Current status:** Phase 9 complete.
+**Current status:** Phase 10 complete.

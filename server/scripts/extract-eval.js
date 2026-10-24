@@ -20,6 +20,7 @@ function parseArgs() {
   let set = 'dev'
   let provider = null
   let limit = 9999
+  let types = null
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--set' && args[i + 1]) {
@@ -31,10 +32,13 @@ function parseArgs() {
     } else if (args[i] === '--limit' && args[i + 1]) {
       limit = parseInt(args[i + 1], 10) || 9999
       i++
+    } else if (args[i] === '--types' && args[i + 1]) {
+      types = args[i + 1].split(',').map((t) => t.trim().toLowerCase())
+      i++
     }
   }
 
-  return { set, provider, limit }
+  return { set, provider, limit, types }
 }
 
 function loadDataSet(setName) {
@@ -62,30 +66,50 @@ function loadDataSet(setName) {
   return JSON.parse(fs.readFileSync(fullPath, 'utf8'))
 }
 
-export async function runEvaluation({ set = 'dev', providerOverride = null, limit = 9999 } = {}) {
+const pensionForm = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../forms/pension.json'), 'utf8')
+)
+const fieldTypeMap = {}
+for (const f of pensionForm.fields) {
+  fieldTypeMap[f.id] = f.type
+}
+
+export async function runEvaluation({ set = 'dev', providerOverride = null, limit = 9999, types = null } = {}) {
   if (providerOverride) {
     process.env.EVON_PROVIDER = providerOverride
   }
 
   const provider = getSelectedProvider()
   const dataset = loadDataSet(set)
-  const items = dataset.slice(0, Math.min(limit, dataset.length))
+  let items = dataset.slice(0, Math.min(limit, dataset.length))
+
+  if (types && types.length > 0) {
+    items = items.filter((item) => {
+      const fType = fieldTypeMap[item.field_id] || item.field_id
+      return types.includes(fType) || types.includes(item.field_id)
+    })
+  }
 
   console.log(`\n======================================================`)
   console.log(`Solli Extraction Evaluation`)
   console.log(`Dataset:    ${set.toUpperCase()} (${items.length} items)`)
+  if (types && types.length > 0) {
+    console.log(`Types:      ${types.join(', ')}`)
+  }
   console.log(`Provider:   ${provider}`)
   console.log(`Timestamp:  ${new Date().toISOString()}`)
   console.log(`======================================================\n`)
 
   if (items.length === 0) {
-    console.log(`No items found in dataset "${set}".`)
+    console.log(`No items found in dataset "${set}" matching criteria.`)
     return {
       accuracy: 0,
       total: 0,
       correct: 0,
       byField: {},
+      byType: {},
       byDifficulty: {},
+      byDigitStyle: {},
       failures: [],
     }
   }
@@ -93,12 +117,15 @@ export async function runEvaluation({ set = 'dev', providerOverride = null, limi
   const results = []
   const failures = []
   const byField = {}
+  const byType = {}
   const byDifficulty = {}
+  const byDigitStyle = {}
 
   let totalLatency = 0
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i]
+    const fType = fieldTypeMap[item.field_id] || item.field_id
     const startTime = Date.now()
     const extracted = await extractField(item.field_id, item.spoken, item.context || {})
     const latency = Date.now() - startTime
@@ -109,6 +136,7 @@ export async function runEvaluation({ set = 'dev', providerOverride = null, limi
     const record = {
       index: i + 1,
       field_id: item.field_id,
+      field_type: fType,
       spoken: item.spoken,
       expected: item.expected,
       got: extracted.value,
@@ -120,6 +148,7 @@ export async function runEvaluation({ set = 'dev', providerOverride = null, limi
       correct,
       latency,
       difficulty: item.difficulty || 'unknown',
+      digit_style: item.digit_style || null,
     }
 
     results.push(record)
@@ -133,11 +162,24 @@ export async function runEvaluation({ set = 'dev', providerOverride = null, limi
     byField[item.field_id].total++
     if (correct) byField[item.field_id].correct++
 
+    // Stats by field type
+    if (!byType[fType]) byType[fType] = { correct: 0, total: 0 }
+    byType[fType].total++
+    if (correct) byType[fType].correct++
+
     // Stats by difficulty
     const diff = item.difficulty || 'unknown'
     if (!byDifficulty[diff]) byDifficulty[diff] = { correct: 0, total: 0 }
     byDifficulty[diff].total++
     if (correct) byDifficulty[diff].correct++
+
+    // Stats by digit_style (if provided)
+    if (item.digit_style) {
+      const style = item.digit_style
+      if (!byDigitStyle[style]) byDigitStyle[style] = { correct: 0, total: 0 }
+      byDigitStyle[style].total++
+      if (correct) byDigitStyle[style].correct++
+    }
   }
 
   const correctCount = results.filter((r) => r.correct).length
@@ -155,16 +197,30 @@ export async function runEvaluation({ set = 'dev', providerOverride = null, limi
     console.log(`  - ${fId.padEnd(24)}: ${pct}% (${data.correct}/${data.total})`)
   }
 
+  console.log(`\n--- Accuracy by Field Type ---`)
+  for (const [fType, data] of Object.entries(byType)) {
+    const pct = ((data.correct / data.total) * 100).toFixed(1)
+    console.log(`  - ${fType.padEnd(24)}: ${pct}% (${data.correct}/${data.total})`)
+  }
+
   console.log(`\n--- Accuracy by Difficulty ---`)
   for (const [diff, data] of Object.entries(byDifficulty)) {
     const pct = ((data.correct / data.total) * 100).toFixed(1)
     console.log(`  - ${diff.padEnd(10)}: ${pct}% (${data.correct}/${data.total})`)
   }
 
+  if (Object.keys(byDigitStyle).length > 0) {
+    console.log(`\n--- Accuracy by Digit Style ---`)
+    for (const [style, data] of Object.entries(byDigitStyle)) {
+      const pct = ((data.correct / data.total) * 100).toFixed(1)
+      console.log(`  - ${style.padEnd(16)}: ${pct}% (${data.correct}/${data.total})`)
+    }
+  }
+
   if (failures.length > 0) {
     console.log(`\n--- Failed Cases (${failures.length}) ---`)
     for (const f of failures) {
-      console.log(`  [#${f.index}] Field: ${f.field_id} (Diff: ${f.difficulty})`)
+      console.log(`  [#${f.index}] Field: ${f.field_id} (Type: ${f.field_type}, Diff: ${f.difficulty})`)
       console.log(`       Spoken:   "${f.spoken}"`)
       console.log(`       Expected: "${f.expected}"`)
       console.log(`       Got:      "${f.got}" (valid: ${f.valid}, err: ${f.validationError})`)
@@ -180,7 +236,8 @@ export async function runEvaluation({ set = 'dev', providerOverride = null, limi
     fs.mkdirSync(resultsDir, { recursive: true })
   }
 
-  const reportFileName = `extract-eval-${set}-${provider}-${dateStr}.md`
+  const typeSuffix = types ? `-${types.join('_')}` : ''
+  const reportFileName = `extract-eval-${set}-${provider}${typeSuffix}-${dateStr}.md`
   const reportPath = path.join(resultsDir, reportFileName)
 
   let mdContent = `# Extraction Evaluation Report: ${set.toUpperCase()} (${provider})
@@ -190,15 +247,22 @@ export async function runEvaluation({ set = 'dev', providerOverride = null, limi
 - **Provider:** \`${provider}\`
 - **Overall Accuracy:** **${accuracyPct}%** (${correctCount}/${results.length})
 - **Average Latency:** ${avgLatency} ms
-
-## Accuracy by Field
-
-| Field ID | Correct | Total | Accuracy |
-|---|---:|---:|---:|
 `
+
+  if (types) {
+    mdContent += `- **Filtered Types:** \`${types.join(', ')}\`\n`
+  }
+
+  mdContent += `\n## Accuracy by Field\n\n| Field ID | Correct | Total | Accuracy |\n|---|---:|---:|---:|\n`
   for (const [fId, data] of Object.entries(byField)) {
     const pct = ((data.correct / data.total) * 100).toFixed(1)
     mdContent += `| \`${fId}\` | ${data.correct} | ${data.total} | ${pct}% |\n`
+  }
+
+  mdContent += `\n## Accuracy by Field Type\n\n| Type | Correct | Total | Accuracy |\n|---|---:|---:|---:|\n`
+  for (const [fType, data] of Object.entries(byType)) {
+    const pct = ((data.correct / data.total) * 100).toFixed(1)
+    mdContent += `| \`${fType}\` | ${data.correct} | ${data.total} | ${pct}% |\n`
   }
 
   mdContent += `\n## Accuracy by Difficulty\n\n| Difficulty | Correct | Total | Accuracy |\n|---|---:|---:|---:|\n`
@@ -207,10 +271,18 @@ export async function runEvaluation({ set = 'dev', providerOverride = null, limi
     mdContent += `| ${diff} | ${data.correct} | ${data.total} | ${pct}% |\n`
   }
 
+  if (Object.keys(byDigitStyle).length > 0) {
+    mdContent += `\n## Accuracy by Digit Style\n\n| Digit Style | Correct | Total | Accuracy |\n|---|---:|---:|---:|\n`
+    for (const [style, data] of Object.entries(byDigitStyle)) {
+      const pct = ((data.correct / data.total) * 100).toFixed(1)
+      mdContent += `| ${style} | ${data.correct} | ${data.total} | ${pct}% |\n`
+    }
+  }
+
   if (failures.length > 0) {
-    mdContent += `\n## Failures List (${failures.length})\n\n| # | Field | Spoken | Expected | Got | Valid |\n|---|---|---|---|---|---|\n`
+    mdContent += `\n## Failures List (${failures.length})\n\n| # | Field | Type | Spoken | Expected | Got | Valid |\n|---|---|---|---|---|---|---|\n`
     for (const f of failures) {
-      mdContent += `| ${f.index} | \`${f.field_id}\` | "${f.spoken}" | "${f.expected}" | "${f.got ?? 'null'}" | ${f.valid} |\n`
+      mdContent += `| ${f.index} | \`${f.field_id}\` | \`${f.field_type}\` | "${f.spoken}" | "${f.expected}" | "${f.got ?? 'null'}" | ${f.valid} |\n`
     }
   }
 
@@ -222,12 +294,14 @@ export async function runEvaluation({ set = 'dev', providerOverride = null, limi
     total: results.length,
     correct: correctCount,
     byField,
+    byType,
     byDifficulty,
+    byDigitStyle,
     failures,
   }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = parseArgs()
-  runEvaluation({ set: args.set, providerOverride: args.provider, limit: args.limit })
+  runEvaluation({ set: args.set, providerOverride: args.provider, limit: args.limit, types: args.types })
 }

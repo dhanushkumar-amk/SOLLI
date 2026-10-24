@@ -300,6 +300,51 @@ export function conversationReducer(state, action) {
       }
     }
 
+    case 'ANSWER_PARTIAL': {
+      if (state.state !== STATES.PROCESSING) return state
+      const { fieldId, partialDigits, prompt } = action.payload
+      const currentAttempts = (state.answers[fieldId]?.attempts || 0) + 1
+
+      if (currentAttempts >= 3) {
+        return {
+          ...state,
+          state: STATES.SPEAKING_ERROR,
+          advanceAfterAudio: true,
+          activePromptText: RETRY_PROMPTS.comeBackLater,
+          partialDigits: null,
+          answers: {
+            ...state.answers,
+            [fieldId]: {
+              value: null,
+              display: '(Needs operator help)',
+              confirmed: false,
+              attempts: currentAttempts,
+              needsOperatorHelp: true,
+            },
+          },
+        }
+      }
+
+      return {
+        ...state,
+        state: STATES.SPEAKING_HELP,
+        advanceAfterAudio: false,
+        activePromptText: prompt || {
+          en: 'Please continue saying the digits.',
+          ta: 'மீதமுள்ள எண்களை சொல்லுங்கள்.',
+        },
+        partialDigits,
+        answers: {
+          ...state.answers,
+          [fieldId]: {
+            ...(state.answers[fieldId] || {}),
+            attempts: currentAttempts,
+            partialDigits,
+          },
+        },
+      }
+    }
+
     case 'ANSWER_INVALID': {
       if (state.state !== STATES.PROCESSING) return state
       const { fieldId, validationError, errorMessage } = action.payload
@@ -312,6 +357,8 @@ export function conversationReducer(state, action) {
           state: STATES.SPEAKING_ERROR,
           advanceAfterAudio: true,
           activePromptText: RETRY_PROMPTS.comeBackLater,
+          isSpellMode: false,
+          partialDigits: null,
           answers: {
             ...state.answers,
             [fieldId]: {
@@ -326,19 +373,30 @@ export function conversationReducer(state, action) {
         }
       }
 
-      // First failure -> speak field error message (or help prompt) and retry
-      const errorText = errorMessage || state.currentField?.errorMessage || state.currentField?.helpPrompt
+      // First failure on name -> offer spell-out mode
+      let errorText = errorMessage || state.currentField?.errorMessage || state.currentField?.helpPrompt
+      let isSpellMode = false
+      if (state.currentField?.type === 'name' && currentAttempts === 1) {
+        isSpellMode = true
+        errorText = {
+          ta: 'எழுத்துக் கூட்டி சொல்லலாமா? ஒவ்வொரு எழுத்தாக சொல்லவும்.',
+          en: 'Shall we spell it? Please say letter by letter.',
+        }
+      }
+
       return {
         ...state,
         state: STATES.SPEAKING_ERROR,
         advanceAfterAudio: false,
         activePromptText: errorText || RETRY_PROMPTS.silencePrompt,
+        isSpellMode,
         answers: {
           ...state.answers,
           [fieldId]: {
             ...(state.answers[fieldId] || {}),
             attempts: currentAttempts,
             lastError: validationError,
+            spellMode: isSpellMode,
           },
         },
       }

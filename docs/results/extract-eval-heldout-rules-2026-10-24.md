@@ -1,6 +1,6 @@
 # Extraction Evaluation Report: HELDOUT (rules)
 
-- **Date:** 2026-10-24T11:04:58.931Z
+- **Date:** 2026-10-24T11:28:45.970Z
 - **Dataset:** `heldout` (25 items)
 - **Provider:** `rules`
 - **Overall Accuracy:** **96.0%** (24/25)
@@ -24,6 +24,20 @@
 | `taluk` | 1 | 1 | 100.0% |
 | `village` | 1 | 1 | 100.0% |
 
+## Accuracy by Field Type
+
+| Type | Correct | Total | Accuracy |
+|---|---:|---:|---:|
+| `aadhaar` | 2 | 2 | 100.0% |
+| `address` | 2 | 2 | 100.0% |
+| `name` | 6 | 7 | 85.7% |
+| `bank_account` | 3 | 3 | 100.0% |
+| `date` | 3 | 3 | 100.0% |
+| `text` | 3 | 3 | 100.0% |
+| `choice` | 2 | 2 | 100.0% |
+| `phone` | 2 | 2 | 100.0% |
+| `readback_confirmation` | 1 | 1 | 100.0% |
+
 ## Accuracy by Difficulty
 
 | Difficulty | Correct | Total | Accuracy |
@@ -34,6 +48,6 @@
 
 ## Failures List (1)
 
-| # | Field | Spoken | Expected | Got | Valid |
-|---|---|---|---|---|---|
-| 7 | `applicant_name` | "K. Muthulakshmi" | "K. Demo Muthulakshmi" | "K. Muthulakshmi" | true |
+| # | Field | Type | Spoken | Expected | Got | Valid |
+|---|---|---|---|---|---|---|
+| 7 | `applicant_name` | `name` | "K. Muthulakshmi" | "K. Demo Muthulakshmi" | "K. Muthulakshmi" | true |

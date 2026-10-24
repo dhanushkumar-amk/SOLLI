@@ -23,22 +23,35 @@ export function evaluateConfidenceAndConfirmation({
   value,
   baseConfidence = 0.5,
   isCorrection = false,
+  isAmbiguous = false,
+  isPartial = false,
+  digitCountMismatch = false,
   valid = true,
   fieldDef = {},
   rawTranscript = '',
 }) {
   if (value === null || value === undefined) {
     return {
-      confidence: 0,
-      needsConfirmation: false,
+      confidence: isPartial ? 0.6 : 0,
+      needsConfirmation: isPartial,
     }
   }
 
   let confidence = baseConfidence
 
-  // Penalty if validator failed
-  if (!valid) {
+  // Penalty if validator failed or digit count mismatch
+  if (!valid || digitCountMismatch) {
     confidence = Math.min(confidence, 0.4)
+  }
+
+  // Ambiguity penalty (e.g. parser ambiguity or DD/MM ambiguity)
+  if (isAmbiguous) {
+    confidence = Math.min(confidence, 0.7)
+  }
+
+  // Partial capture penalty
+  if (isPartial) {
+    confidence = Math.min(confidence, 0.6)
   }
 
   // Slight penalty if correction occurred (acknowledging speech uncertainty)
@@ -65,7 +78,8 @@ export function evaluateConfidenceAndConfirmation({
     needsConfirmation = false
   } else {
     // 'if_uncertain'
-    needsConfirmation = confidence < CONFIRM_THRESHOLD || isCorrection
+    needsConfirmation =
+      confidence < CONFIRM_THRESHOLD || isCorrection || isAmbiguous || isPartial || digitCountMismatch
   }
 
   return {

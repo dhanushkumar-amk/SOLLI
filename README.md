@@ -41,13 +41,22 @@ Phase 9 established a stratified evaluation pipeline with zero data leakage:
 
 ```bash
 cd server
-npm run extract:eval -- --set dev       # Run on development set
-npm run extract:eval -- --set heldout   # Run on strict held-out set
-npm run extract:eval -- --set real      # Run on empirical collected transcripts
+npm run extract:eval -- --set dev       # Run on development set (100.0% accuracy)
+npm run extract:eval -- --set heldout   # Run on strict held-out set (96.0% accuracy)
+npm run extract:eval -- --set real      # Run on empirical collected transcripts (100.0%)
 npm run extract:eval -- --set all       # Run across dev + held-out combined
+npm run extract:eval -- --set dev --types date,number,phone,aadhaar,bank_account,ifsc # Filter by types
 ```
 
-See [docs/EXTRACTION_REPORT.md](docs/EXTRACTION_REPORT.md) for full baseline comparisons, breakdown tables, and failure analyses.
+See [docs/EXTRACTION_REPORT.md](docs/EXTRACTION_REPORT.md) and [docs/NUMBER_DATE_REPORT.md](docs/NUMBER_DATE_REPORT.md) for full baseline comparisons, breakdown tables, and failure analyses.
+
+## Number & Date Understanding (Phase 10)
+
+- **Pure Number Parser (`server/llm/numbers/parse.js`):** Parses English/Tamil number words, repetition patterns ("double five" -> 55, "triple zero" -> 000), Indian scales (lakh/crore/nooru/aayiram), and digit sequences.
+- **"Never Accept Long Numbers Silently":** Sensitive identifiers (Aadhaar, Phone, Bank Account, IFSC) always enforce confirmation (`confirm: "always"`), format validation, and masked presentation (`XXXX 1234`).
+- **Chunked Readback (`server/llm/numbers/chunk.js`):** Grouped speech with natural pauses for Timbre TTS (phone 5+5, Aadhaar 4+4+4, bank account groups of 4). Partial captures prompt for remaining digits.
+- **Spell-Out Mode (`server/llm/extractors/spell.js`):** Letter-by-letter spelling mode ("M U T H U", "K dot M U T H U") for low-confidence applicant names.
+
 
 ## Scope
 

@@ -155,9 +155,11 @@ export async function extract({ field, transcript, context = {} }) {
     }
   }
 
-  const fieldType = fieldDef?.type || (field === 'readback_confirmation' ? 'yes_no' : 'text')
+  const fieldType = context.spellMode
+    ? 'spell'
+    : fieldDef?.type || (field === 'readback_confirmation' ? 'yes_no' : 'text')
 
-  // 3. Check for dedicated type extractor in registry (name, text, address, yes_no, choice)
+  // 3. Check for dedicated type extractor in registry
   const dedicatedExtractor = getExtractorForType(fieldType)
   if (dedicatedExtractor) {
     const extResult = dedicatedExtractor(cleaned, { fieldDef, context })
@@ -165,7 +167,10 @@ export async function extract({ field, transcript, context = {} }) {
       value: extResult.value,
       baseConfidence: extResult.confidence,
       isCorrection,
-      valid: extResult.value !== null,
+      isAmbiguous: Boolean(extResult.ambiguous),
+      isPartial: Boolean(extResult.partial),
+      digitCountMismatch: extResult.validationError === 'INVALID_LENGTH',
+      valid: extResult.valid !== undefined ? extResult.valid : extResult.value !== null,
       fieldDef,
       rawTranscript: transcript,
     })
@@ -173,10 +178,19 @@ export async function extract({ field, transcript, context = {} }) {
     return {
       value: extResult.value,
       confidence: confEval.confidence,
-      needsConfirmation: isCorrection ? true : confEval.needsConfirmation,
+      needsConfirmation:
+        isCorrection || extResult.needsConfirmation === true ? true : confEval.needsConfirmation,
       isCorrection,
       command,
-      reason: extResult.reason,
+      reason: extResult.notes || extResult.reason,
+      partial: extResult.partial || false,
+      have: extResult.have,
+      need: extResult.need,
+      prompt: extResult.prompt,
+      type: extResult.type,
+      age: extResult.age,
+      twoDigitCandidates: extResult.twoDigitCandidates,
+      groups: extResult.groups,
       latencyMs: Date.now() - startTime,
       provider: 'rules',
     }

@@ -106,7 +106,7 @@ app.get('/api/stats', (_req, res) => {
 if (process.env.NODE_ENV !== 'production') {
   app.post('/api/dev/samples', express.json({ limit: '2kb' }), (req, res) => {
     console.log('[route] POST /api/dev/samples')
-    const { field_id, transcript, expected, condition, speaker, timestamp } = req.body || {}
+    const { field_id, transcript, expected, condition, speaker, timestamp, digit_style } = req.body || {}
 
     if (!field_id || !transcript || !expected) {
       return res.status(400).json({ error: 'field_id, transcript, and expected are required' })
@@ -117,6 +117,7 @@ if (process.env.NODE_ENV !== 'production') {
       spoken: String(transcript).trim(),
       expected: String(expected).trim(),
       condition: ['quiet', 'noisy', 'phone'].includes(condition) ? condition : 'quiet',
+      digit_style: digit_style || null,
       difficulty: 'medium',
       speaker: String(speaker || 'anonymous').trim(),
       timestamp: timestamp || new Date().toISOString(),
@@ -249,6 +250,12 @@ app.post('/api/form/:id/answer', async (req, res, next) => {
       isCorrection: extraction.isCorrection,
       command: extraction.command,
       provider: extraction.provider,
+      partial: extraction.partial || false,
+      have: extraction.have,
+      need: extraction.need,
+      prompt: extraction.prompt || null,
+      age: extraction.age,
+      type: extraction.type,
     })
   } catch (err) {
     if (err.message.includes('not found')) {

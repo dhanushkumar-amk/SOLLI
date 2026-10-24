@@ -13,3 +13,4 @@
 | Test date | Forms tested | Field accuracy | Clean accuracy | Noisy accuracy | Avg. corrections/form | Voice time | Typing time | Unassisted fields | Notes |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | 2026-10-24 | 78 fixtures (53 dev, 25 held-out) | **98.1% (Dev)** / **96.0% (Held-out)** | 100.0% (Easy/Med) | 93.8% (Hard) | 0.04 | N/A | N/A | 97.4% | Phase 9 rules pipeline with zero credit cost. Baseline was 94.3% (Dev) / 96.0% (Held-out). |
+| 2026-10-24 | Phase 10 numbers & dates (14 dev, 10 held-out, 6 real) | **100.0% (Dev)** / **100.0% (Held-out)** / **100.0% (Real)** | 100.0% (Quiet) | 100.0% (Noisy) | 0.00 | N/A | N/A | 100.0% | Phase 10 number-word parser, chunked readback, and date extractors with zero credit cost. Overall form accuracy: 100.0% (Dev), 96.0% (Held-out). |

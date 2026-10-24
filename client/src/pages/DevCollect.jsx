@@ -7,6 +7,7 @@ export default function DevCollect() {
   const [selectedFieldId, setSelectedFieldId] = useState('')
   const [expectedValue, setExpectedValue] = useState('')
   const [condition, setCondition] = useState('quiet')
+  const [digitStyle, setDigitStyle] = useState('digits')
   const [speaker, setSpeaker] = useState('tester')
   const [isRecording, setIsRecording] = useState(false)
   const [transcribing, setTranscribing] = useState(false)
@@ -86,6 +87,7 @@ export default function DevCollect() {
           transcript,
           expected: expectedValue,
           condition,
+          digit_style: digitStyle,
           speaker,
           timestamp: new Date().toISOString(),
         }),
@@ -171,7 +173,7 @@ export default function DevCollect() {
         />
       </div>
 
-      {/* Condition & Speaker Metadata */}
+      {/* Condition, Digit Style & Speaker Metadata */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem' }}>
         <div style={{ flex: 1 }}>
           <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>
@@ -185,6 +187,22 @@ export default function DevCollect() {
             <option value="quiet">Quiet (Indoor room)</option>
             <option value="noisy">Noisy (Background chatter/fan)</option>
             <option value="phone">Phone / Speakerphone</option>
+          </select>
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>
+            Digit Style:
+          </label>
+          <select
+            value={digitStyle}
+            onChange={(e) => setDigitStyle(e.target.value)}
+            style={{ width: '100%', padding: '0.6rem', fontSize: '1rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          >
+            <option value="digits">digits (e.g. 9 8 7 6 5)</option>
+            <option value="words">words (e.g. nine eight / onnu rendu)</option>
+            <option value="mixed">mixed (e.g. 2 lakh 50 thousand)</option>
+            <option value="grouped">grouped (e.g. 98765 43210)</option>
+            <option value="double_triple">double_triple (e.g. double five, triple zero)</option>
           </select>
         </div>
         <div style={{ flex: 1 }}>

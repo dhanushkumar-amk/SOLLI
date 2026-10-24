@@ -182,15 +182,18 @@ export function useConversation(initialOptions = {}) {
   // Process a text transcript through backend answer route
   const processTranscript = useCallback(
     async (transcript) => {
-      const cleanText = (transcript || '').trim()
+      const rawText = (transcript || '').trim()
       const currentField = state.currentField
       if (!currentField) return
 
       // Handle silence / noise
-      if (!cleanText) {
+      if (!rawText) {
         dispatch({ type: 'ANSWER_SILENCE' })
         return
       }
+
+      // If we had partial digits stored, prepend them to the new utterance
+      const cleanText = state.partialDigits ? `${state.partialDigits} ${rawText}` : rawText
 
       inFlightRef.current = true
       try {
@@ -201,8 +204,21 @@ export function useConversation(initialOptions = {}) {
           formId: 'pension',
           fieldId: currentField.id,
           transcript: cleanText,
+          context: { spellMode: Boolean(state.isSpellMode) },
           signal,
         })
+
+        if (answerRes.partial) {
+          dispatch({
+            type: 'ANSWER_PARTIAL',
+            payload: {
+              fieldId: currentField.id,
+              partialDigits: answerRes.have ? cleanText : null,
+              prompt: answerRes.prompt,
+            },
+          })
+          return
+        }
 
         if (!answerRes.valid) {
           dispatch({
