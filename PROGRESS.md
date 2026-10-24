@@ -1,7 +1,7 @@
 # Solli progress
 
 - [-] Phase 1: Register and set up accounts (in progress)
-- [ ] Phase 2: Finalise scope
+- [x] Phase 2: Finalise scope
 - [ ] Phase 3: Problem statement and project description
 - [ ] Phase 4: Research the form
 - [ ] Phase 5: First API round trip

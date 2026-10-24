@@ -8,6 +8,10 @@ Solli ("say it" in Tamil) is a mobile-friendly voice form-filler prototype. Peop
 - Node.js 18+ and Express (ES modules)
 - Planned Gnani AI integrations: Prisma, Timbre, and Evon
 
+## Scope
+
+The product boundary, priorities, limitations, and intended users are defined in [docs/SCOPE.md](docs/SCOPE.md).
+
 ## Setup
 
 Use two terminals from this folder.
