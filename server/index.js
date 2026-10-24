@@ -6,6 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { GNANI_CONFIG } from './config.js'
 import { speak, transcribe } from './gnani.js'
+import { getEvonStatus } from './llm/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // Load environment variables from server/.env or parent .env
@@ -61,10 +62,13 @@ function estimateAudioSeconds(buffer) {
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
   const isConfigured = Boolean(process.env.GNANI_API_KEY && process.env.GNANI_API_KEY.trim() !== '')
+  const { evonProvider, evonConfigured } = getEvonStatus()
   res.json({
     status: 'ok',
     keyLoaded: isConfigured,
     gnaniConfigured: isConfigured,
+    evonProvider,
+    evonConfigured,
   })
 })
 

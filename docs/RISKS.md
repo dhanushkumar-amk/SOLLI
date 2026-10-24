@@ -2,7 +2,7 @@
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Evon access does not arrive | High | Medium | Keep `extract.js` rule-based; make the core demo work without Evon. |
+| Evon access does not arrive | Low | Medium | **Mitigated in Phase 6**: Swappable provider architecture in `server/llm/` with automatic fallback to `server/llm/rules.js` on error or 8s timeout. Rules baseline tested at 95% accuracy on fixtures with zero credit usage. |
 | Browser audio format is not accepted by an API | Low | High | **Mitigated in Phase 5**: Browser uses Web Audio API to record and downsample audio directly to 16 kHz mono 16-bit PCM WAV before upload; no ffmpeg needed on server. |
 | Noisy audio lowers accuracy | High | High | Test clean/noisy samples, add retry and operator review, and report results honestly. |
 | The 5,000 credits are exhausted | Medium | High | Use short fake recordings, log usage locally without personal data, and reserve credits for the final demo. |

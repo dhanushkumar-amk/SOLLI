@@ -5,7 +5,7 @@
 - [x] Phase 3: Problem statement and project description
 - [x] Phase 4: Research the form
 - [x] Phase 5: First API round trip (Prisma and Timbre round trip)
-- [ ] Phase 6: Check Evon access
+- [x] Phase 6: Check Evon access (Evon routes and swappable extractor)
 - [ ] Phase 7: Form definition file
 - [ ] Phase 8: Question loop
 - [ ] Phase 9: Speech-to-field extraction
@@ -21,4 +21,4 @@
 - [ ] Phase 19: Record demo and post
 - [ ] Phase 20: Final submission
 
-**Current status:** Phase 5 complete.
+**Current status:** Phase 6 complete.

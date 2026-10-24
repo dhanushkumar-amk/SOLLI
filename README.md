@@ -11,9 +11,28 @@ Paper forms can be difficult for elderly and first-time rural applicants to comp
 
 | Model | Planned role |
 |---|---|
-| Prisma v2.5 | Speech to text for recorded applicant answers. |
-| Timbre v3.0 | Text to speech for questions and read-back. |
+| Prisma v2.5 | Speech to text for recorded applicant answers (`POST /stt/v3`). |
+| Timbre v3.0 | Text to speech for questions and read-back (`POST /api/v1/tts/inference`). |
 | Evon v3.3 | Optional reasoning for ambiguous field extraction; rules remain the fallback. |
+
+## Evon routes (Field Extraction)
+
+Solli uses a swappable provider architecture in `server/llm/` controlled by the `EVON_PROVIDER` environment variable:
+
+- **Route A (`EVON_PROVIDER=rules`)**: High-speed, deterministic rule-based baseline in `server/llm/rules.js`. Extracts numbers, dates, addresses, Tamil/English yes/no, and conversational commands with zero credit usage and <1ms latency.
+- **Route B (`EVON_PROVIDER=evon-api`)**: Gnani AI closed beta API client. (Currently marked `NOT CONFIGURED` pending beta credentials).
+- **Route C (`EVON_PROVIDER=evon-selfhost`)**: OpenAI-compatible client for self-hosted vLLM/SGLang (`gnani/gnani-evon-v3.3-30B-A3B`) on rented cloud GPU. Base URL configured via `EVON_SELFHOST_URL`.
+
+**Automatic Fallback Guard**: If a selected LLM provider throws an error or times out (8 seconds), Solli automatically falls back to `rules` without crashing the user session.
+
+To benchmark field extraction accuracy on spoken fixtures:
+```bash
+cd server
+npm run evon:smoke           # Default 10 fixtures
+npm run evon:smoke -- --limit 20
+```
+
+See [docs/EVON_DECISION.md](docs/EVON_DECISION.md) for the decision matrix and evaluation runbook.
 
 ## Scope
 

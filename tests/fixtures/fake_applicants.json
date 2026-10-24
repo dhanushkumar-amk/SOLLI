@@ -1,0 +1,13 @@
+{
+  "comment": "ALL DATA IS FAKE",
+  "applicants": [
+    {"id":"FAKE-01","name":"Demo Anbu One","age":68,"village":"Mock Kaatruvilai","phone":"00000 00001","bank_account":"000000000000001","aadhaar":"0000 0000 0001"},
+    {"id":"FAKE-02","name":"Demo Balan Two","age":72,"village":"Mock Thenkarai","phone":"00000 00002","bank_account":"000000000000002","aadhaar":"0000 0000 0002"},
+    {"id":"FAKE-03","name":"K. Demo Muthulakshmi","age":74,"village":"Mock Azhagiyapandipuram","phone":"00000 00003","bank_account":"000000000000003","aadhaar":"0000 0000 0003"},
+    {"id":"FAKE-04","name":"Demo Verylong Exampleperson Name","age":76,"village":"Mock Perungulathurvilai","phone":"00000 00004","bank_account":"000000000000004","aadhaar":"0000 0000 0004"},
+    {"id":"FAKE-05","name":"Demo Ezhil Five","age":66,"village":"Mock Vellaiyankottai","phone":"00000 00005","bank_account":"000000000000005","aadhaar":"0000 0000 0005"},
+    {"id":"FAKE-06","name":"Demo Farah Six","husband_name":"Demo Husband Six","age":70,"village":"Mock Chinnapuliyampatti","phone":"00000 00006","bank_account":"000000000000006","aadhaar":"0000 0000 0006"},
+    {"id":"FAKE-07","name":"Demo Guhan Seven","age":77,"village":"Mock Kallikuppamvilai","phone":"00000 00007","bank_account":"000000000000007","aadhaar":"0000 0000 0007"},
+    {"id":"FAKE-08","name":"Demo Hema Eight","age":65,"village":"Mock Thiruvengadamkulam","phone":"00000 00008","bank_account":"000000000000008","aadhaar":"0000 0000 0008"}
+  ]
+}
