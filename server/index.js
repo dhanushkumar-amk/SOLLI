@@ -5,6 +5,13 @@ import multer from 'multer'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { GNANI_CONFIG } from './config.js'
+import {
+  buildFullSummary,
+  getNextField,
+  getProgress,
+  loadForm,
+  validateAnswer,
+} from './forms/formEngine.js'
 import { speak, transcribe } from './gnani.js'
 import { getEvonStatus } from './llm/index.js'
 
@@ -29,7 +36,8 @@ const stats = {
 }
 
 app.use(cors())
-app.use(express.json())
+// Enforce 100 KB JSON body limit
+app.use(express.json({ limit: '100kb' }))
 
 // Memory storage with 5 MB limit for audio uploads
 const upload = multer({
@@ -79,6 +87,121 @@ app.get('/api/stats', (_req, res) => {
     speak: { ...stats.speak },
   })
 })
+
+// ----------------------------------------------------
+// Form Engine API Routes (Stateless, Zero-Network)
+// ----------------------------------------------------
+
+// GET /api/form/:id — Retrieve public form definition
+app.get('/api/form/:id', (req, res) => {
+  const formId = req.params.id
+  console.log(`[route] GET /api/form/${formId}`)
+
+  try {
+    const form = loadForm(formId)
+    // Strip internal-only keys (pdf.coords)
+    const sanitizedFields = form.fields.map((f) => {
+      const fieldCopy = { ...f }
+      if (fieldCopy.pdf) {
+        fieldCopy.pdf = { ...fieldCopy.pdf }
+        delete fieldCopy.pdf.coords
+      }
+      return fieldCopy
+    })
+
+    res.json({
+      ...form,
+      fields: sanitizedFields,
+    })
+  } catch (err) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: `Form "${formId}" not found` })
+    }
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/form/:id/validate — Validate single field answer
+app.post('/api/form/:id/validate', (req, res) => {
+  const formId = req.params.id
+  const { fieldId, value } = req.body || {}
+  console.log(`[route] POST /api/form/${formId}/validate fieldId=${fieldId}`)
+
+  if (!fieldId || typeof fieldId !== 'string') {
+    return res.status(400).json({ error: 'fieldId is required' })
+  }
+
+  try {
+    const form = loadForm(formId)
+    const field = form.fields.find((f) => f.id === fieldId)
+    if (!field) {
+      return res.status(404).json({ error: `Field "${fieldId}" not found in form "${formId}"` })
+    }
+
+    const validationResult = validateAnswer(field, value)
+    res.json(validationResult)
+  } catch (err) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: `Form "${formId}" not found` })
+    }
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/form/:id/next — Get next question and progress
+app.post('/api/form/:id/next', (req, res) => {
+  const formId = req.params.id
+  const { answers, currentId } = req.body || {}
+  console.log(`[route] POST /api/form/${formId}/next currentId=${currentId || 'start'}`)
+
+  try {
+    const form = loadForm(formId)
+    const nextField = getNextField(form, answers || {}, currentId || null)
+    const progress = getProgress(form, answers || {})
+
+    // Strip pdf.coords from nextField if returned
+    let sanitizedNext = null
+    if (nextField) {
+      sanitizedNext = { ...nextField }
+      if (sanitizedNext.pdf) {
+        sanitizedNext.pdf = { ...sanitizedNext.pdf }
+        delete sanitizedNext.pdf.coords
+      }
+    }
+
+    res.json({
+      next: sanitizedNext,
+      progress,
+    })
+  } catch (err) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: `Form "${formId}" not found` })
+    }
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// POST /api/form/:id/summary — Build masked review summary
+app.post('/api/form/:id/summary', (req, res) => {
+  const formId = req.params.id
+  const { answers, lang } = req.body || {}
+  console.log(`[route] POST /api/form/${formId}/summary lang=${lang || 'en'}`)
+
+  try {
+    const form = loadForm(formId)
+    const summary = buildFullSummary(form, answers || {}, lang || 'en')
+    res.json({ summary })
+  } catch (err) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: `Form "${formId}" not found` })
+    }
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ----------------------------------------------------
+// Speech API Routes (Gnani AI)
+// ----------------------------------------------------
 
 // Speech-to-Text endpoint
 app.post(
@@ -156,6 +279,8 @@ app.use((err, _req, res, _next) => {
 
   if (err.name === 'MulterError' && err.code === 'LIMIT_FILE_SIZE') {
     statusCode = 400
+  } else if (err.type === 'entity.too.large') {
+    statusCode = 413
   } else if (message.includes('401')) {
     statusCode = 401
   } else if (message.includes('402') || message.includes('429')) {

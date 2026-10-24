@@ -42,6 +42,18 @@ The product boundary, priorities, limitations, and intended users are defined in
 
 The current inventory is in [docs/FORM_FIELDS.md](docs/FORM_FIELDS.md). It remains UNVERIFIED until a public blank source form is supplied.
 
+## Form definition
+
+The single source of truth for the pension form is `server/forms/pension.json`. It defines all 16 fields (12 spoken, 4 non-spoken physical form fields like photo and signature) with bilingual questions, help prompts, read-backs, validation rules, confirmation policies, sensitive flags, and PDF layout placeholders.
+
+See [docs/FORM_SCHEMA.md](docs/FORM_SCHEMA.md) for full schema specifications and validation rules.
+
+To validate the form schema and view the field table:
+```bash
+cd server
+npm run form:check
+```
+
 ## Setup
 
 Use two terminals from this folder.
