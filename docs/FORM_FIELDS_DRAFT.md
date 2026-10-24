@@ -13,6 +13,6 @@
 | village | Village | கிராமம் | text | Required. | “Village Kovilpatti.” |
 | taluk | Taluk | தாலுகா | text | Required. | “Taluk Ambasamudram.” |
 | district | District | மாவட்டம் | text | Required. | “District Tirunelveli.” |
-| phone | Phone number | தொலைபேசி எண் | phone | Digits only; length rule TBD in Phase 4. | “Phone number 98765 43210.” |
+| phone | Phone number | தொலைபேசி எண் | phone | Digits only; length rule TBD in Phase 4. | “Phone number [FAKE DEMO PHONE NUMBER].” |
 | bank_account | Bank account number | வங்கி கணக்கு எண் | number | Digits only; confirmation required; exact rule TBD in Phase 4. | “Account number 1234 5678 9012.” |
 | aadhaar | Aadhaar number | ஆதார் எண் | number | Fake demo data only; no verification; exact rule TBD in Phase 4. | “Demo Aadhaar 1234 5678 9012.” |

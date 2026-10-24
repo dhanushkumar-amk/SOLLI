@@ -1,12 +1,19 @@
 # Solli
 
-Solli ("say it" in Tamil) is a mobile-friendly voice form-filler prototype. People will speak their answers, and the app will transcribe them, help fill an old-age pension application, read it back, and eventually create a printable PDF.
+Paper forms can be difficult for elderly and first-time rural applicants to complete without help. CSC and panchayat helpdesk operators often repeat questions, type answers, and check details manually. Solli is a planned voice-guided workflow for one old-age pension form: it records Tamil-English mixed answers, prepares the form for review, and creates a printable PDF without submitting it to a portal.
 
 ## Tech stack
 
 - React and Vite (JavaScript) with plain CSS
 - Node.js 18+ and Express (ES modules)
-- Planned Gnani AI integrations: Prisma, Timbre, and Evon
+
+## Gnani AI models used
+
+| Model | Planned role |
+|---|---|
+| Prisma v2.5 | Speech to text for recorded applicant answers. |
+| Timbre v3.0 | Text to speech for questions and read-back. |
+| Evon v3.3 | Optional reasoning for ambiguous field extraction; rules remain the fallback. |
 
 ## Scope
 
