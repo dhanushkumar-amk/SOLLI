@@ -1,5 +1,5 @@
 // Route C: Evon Self-Hosted (vLLM / SGLang on rented GPU)
-// Status: NOT CONFIGURED (Awaiting self-host serving documentation and verified endpoint)
+// Verified from Hugging Face model card: gnani/gnani-evon-v3.3
 
 import { buildUserPrompt, parseLlmResponse, SYSTEM_PROMPT } from './prompts.js'
 
@@ -10,6 +10,9 @@ export function isConfigured() {
 
 /**
  * Route C client for OpenAI-compatible vLLM/SGLang chat endpoints
+ * Configured per gnani/gnani-evon-v3.3 model card recommendations:
+ * - Reasoning disabled via chat_template_kwargs.enable_thinking: false
+ * - Recommended deterministic settings: temperature 0.6, top_p 0.95, repetition_penalty 1.1
  */
 export async function extract({ field, transcript, context = {} }) {
   if (!isConfigured()) {
@@ -19,6 +22,7 @@ export async function extract({ field, transcript, context = {} }) {
   const startTime = Date.now()
   const hostUrl = process.env.EVON_SELFHOST_URL.replace(/\/+$/, '')
   const endpoint = `${hostUrl}/v1/chat/completions`
+  const modelName = process.env.EVON_MODEL_NAME || 'model'
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 8000)
@@ -32,13 +36,19 @@ export async function extract({ field, transcript, context = {} }) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gnani/gnani-evon-v3.3-30B-A3B',
+        model: modelName,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: userMessage },
         ],
-        temperature: 0.1,
-        max_tokens: 300,
+        temperature: 0.6,
+        top_p: 0.95,
+        repetition_penalty: 1.1,
+        max_tokens: 2048,
+        chat_template_kwargs: {
+          enable_thinking: false,
+        },
+        stream: false,
       }),
       signal: controller.signal,
     })
