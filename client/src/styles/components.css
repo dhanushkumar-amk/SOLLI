@@ -1,593 +1,491 @@
 /**
- * Solli Component Styles (Phase 13)
- * Mobile-first accessible buttons, cards, state banners, operator drawer, and modals.
+ * Solli Component Styles (Apple iOS / Flutter Mobile Theme)
+ * Smooth rounded squircle cards, Cupertino segmented controls, Siri-inspired mic,
+ * and iOS bottom sheets.
  */
 
 /* ==========================================================================
-   Demo Mode Banner
+   Top App Navigation Bar (iOS / Flutter Cupertino Style)
    ========================================================================== */
-.demo-banner {
-  background-color: #fef08a;
-  color: #854d0e;
-  border-bottom: 2px solid #ca8a04;
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-caption);
-  font-weight: 700;
-  text-align: center;
+.ios-navbar {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1rem;
+  background: rgba(242, 242, 247, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--ios-separator);
+}
+
+[data-contrast="high"] .ios-navbar {
+  background: #000000;
+  border-bottom: 2px solid #ffffff;
+}
+
+.ios-brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 800;
+  font-size: var(--font-size-caption);
+  color: var(--ios-text-primary);
+  text-decoration: none;
+}
+
+.ios-brand-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #007aff 0%, #0056c6 100%);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  font-size: 1.1rem;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
 }
 
-[data-contrast="high"] .demo-banner {
+.ios-icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--ios-gray-fill);
+  color: var(--ios-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+  touch-action: manipulation;
+}
+
+.ios-icon-btn:active {
+  transform: scale(0.92);
+  background: rgba(118, 118, 128, 0.22);
+}
+
+/* ==========================================================================
+   Cupertino Segmented Control (Language Picker)
+   ========================================================================== */
+.ios-segmented-control {
+  display: flex;
+  background-color: var(--ios-gray-fill);
+  border-radius: var(--radius-ios-pill);
+  padding: 4px;
+  gap: 3px;
+  max-width: 420px;
+  margin: 0 auto var(--space-4);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.ios-segment-btn {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  color: var(--ios-text-secondary);
+  border-radius: var(--radius-ios-pill);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  min-height: 44px;
+}
+
+.ios-segment-btn.active {
+  background-color: var(--ios-card);
+  color: var(--ios-text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+[data-contrast="high"] .ios-segment-btn.active {
   background-color: #ffff00;
   color: #000000;
-  border-bottom: 3px solid #ffffff;
 }
 
 /* ==========================================================================
-   Operator Bar (Unobtrusive, collapsed by default)
+   iOS Cards
    ========================================================================== */
-.operator-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-2) 0;
-  margin-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.operator-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-caption);
-  font-weight: 600;
-  background-color: var(--color-neutral-bg);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  min-height: 44px;
-  cursor: pointer;
-}
-
-.operator-toggle-btn:hover {
-  background-color: var(--color-neutral-hover);
-}
-
-.operator-drawer {
-  background-color: var(--bg-surface-subtle);
-  border: 2px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+.ios-card {
+  background-color: var(--ios-card);
+  border-radius: var(--radius-ios-card);
+  padding: 1.5rem;
+  box-shadow: var(--ios-shadow-card);
+  border: 1px solid var(--ios-border);
   margin-bottom: var(--space-4);
-  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease;
 }
 
-.operator-drawer-title {
-  font-size: var(--font-size-caption);
-  color: var(--text-secondary);
-  font-weight: 700;
-  margin-bottom: var(--space-3);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.operator-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-3);
-}
-
-@media (min-width: 480px) {
-  .operator-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.operator-setting-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.operator-label {
-  font-size: var(--font-size-small);
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.operator-btn-group {
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-}
-
-.operator-pill-btn {
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-small);
-  font-weight: 600;
-  background-color: var(--bg-card);
-  color: var(--text-primary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  min-height: 44px;
-}
-
-.operator-pill-btn[aria-pressed="true"],
-.operator-pill-btn.active {
-  background-color: var(--brand-primary);
-  color: var(--brand-primary-text);
-  border-color: var(--brand-primary);
+[data-contrast="high"] .ios-card {
+  border: 2px solid #ffffff;
 }
 
 /* ==========================================================================
-   State Banner (Colour + Icon + Text Label)
+   State Banner (Pill Badge)
    ========================================================================== */
-.state-banner {
+.ios-state-pill {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
+  gap: 0.65rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-ios-pill);
   font-size: var(--font-size-body);
   font-weight: 700;
   margin-bottom: var(--space-4);
-  border: 2px solid transparent;
+  border: 1px solid transparent;
 }
 
-.state-banner-icon {
-  font-size: 1.5em;
-  line-height: 1;
-  flex-shrink: 0;
+.ios-state-speaking {
+  background-color: #e5f2ff;
+  color: #0062d2;
+  border-color: #b9dcff;
 }
 
-.state-banner-speaking {
-  background-color: var(--state-speaking-bg);
-  color: var(--state-speaking-text);
-  border-color: var(--state-speaking-border);
+.ios-state-listening {
+  background-color: var(--ios-red-light);
+  color: var(--ios-red);
+  border-color: #ffccd0;
 }
 
-.state-banner-listening {
-  background-color: var(--state-listening-bg);
-  color: var(--state-listening-text);
-  border-color: var(--state-listening-border);
+.ios-state-thinking {
+  background-color: #f1eeff;
+  color: #5856d6;
+  border-color: #d6ceff;
 }
 
-.state-banner-thinking {
-  background-color: var(--state-thinking-bg);
-  color: var(--state-thinking-text);
-  border-color: var(--state-thinking-border);
+.ios-state-paused {
+  background-color: #e5e5ea;
+  color: #1c1c1e;
+  border-color: #d1d1d6;
 }
 
-.state-banner-paused {
-  background-color: var(--state-paused-bg);
-  color: var(--state-paused-text);
-  border-color: var(--state-paused-border);
-}
-
-.state-banner-operator {
-  background-color: var(--state-operator-bg);
-  color: var(--state-operator-text);
-  border-color: var(--state-operator-border);
+.ios-state-operator {
+  background-color: var(--ios-amber-light);
+  color: var(--ios-amber);
+  border-color: #fbdca5;
 }
 
 /* ==========================================================================
-   Question Card
+   iOS Touch Buttons
    ========================================================================== */
-.question-card {
-  background-color: var(--bg-card);
-  border: 2px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: var(--space-5);
-}
-
-.question-text-ta {
-  font-size: var(--font-size-question);
+.ios-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  font-size: var(--font-size-btn);
   font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.45;
-  margin-bottom: var(--space-2);
+  border-radius: var(--radius-ios-btn);
+  min-height: var(--touch-target-preferred);
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+  user-select: none;
+  border: none;
 }
 
-.question-text-roman {
-  font-size: var(--font-size-caption);
-  color: var(--text-secondary);
-  font-style: italic;
-  margin-bottom: var(--space-2);
+.ios-btn:active:not(:disabled) {
+  transform: scale(0.97);
+  opacity: 0.9;
 }
 
-.question-text-en {
-  font-size: var(--font-size-question-en);
-  color: var(--text-muted);
-  line-height: 1.4;
-  margin-bottom: 0;
+.ios-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Primary Action */
+.ios-btn-primary {
+  background: linear-gradient(180deg, #007aff 0%, #0062d2 100%);
+  color: #ffffff;
+  box-shadow: var(--ios-shadow-btn);
+}
+
+/* Affirmative / Yes Action */
+.ios-btn-yes {
+  background: linear-gradient(180deg, #28a745 0%, #248a3d 100%);
+  color: #ffffff;
+  min-height: 64px;
+  font-size: var(--font-size-btn-large);
+  box-shadow: 0 6px 18px rgba(36, 138, 61, 0.32);
+}
+
+/* Destructive / No Action */
+.ios-btn-no {
+  background: linear-gradient(180deg, #ff3b30 0%, #d70015 100%);
+  color: #ffffff;
+  min-height: 64px;
+  font-size: var(--font-size-btn-large);
+  box-shadow: 0 6px 18px rgba(215, 0, 21, 0.32);
+}
+
+/* Secondary Neutral Action */
+.ios-btn-secondary {
+  background-color: var(--ios-gray-fill);
+  color: var(--ios-text-primary);
+  border: 1px solid var(--ios-separator);
+}
+
+.ios-btn-secondary:hover:not(:disabled) {
+  background-color: rgba(118, 118, 128, 0.18);
+}
+
+/* Full Width Block */
+.ios-btn-block {
+  width: 100%;
 }
 
 /* ==========================================================================
-   Mic Button & Audio Indicator
+   Microphone Button (Siri / Flutter Floating Action Style)
    ========================================================================== */
-.mic-container {
+.ios-mic-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: var(--space-4) 0;
+  margin: 1.25rem 0;
 }
 
-.mic-button {
+.ios-mic-btn {
   width: var(--mic-btn-size);
   height: var(--mic-btn-size);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.8rem;
-  background-color: var(--brand-primary);
-  color: var(--brand-primary-text);
+  font-size: 2.85rem;
+  background: linear-gradient(135deg, #007aff 0%, #0056c6 100%);
+  color: #ffffff;
   border: none;
-  box-shadow: var(--shadow-mic);
+  box-shadow: var(--ios-shadow-mic);
   cursor: pointer;
   position: relative;
-  transition: transform 0.15s ease, background-color 0.2s ease;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  touch-action: manipulation;
 }
 
-.mic-button:hover:not(:disabled) {
+.ios-mic-btn:hover:not(:disabled) {
   transform: scale(1.04);
 }
 
-.mic-button:active:not(:disabled) {
-  transform: scale(0.96);
+.ios-mic-btn:active:not(:disabled) {
+  transform: scale(0.93);
 }
 
-.mic-button-recording {
-  background-color: var(--color-no) !important;
+.ios-mic-btn-recording {
+  background: linear-gradient(135deg, #ff3b30 0%, #d70015 100%) !important;
   color: #ffffff !important;
-  box-shadow: var(--shadow-mic-active);
-  animation: pulse-ring 1.8s infinite;
+  box-shadow: var(--ios-shadow-mic-active);
+  animation: ios-pulse 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
-@keyframes pulse-ring {
+@keyframes ios-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+    box-shadow: 0 0 0 0 rgba(215, 0, 21, 0.6);
   }
   70% {
-    box-shadow: 0 0 0 20px rgba(220, 38, 38, 0);
+    box-shadow: 0 0 0 22px rgba(215, 0, 21, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    box-shadow: 0 0 0 0 rgba(215, 0, 21, 0);
   }
 }
 
-.mic-button:disabled {
-  background-color: #94a3b8;
-  box-shadow: none;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.mic-label {
-  margin-top: var(--space-3);
+.ios-mic-label {
+  margin-top: 0.75rem;
   font-size: var(--font-size-btn);
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--ios-text-primary);
   text-align: center;
 }
 
-.mic-label.recording {
-  color: var(--color-no);
+.ios-mic-label.recording {
+  color: var(--ios-red);
 }
 
-/* Audio Level Meter */
-.audio-meter-bar {
+/* Audio Level Indicator */
+.ios-audio-bar {
   width: 140px;
   height: 8px;
-  background-color: var(--border-subtle);
-  border-radius: var(--radius-pill);
-  margin-top: var(--space-2);
+  background-color: var(--ios-gray-fill);
+  border-radius: var(--radius-ios-pill);
+  margin-top: 0.5rem;
   overflow: hidden;
-  border: 1px solid var(--border-default);
 }
 
-.audio-meter-fill {
+.ios-audio-bar-fill {
   height: 100%;
-  background-color: var(--color-yes);
+  background: linear-gradient(90deg, #34c759 0%, #248a3d 100%);
+  border-radius: var(--radius-ios-pill);
   transition: width 0.08s ease;
 }
 
 /* ==========================================================================
-   Action Buttons (Min Height >= 56px, Large Fonts >= 22px)
+   Heard Value Verification Card
    ========================================================================== */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-5);
-  font-size: var(--font-size-btn);
-  font-weight: 700;
-  border-radius: var(--radius-md);
-  min-height: var(--touch-target-preferred);
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  box-shadow: var(--shadow-sm);
-  transition: background-color 0.15s ease, transform 0.1s ease;
-  user-select: none;
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-.btn-primary {
-  background-color: var(--brand-primary);
-  color: var(--brand-primary-text);
-  border: 2px solid var(--brand-primary);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--brand-primary-hover);
-  border-color: var(--brand-primary-hover);
-}
-
-.btn-yes {
-  background-color: var(--color-yes);
-  color: var(--color-yes-text);
-  border: 2px solid var(--color-yes);
-  min-height: 64px;
-  font-size: var(--font-size-btn-large);
-  box-shadow: 0 4px 12px rgba(22, 101, 52, 0.35);
-}
-
-.btn-yes:hover:not(:disabled) {
-  background-color: var(--color-yes-hover);
-}
-
-.btn-no {
-  background-color: var(--color-no);
-  color: var(--color-no-text);
-  border: 2px solid var(--color-no);
-  min-height: 64px;
-  font-size: var(--font-size-btn-large);
-  box-shadow: 0 4px 12px rgba(153, 27, 27, 0.35);
-}
-
-.btn-no:hover:not(:disabled) {
-  background-color: var(--color-no-hover);
-}
-
-.btn-neutral {
-  background-color: var(--color-neutral-bg);
-  color: var(--color-neutral-text);
-  border: 2px solid var(--border-default);
-}
-
-.btn-neutral:hover:not(:disabled) {
-  background-color: var(--color-neutral-hover);
-}
-
-.btn-danger {
-  background-color: var(--color-no-bg);
-  color: var(--color-no);
-  border: 2px solid var(--color-no-border);
-}
-
-/* Secondary Button Rows */
-.secondary-btn-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4);
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border-subtle);
-}
-
-@media (min-width: 600px) {
-  .secondary-btn-row {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-/* Confirmation Yes/No Row */
-.confirm-btn-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-  margin: var(--space-4) 0;
-  max-width: 480px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Heard Value Display */
-.heard-value-card {
-  background-color: var(--color-warning-bg);
-  border: 3px solid var(--color-warning-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
+.ios-heard-card {
+  background-color: #fff9eb;
+  border: 2px solid #f59e0b;
+  border-radius: var(--radius-ios-card);
+  padding: 1.25rem;
   text-align: center;
   margin-bottom: var(--space-4);
+  box-shadow: var(--ios-shadow-card);
 }
 
-.heard-value-title {
-  font-size: var(--font-size-caption);
-  color: var(--color-warning-text);
+.ios-heard-title {
+  font-size: var(--font-size-small);
+  color: #b45309;
   font-weight: 700;
-  margin-bottom: var(--space-2);
+  margin-bottom: 0.25rem;
 }
 
-.heard-value-text {
+.ios-heard-value {
   font-size: var(--font-size-heard);
   font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1.3;
+  color: var(--ios-text-primary);
+  line-height: 1.25;
   word-break: break-word;
 }
 
 /* ==========================================================================
    Progress Bar
    ========================================================================== */
-.progress-container {
-  margin-bottom: var(--space-4);
-}
-
-.progress-header-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-2);
-  font-size: var(--font-size-body);
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.progress-track {
+.ios-progress-track {
   width: 100%;
-  height: 12px;
-  background-color: var(--border-subtle);
-  border-radius: var(--radius-pill);
+  height: 8px;
+  background-color: var(--ios-gray-fill);
+  border-radius: var(--radius-ios-pill);
   overflow: hidden;
+  margin-top: 0.5rem;
 }
 
-.progress-fill {
+.ios-progress-fill {
   height: 100%;
-  background-color: var(--brand-primary);
-  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, #007aff 0%, #0056c6 100%);
+  border-radius: var(--radius-ios-pill);
   transition: width 0.3s ease;
 }
 
 /* ==========================================================================
-   Modals & Alerts (Inactivity, Confirm Start Over)
+   Review Screen Grouped Inset List (Cupertino Inset Grouped)
    ========================================================================== */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: var(--bg-modal-backdrop);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-4);
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: var(--bg-card);
-  border: 3px solid var(--color-warning-border);
-  border-radius: var(--radius-lg);
-  max-width: 520px;
-  width: 100%;
-  padding: var(--space-6);
-  text-align: center;
-  box-shadow: var(--shadow-lg);
-}
-
-.modal-countdown {
-  font-size: 3.5rem;
-  font-weight: 800;
-  color: var(--color-no);
-  line-height: 1;
-  margin: var(--space-3) 0;
-}
-
-/* ==========================================================================
-   Review Table
-   ========================================================================== */
-.review-table-container {
-  background-color: var(--bg-card);
-  border: 2px solid var(--border-default);
-  border-radius: var(--radius-md);
+.ios-list-group {
+  background-color: var(--ios-card);
+  border-radius: var(--radius-ios-card);
+  border: 1px solid var(--ios-border);
+  box-shadow: var(--ios-shadow-card);
   overflow: hidden;
   margin-bottom: var(--space-5);
 }
 
-.review-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-body);
+.ios-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--ios-separator);
+  gap: 1rem;
 }
 
-.review-table th {
-  background-color: var(--bg-surface-subtle);
-  color: var(--text-secondary);
-  font-weight: 700;
-  padding: var(--space-3) var(--space-4);
-  text-align: left;
-  border-bottom: 2px solid var(--border-subtle);
-}
-
-.review-table td {
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--border-subtle);
-  vertical-align: middle;
-}
-
-.review-table tr:last-child td {
+.ios-list-row:last-child {
   border-bottom: none;
 }
 
-.review-table tr:nth-child(even) {
-  background-color: var(--bg-surface-subtle);
-}
-
-.status-badge {
+.ios-pill-tag {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-caption);
+  gap: 0.25rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-ios-pill);
+  font-size: var(--font-size-small);
   font-weight: 700;
-  border: 1px solid transparent;
 }
 
-.status-badge-verified {
-  background-color: var(--color-yes-bg);
-  color: var(--color-yes);
-  border-color: var(--color-yes-border);
+.ios-pill-verified {
+  background-color: var(--ios-green-light);
+  color: var(--ios-green);
 }
 
-.status-badge-operator {
-  background-color: var(--color-warning-bg);
-  color: var(--color-warning-text);
-  border-color: var(--color-warning-border);
+.ios-pill-operator {
+  background-color: var(--ios-amber-light);
+  color: var(--ios-amber);
 }
 
-.status-badge-skipped {
-  background-color: var(--color-neutral-bg);
-  color: var(--text-muted);
-  border-color: var(--border-default);
+.ios-pill-skipped {
+  background-color: var(--ios-gray-fill);
+  color: var(--ios-text-tertiary);
 }
 
-.status-badge-unconfirmed {
-  background-color: var(--state-thinking-bg);
-  color: var(--state-thinking-text);
-  border-color: var(--state-thinking-border);
+.ios-pill-unconfirmed {
+  background-color: #f1eeff;
+  color: #5856d6;
 }
 
-.edit-btn {
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-caption);
-  font-weight: 700;
-  background-color: var(--color-neutral-bg);
-  color: var(--brand-primary);
-  border: 2px solid var(--brand-primary);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  min-height: 48px;
+/* ==========================================================================
+   Cupertino Bottom Sheet (Operator Panel)
+   ========================================================================== */
+.ios-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--ios-backdrop);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
-.edit-btn:hover {
-  background-color: var(--brand-primary);
-  color: var(--brand-primary-text);
+.ios-sheet-panel {
+  background-color: var(--ios-sheet-bg);
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: var(--ios-shadow-sheet);
+  padding: 1rem 1.5rem 2.5rem;
+  animation: slide-up 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.ios-sheet-handle {
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background-color: rgba(60, 60, 67, 0.3);
+  margin: 0 auto 1rem;
+}
+
+.ios-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.ios-sheet-cell {
+  background-color: var(--ios-card-secondary);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 0.85rem;
+  border: 1px solid var(--ios-separator);
 }

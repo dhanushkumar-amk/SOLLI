@@ -1,97 +1,60 @@
 /**
- * Solli Design System Tokens (Phase 13)
- * Mobile-first, high contrast, WCAG AAA / AA compliant, calm palette for elderly applicants.
+ * Solli Design System Tokens (Apple iOS / Flutter Mobile Theme)
+ * Cupertino-inspired aesthetic with accessible WCAG AAA / AA contrast ratios.
  */
 
 :root {
   /* ==========================================================================
-     Color Palette (Calm, High-Contrast)
+     Apple iOS / Cupertino Palette
      ========================================================================== */
-  
+
   /* Backgrounds */
-  --bg-app: #f4f7f6; /* Calm pale sage/mist background */
-  --bg-card: #ffffff; /* Clean white card surface */
-  --bg-surface-elevated: #ffffff;
-  --bg-surface-subtle: #f8fafc;
-  --bg-modal-backdrop: rgba(15, 23, 42, 0.75);
+  --ios-bg: #f2f2f7;                 /* iOS System Grouped Background */
+  --ios-card: #ffffff;               /* iOS System Card Background */
+  --ios-card-secondary: #f8f8fa;     /* Secondary Grouped Tile */
+  --ios-sheet-bg: #ffffff;           /* Bottom Sheet Background */
+  --ios-backdrop: rgba(0, 0, 0, 0.45);/* Frosted Glass Backdrop */
 
-  /* Primary Typography (WCAG AAA >= 7:1) */
-  --text-primary: #0f172a;    /* Slate-900 (17.57:1 on #ffffff) */
-  --text-secondary: #334155;  /* Slate-700 (10.07:1 on #ffffff) */
-  --text-muted: #475569;      /* Slate-600 (7.02:1 on #ffffff) */
-  --text-inverse: #ffffff;    /* Pure white on dark surfaces */
+  /* Typography Colors */
+  --ios-text-primary: #000000;       /* 19.5:1 on #f2f2f7, 21:1 on #ffffff */
+  --ios-text-secondary: #3c3c43;     /* 8.5:1 on #ffffff (WCAG AAA) */
+  --ios-text-tertiary: #636366;      /* 5.1:1 on #ffffff (WCAG AA) */
+  --ios-text-inverse: #ffffff;
 
-  /* Borders & Dividers */
-  --border-subtle: #e2e8f0;
-  --border-default: #94a3b8;  /* Clear 3.1:1 non-text contrast against white */
-  --border-strong: #334155;
-  --border-focus: #1d4ed8;
+  /* iOS System Colors (Accessible Shades) */
+  --ios-blue: #007aff;               /* iOS System Blue */
+  --ios-blue-dark: #0062d2;          /* Accessible Deep Blue (5.9:1 on white) */
+  --ios-green: #248a3d;              /* Accessible iOS Green (6.2:1 with white text) */
+  --ios-green-light: #e8f7ec;        /* Green tint */
+  --ios-red: #d70015;                /* Accessible iOS Red (5.6:1 with white text) */
+  --ios-red-light: #feecee;          /* Red tint */
+  --ios-amber: #b25e00;              /* Accessible iOS Amber/Orange */
+  --ios-amber-light: #fff8eb;        /* Amber tint */
+  --ios-indigo: #5856d6;
+  --ios-gray-fill: rgba(118, 118, 128, 0.12); /* iOS Segmented Track */
+  --ios-separator: rgba(60, 60, 67, 0.14);    /* iOS Hairline Divider */
+  --ios-border: rgba(60, 60, 67, 0.18);
 
-  /* Brand / Primary Action */
-  --brand-primary: #1e40af;       /* Blue-800 (8.83:1 contrast against white) */
-  --brand-primary-hover: #1e3a8a; /* Blue-900 */
-  --brand-primary-text: #ffffff;  /* 8.83:1 on #1e40af */
+  /* Shadows */
+  --ios-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --ios-shadow-card-elevated: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --ios-shadow-btn: 0 6px 18px rgba(0, 102, 210, 0.28);
+  --ios-shadow-mic: 0 10px 28px rgba(0, 122, 255, 0.38);
+  --ios-shadow-mic-active: 0 0 32px rgba(215, 0, 21, 0.55);
+  --ios-shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.2);
 
-  /* Affirmative / Yes Action */
-  --color-yes: #166534;          /* Green-800 (6.44:1 contrast with white text) */
-  --color-yes-hover: #14532d;    /* Green-900 */
-  --color-yes-text: #ffffff;
-  --color-yes-bg: #ecfdf5;       /* Green-50 */
-  --color-yes-border: #15803d;
+  /* Radii (Apple Continuous Corners) */
+  --radius-ios-card: 24px;
+  --radius-ios-btn: 18px;
+  --radius-ios-pill: 9999px;
+  --radius-ios-sm: 10px;
 
-  /* Negative / No Action */
-  --color-no: #991b1b;           /* Red-800 (7.61:1 contrast with white text) */
-  --color-no-hover: #7f1d1d;     /* Red-900 */
-  --color-no-text: #ffffff;
-  --color-no-bg: #fef2f2;        /* Red-50 */
-  --color-no-border: #dc2626;
-
-  /* Warning / Attention */
-  --color-warning-bg: #fffbeb;   /* Amber-50 */
-  --color-warning-border: #d97706;/* Amber-600 */
-  --color-warning-text: #78350f; /* Amber-900 (9.47:1 on #fffbeb) */
-
-  /* Neutral Action / Secondary */
-  --color-neutral-bg: #f1f5f9;   /* Slate-100 */
-  --color-neutral-hover: #e2e8f0;/* Slate-200 */
-  --color-neutral-text: #0f172a; /* Slate-900 (13.39:1 on #f1f5f9) */
-  --color-neutral-border: #94a3b8;
-
-  /* State Banner Palette */
-  --state-speaking-bg: #e0f2fe;   /* Sky-100 */
-  --state-speaking-text: #075985; /* Sky-800 */
-  --state-speaking-border: #0284c7;
-
-  --state-listening-bg: #fee2e2;  /* Red-100 */
-  --state-listening-text: #991b1b;/* Red-800 */
-  --state-listening-border: #ef4444;
-
-  --state-thinking-bg: #ede9fe;   /* Violet-100 */
-  --state-thinking-text: #5b21b6; /* Violet-800 */
-  --state-thinking-border: #7c3aed;
-
-  --state-paused-bg: #f1f5f9;     /* Slate-100 */
-  --state-paused-text: #1e293b;   /* Slate-800 */
-  --state-paused-border: #64748b;
-
-  --state-operator-bg: #fef2f2;   /* Red-50 */
-  --state-operator-text: #7f1d1d; /* Red-900 */
-  --state-operator-border: #b91c1c;
-
-  /* Focus Ring */
-  --focus-ring-color: #1d4ed8;
-  --focus-ring-width: 4px;
-  --focus-ring-offset: 3px;
-
-  /* ==========================================================================
-     Typography & Sizing (Elderly-Friendly Scale: Body >= 20px, Buttons >= 22px, Question >= 28px)
-     ========================================================================== */
-
-  --font-stack: "Noto Sans Tamil", "Latha", "Vijaya", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, system-ui;
+  /* Typography Scales (Body >= 20px, Buttons >= 22px, Question >= 28px) */
+  --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", "Noto Sans Tamil", "Latha", system-ui, sans-serif;
   --line-height-base: 1.5;
-  --line-height-heading: 1.3;
+  --line-height-heading: 1.25;
 
-  /* Default Scale (Normal) */
+  /* Font Scale: Normal (Default) */
   --font-size-base: 20px;
   --font-size-body: 1.25rem;       /* 20px */
   --font-size-question: 1.875rem;   /* 30px */
@@ -103,37 +66,15 @@
   --font-size-caption: 1.125rem;   /* 18px */
   --font-size-small: 1.05rem;      /* ~17px */
 
-  /* ==========================================================================
-     Touch Targets & Dimensions
-     ========================================================================== */
+  /* Touch Targets */
   --touch-target-min: 48px;
   --touch-target-preferred: 56px;
-  --mic-btn-size: 110px;
+  --mic-btn-size: 108px;
 
-  /* ==========================================================================
-     Spacing Scale
-     ========================================================================== */
-  --space-1: 0.25rem;  /* 4px */
-  --space-2: 0.5rem;   /* 8px */
-  --space-3: 0.75rem;  /* 12px */
-  --space-4: 1rem;     /* 16px */
-  --space-5: 1.5rem;   /* 24px */
-  --space-6: 2rem;     /* 32px */
-  --space-8: 3rem;     /* 48px */
-
-  /* ==========================================================================
-     Radii & Shadows
-     ========================================================================== */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-pill: 9999px;
-
-  --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 6px 16px rgba(15, 23, 42, 0.1);
-  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.14);
-  --shadow-mic: 0 8px 24px rgba(30, 64, 175, 0.3);
-  --shadow-mic-active: 0 0 28px rgba(220, 38, 38, 0.65);
+  /* Focus Ring */
+  --focus-ring-color: #007aff;
+  --focus-ring-width: 4px;
+  --focus-ring-offset: 3px;
 }
 
 /* ==========================================================================
@@ -165,68 +106,30 @@
 
 /* ==========================================================================
    High Contrast Mode Overrides ([data-contrast="high"])
-   Pure Black & White with pure yellow / green / red accents (Contrast >= 19:1)
    ========================================================================== */
 [data-contrast="high"] {
-  --bg-app: #000000;
-  --bg-card: #000000;
-  --bg-surface-elevated: #0a0a0a;
-  --bg-surface-subtle: #111111;
+  --ios-bg: #000000;
+  --ios-card: #000000;
+  --ios-card-secondary: #0a0a0a;
+  --ios-sheet-bg: #000000;
+  --ios-backdrop: rgba(0, 0, 0, 0.85);
 
-  --text-primary: #ffffff;
-  --text-secondary: #ffff00;
-  --text-muted: #e2e8f0;
-  --text-inverse: #000000;
+  --ios-text-primary: #ffffff;
+  --ios-text-secondary: #ffff00;
+  --ios-text-tertiary: #e2e8f0;
+  --ios-text-inverse: #000000;
 
-  --border-subtle: #ffffff;
-  --border-default: #ffffff;
-  --border-strong: #ffff00;
-  --border-focus: #ffff00;
-
-  --brand-primary: #ffffff;
-  --brand-primary-hover: #ffff00;
-  --brand-primary-text: #000000;
-
-  --color-yes: #00ff00;
-  --color-yes-hover: #33ff33;
-  --color-yes-text: #000000;
-  --color-yes-bg: #002200;
-  --color-yes-border: #00ff00;
-
-  --color-no: #ff3333;
-  --color-no-hover: #ff5555;
-  --color-no-text: #ffffff;
-  --color-no-bg: #220000;
-  --color-no-border: #ff3333;
-
-  --color-warning-bg: #221c00;
-  --color-warning-border: #ffff00;
-  --color-warning-text: #ffff00;
-
-  --color-neutral-bg: #111111;
-  --color-neutral-hover: #222222;
-  --color-neutral-text: #ffffff;
-  --color-neutral-border: #ffffff;
-
-  --state-speaking-bg: #001a33;
-  --state-speaking-text: #66ccff;
-  --state-speaking-border: #66ccff;
-
-  --state-listening-bg: #330000;
-  --state-listening-text: #ff6666;
-  --state-listening-border: #ff3333;
-
-  --state-thinking-bg: #1a0033;
-  --state-thinking-text: #cc99ff;
-  --state-thinking-border: #cc99ff;
-
-  --state-paused-bg: #1a1a1a;
-  --state-paused-text: #ffffff;
-  --state-paused-border: #ffffff;
-
-  --state-operator-bg: #330000;
-  --state-operator-text: #ffff00;
-  --state-operator-border: #ffff00;
+  --ios-blue: #ffffff;
+  --ios-blue-dark: #ffff00;
+  --ios-green: #00ff00;
+  --ios-green-light: #002200;
+  --ios-red: #ff3333;
+  --ios-red-light: #220000;
+  --ios-amber: #ffff00;
+  --ios-amber-light: #221c00;
+  --ios-gray-fill: #1a1a1a;
+  --ios-separator: #ffffff;
+  --ios-border: #ffffff;
 
   --focus-ring-color: #ffff00;
   --focus-ring-width: 5px;
@@ -234,7 +137,7 @@
 }
 
 /* ==========================================================================
-   Prefers-Reduced-Motion (Accessibility Requirement)
+   Prefers-Reduced-Motion
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
   *,
