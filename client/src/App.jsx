@@ -3,11 +3,9 @@ import DemoBanner from './components/DemoBanner'
 import { IS_DEMO_MODE } from './config'
 import VoiceApp from './pages/VoiceApp'
 
-const isDev = Boolean(import.meta.env.DEV)
-
-// Lazy load dev routes strictly in DEV mode to enable complete tree-shaking in production
-const DevCollect = isDev ? lazy(() => import('./pages/DevCollect')) : null
-const DevRoundtrip = isDev ? lazy(() => import('./pages/DevRoundtrip')) : null
+// Lazy load dev routes strictly in DEV mode
+const DevCollect = import.meta.env.DEV ? lazy(() => import('./pages/DevCollect')) : null
+const DevRoundtrip = import.meta.env.DEV ? lazy(() => import('./pages/DevRoundtrip')) : null
 
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname)
@@ -31,8 +29,8 @@ function App() {
       {/* Sticky Demo Mode Banner (Active when VITE_DEMO_MODE=true) */}
       {IS_DEMO_MODE && <DemoBanner />}
 
-      {/* Dev Navigation Bar (Visible strictly in development mode) */}
-      {isDev && (
+      {/* Dev Navigation Bar (Dead-code eliminated in production builds) */}
+      {import.meta.env.DEV && (
         <nav
           style={{
             background: '#1e293b',
@@ -98,11 +96,11 @@ function App() {
       {/* Primary Voice Form Route */}
       {currentPath === '/app' || currentPath === '/' ? (
         <VoiceApp />
-      ) : isDev && currentPath === '/dev/collect' && DevCollect ? (
+      ) : import.meta.env.DEV && currentPath === '/dev/collect' && DevCollect ? (
         <Suspense fallback={<div style={{ padding: '2rem' }}>Loading DevCollect...</div>}>
           <DevCollect />
         </Suspense>
-      ) : isDev && currentPath === '/dev/roundtrip' && DevRoundtrip ? (
+      ) : import.meta.env.DEV && currentPath === '/dev/roundtrip' && DevRoundtrip ? (
         <Suspense fallback={<div style={{ padding: '2rem' }}>Loading DevRoundtrip...</div>}>
           <DevRoundtrip />
         </Suspense>
