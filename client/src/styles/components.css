@@ -1,0 +1,593 @@
+/**
+ * Solli Component Styles (Phase 13)
+ * Mobile-first accessible buttons, cards, state banners, operator drawer, and modals.
+ */
+
+/* ==========================================================================
+   Demo Mode Banner
+   ========================================================================== */
+.demo-banner {
+  background-color: #fef08a;
+  color: #854d0e;
+  border-bottom: 2px solid #ca8a04;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+[data-contrast="high"] .demo-banner {
+  background-color: #ffff00;
+  color: #000000;
+  border-bottom: 3px solid #ffffff;
+}
+
+/* ==========================================================================
+   Operator Bar (Unobtrusive, collapsed by default)
+   ========================================================================== */
+.operator-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.operator-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  background-color: var(--color-neutral-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.operator-toggle-btn:hover {
+  background-color: var(--color-neutral-hover);
+}
+
+.operator-drawer {
+  background-color: var(--bg-surface-subtle);
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.operator-drawer-title {
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+  font-weight: 700;
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.operator-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 480px) {
+  .operator-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.operator-setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.operator-label {
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.operator-btn-group {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.operator-pill-btn {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.operator-pill-btn[aria-pressed="true"],
+.operator-pill-btn.active {
+  background-color: var(--brand-primary);
+  color: var(--brand-primary-text);
+  border-color: var(--brand-primary);
+}
+
+/* ==========================================================================
+   State Banner (Colour + Icon + Text Label)
+   ========================================================================== */
+.state-banner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body);
+  font-weight: 700;
+  margin-bottom: var(--space-4);
+  border: 2px solid transparent;
+}
+
+.state-banner-icon {
+  font-size: 1.5em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.state-banner-speaking {
+  background-color: var(--state-speaking-bg);
+  color: var(--state-speaking-text);
+  border-color: var(--state-speaking-border);
+}
+
+.state-banner-listening {
+  background-color: var(--state-listening-bg);
+  color: var(--state-listening-text);
+  border-color: var(--state-listening-border);
+}
+
+.state-banner-thinking {
+  background-color: var(--state-thinking-bg);
+  color: var(--state-thinking-text);
+  border-color: var(--state-thinking-border);
+}
+
+.state-banner-paused {
+  background-color: var(--state-paused-bg);
+  color: var(--state-paused-text);
+  border-color: var(--state-paused-border);
+}
+
+.state-banner-operator {
+  background-color: var(--state-operator-bg);
+  color: var(--state-operator-text);
+  border-color: var(--state-operator-border);
+}
+
+/* ==========================================================================
+   Question Card
+   ========================================================================== */
+.question-card {
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-5);
+}
+
+.question-text-ta {
+  font-size: var(--font-size-question);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.45;
+  margin-bottom: var(--space-2);
+}
+
+.question-text-roman {
+  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: var(--space-2);
+}
+
+.question-text-en {
+  font-size: var(--font-size-question-en);
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Mic Button & Audio Indicator
+   ========================================================================== */
+.mic-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: var(--space-4) 0;
+}
+
+.mic-button {
+  width: var(--mic-btn-size);
+  height: var(--mic-btn-size);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.8rem;
+  background-color: var(--brand-primary);
+  color: var(--brand-primary-text);
+  border: none;
+  box-shadow: var(--shadow-mic);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.mic-button:hover:not(:disabled) {
+  transform: scale(1.04);
+}
+
+.mic-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.mic-button-recording {
+  background-color: var(--color-no) !important;
+  color: #ffffff !important;
+  box-shadow: var(--shadow-mic-active);
+  animation: pulse-ring 1.8s infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(220, 38, 38, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+}
+
+.mic-button:disabled {
+  background-color: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mic-label {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-btn);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.mic-label.recording {
+  color: var(--color-no);
+}
+
+/* Audio Level Meter */
+.audio-meter-bar {
+  width: 140px;
+  height: 8px;
+  background-color: var(--border-subtle);
+  border-radius: var(--radius-pill);
+  margin-top: var(--space-2);
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+}
+
+.audio-meter-fill {
+  height: 100%;
+  background-color: var(--color-yes);
+  transition: width 0.08s ease;
+}
+
+/* ==========================================================================
+   Action Buttons (Min Height >= 56px, Large Fonts >= 22px)
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-btn);
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  min-height: var(--touch-target-preferred);
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  user-select: none;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background-color: var(--brand-primary);
+  color: var(--brand-primary-text);
+  border: 2px solid var(--brand-primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--brand-primary-hover);
+  border-color: var(--brand-primary-hover);
+}
+
+.btn-yes {
+  background-color: var(--color-yes);
+  color: var(--color-yes-text);
+  border: 2px solid var(--color-yes);
+  min-height: 64px;
+  font-size: var(--font-size-btn-large);
+  box-shadow: 0 4px 12px rgba(22, 101, 52, 0.35);
+}
+
+.btn-yes:hover:not(:disabled) {
+  background-color: var(--color-yes-hover);
+}
+
+.btn-no {
+  background-color: var(--color-no);
+  color: var(--color-no-text);
+  border: 2px solid var(--color-no);
+  min-height: 64px;
+  font-size: var(--font-size-btn-large);
+  box-shadow: 0 4px 12px rgba(153, 27, 27, 0.35);
+}
+
+.btn-no:hover:not(:disabled) {
+  background-color: var(--color-no-hover);
+}
+
+.btn-neutral {
+  background-color: var(--color-neutral-bg);
+  color: var(--color-neutral-text);
+  border: 2px solid var(--border-default);
+}
+
+.btn-neutral:hover:not(:disabled) {
+  background-color: var(--color-neutral-hover);
+}
+
+.btn-danger {
+  background-color: var(--color-no-bg);
+  color: var(--color-no);
+  border: 2px solid var(--color-no-border);
+}
+
+/* Secondary Button Rows */
+.secondary-btn-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+@media (min-width: 600px) {
+  .secondary-btn-row {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Confirmation Yes/No Row */
+.confirm-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Heard Value Display */
+.heard-value-card {
+  background-color: var(--color-warning-bg);
+  border: 3px solid var(--color-warning-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  text-align: center;
+  margin-bottom: var(--space-4);
+}
+
+.heard-value-title {
+  font-size: var(--font-size-caption);
+  color: var(--color-warning-text);
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+
+.heard-value-text {
+  font-size: var(--font-size-heard);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+/* ==========================================================================
+   Progress Bar
+   ========================================================================== */
+.progress-container {
+  margin-bottom: var(--space-4);
+}
+
+.progress-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-body);
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.progress-track {
+  width: 100%;
+  height: 12px;
+  background-color: var(--border-subtle);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--brand-primary);
+  border-radius: var(--radius-pill);
+  transition: width 0.3s ease;
+}
+
+/* ==========================================================================
+   Modals & Alerts (Inactivity, Confirm Start Over)
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--bg-modal-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--bg-card);
+  border: 3px solid var(--color-warning-border);
+  border-radius: var(--radius-lg);
+  max-width: 520px;
+  width: 100%;
+  padding: var(--space-6);
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-countdown {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--color-no);
+  line-height: 1;
+  margin: var(--space-3) 0;
+}
+
+/* ==========================================================================
+   Review Table
+   ========================================================================== */
+.review-table-container {
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-5);
+}
+
+.review-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-body);
+}
+
+.review-table th {
+  background-color: var(--bg-surface-subtle);
+  color: var(--text-secondary);
+  font-weight: 700;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  border-bottom: 2px solid var(--border-subtle);
+}
+
+.review-table td {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.review-table tr:last-child td {
+  border-bottom: none;
+}
+
+.review-table tr:nth-child(even) {
+  background-color: var(--bg-surface-subtle);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.status-badge-verified {
+  background-color: var(--color-yes-bg);
+  color: var(--color-yes);
+  border-color: var(--color-yes-border);
+}
+
+.status-badge-operator {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border-color: var(--color-warning-border);
+}
+
+.status-badge-skipped {
+  background-color: var(--color-neutral-bg);
+  color: var(--text-muted);
+  border-color: var(--border-default);
+}
+
+.status-badge-unconfirmed {
+  background-color: var(--state-thinking-bg);
+  color: var(--state-thinking-text);
+  border-color: var(--state-thinking-border);
+}
+
+.edit-btn {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-caption);
+  font-weight: 700;
+  background-color: var(--color-neutral-bg);
+  color: var(--brand-primary);
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.edit-btn:hover {
+  background-color: var(--brand-primary);
+  color: var(--brand-primary-text);
+}

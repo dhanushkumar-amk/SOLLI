@@ -1,0 +1,111 @@
+/**
+ * Solli Base Styles (Phase 13)
+ * Resets, accessible focus rings, typography, and Tamil font fallback.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: var(--font-size-base, 20px);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-stack);
+  line-height: var(--line-height-base);
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  min-width: 320px;
+  max-width: 100%;
+  overflow-x: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-stack);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tamil script rendering hints */
+:lang(ta) {
+  font-family: "Noto Sans Tamil", "Latha", "Vijaya", system-ui, sans-serif;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+  color: var(--text-primary);
+  line-height: var(--line-height-heading);
+  font-weight: 700;
+}
+
+h1 {
+  font-size: var(--font-size-question);
+}
+
+h2 {
+  font-size: var(--font-size-btn-large);
+}
+
+h3 {
+  font-size: var(--font-size-btn);
+}
+
+p {
+  margin-bottom: var(--space-3);
+}
+
+/* Strong focus ring for keyboard & switch navigation */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
+  outline-offset: var(--focus-ring-offset) !important;
+  border-radius: var(--radius-sm);
+}
+
+/* Screen reader only utility for aria-live regions */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Buttons base reset */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Inputs */
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}

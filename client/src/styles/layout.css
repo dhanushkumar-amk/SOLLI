@@ -1,0 +1,138 @@
+/**
+ * Solli Layout Styles (Phase 13)
+ * Mobile-first responsive container, no horizontal scroll at any viewport.
+ */
+
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-app);
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.main-container {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .main-container {
+    max-width: 760px;
+    padding: var(--space-6) var(--space-5);
+  }
+}
+
+/* Welcome Screen Card */
+.welcome-card {
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  margin: auto 0;
+}
+
+@media (min-width: 480px) {
+  .welcome-card {
+    padding: var(--space-8) var(--space-6);
+  }
+}
+
+.welcome-logo {
+  font-size: 3.5rem;
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-title {
+  font-size: var(--font-size-question);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.welcome-tagline {
+  font-size: var(--font-size-tagline);
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  line-height: 1.4;
+}
+
+.welcome-notice {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+  background-color: var(--bg-surface-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  margin: var(--space-4) 0;
+  line-height: 1.4;
+}
+
+.welcome-privacy {
+  font-size: var(--font-size-small);
+  color: var(--text-secondary);
+  margin-top: var(--space-4);
+}
+
+/* Language Selection Row */
+.lang-toggle-group {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.lang-btn {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  background-color: var(--color-neutral-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  min-height: 44px;
+}
+
+.lang-btn.active {
+  background-color: var(--brand-primary);
+  color: var(--brand-primary-text);
+  border-color: var(--brand-primary);
+}
+
+/* Error and Paused Container */
+.status-card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  text-align: center;
+  margin: auto 0;
+  box-shadow: var(--shadow-md);
+}
+
+.status-card-error {
+  border: 3px solid var(--color-no-border);
+  background-color: var(--color-no-bg);
+}
+
+.status-card-paused {
+  border: 3px solid var(--border-default);
+}
+
+.status-card-success {
+  border: 3px solid var(--color-yes-border);
+  background-color: var(--color-yes-bg);
+}

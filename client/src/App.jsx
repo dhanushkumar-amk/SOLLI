@@ -1,17 +1,18 @@
-import { useEffect, useState } from 'react'
-import { getHealth } from './api'
-import './App.css'
-import DevCollect from './pages/DevCollect'
-import DevRoundtrip from './pages/DevRoundtrip'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import DemoBanner from './components/DemoBanner'
+import { IS_DEMO_MODE } from './config'
 import VoiceApp from './pages/VoiceApp'
 
+const isDev = Boolean(import.meta.env.DEV)
+
+// Lazy load dev routes strictly in DEV mode to enable complete tree-shaking in production
+const DevCollect = isDev ? lazy(() => import('./pages/DevCollect')) : null
+const DevRoundtrip = isDev ? lazy(() => import('./pages/DevRoundtrip')) : null
+
 function App() {
-  const [connected, setConnected] = useState(false)
   const [currentPath, setCurrentPath] = useState(window.location.pathname)
 
   useEffect(() => {
-    getHealth().then(() => setConnected(true)).catch(() => setConnected(false))
-
     const onLocationChange = () => {
       setCurrentPath(window.location.pathname)
     }
@@ -25,46 +26,34 @@ function App() {
     setCurrentPath(path)
   }
 
-  const isDev = Boolean(import.meta.env.DEV)
-
   return (
     <div>
-      {/* Dev Navigation Bar (Visible only in development mode) */}
+      {/* Sticky Demo Mode Banner (Active when VITE_DEMO_MODE=true) */}
+      {IS_DEMO_MODE && <DemoBanner />}
+
+      {/* Dev Navigation Bar (Visible strictly in development mode) */}
       {isDev && (
         <nav
           style={{
             background: '#1e293b',
             color: '#f8fafc',
-            padding: '0.5rem 1rem',
+            padding: '0.4rem 1rem',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             fontSize: '0.85rem',
           }}
+          aria-label="Developer mode navigation"
         >
           <span>
             <strong>Solli DEV</strong> — Route: <code>{currentPath}</code>
           </span>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              style={{
-                background: currentPath === '/' ? '#3b82f6' : '#334155',
-                color: '#fff',
-                border: 'none',
-                padding: '0.25rem 0.6rem',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              Home
-            </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
               type="button"
               onClick={() => navigate('/app')}
               style={{
-                background: currentPath === '/app' ? '#3b82f6' : '#334155',
+                background: currentPath === '/' || currentPath === '/app' ? '#2563eb' : '#334155',
                 color: '#fff',
                 border: 'none',
                 padding: '0.25rem 0.6rem',
@@ -78,7 +67,7 @@ function App() {
               type="button"
               onClick={() => navigate('/dev/roundtrip')}
               style={{
-                background: currentPath === '/dev/roundtrip' ? '#3b82f6' : '#334155',
+                background: currentPath === '/dev/roundtrip' ? '#2563eb' : '#334155',
                 color: '#fff',
                 border: 'none',
                 padding: '0.25rem 0.6rem',
@@ -92,7 +81,7 @@ function App() {
               type="button"
               onClick={() => navigate('/dev/collect')}
               style={{
-                background: currentPath === '/dev/collect' ? '#3b82f6' : '#334155',
+                background: currentPath === '/dev/collect' ? '#2563eb' : '#334155',
                 color: '#fff',
                 border: 'none',
                 padding: '0.25rem 0.6rem',
@@ -106,61 +95,19 @@ function App() {
         </nav>
       )}
 
-      {/* Route matching */}
-      {currentPath === '/app' ? (
+      {/* Primary Voice Form Route */}
+      {currentPath === '/app' || currentPath === '/' ? (
         <VoiceApp />
-      ) : isDev && currentPath === '/dev/collect' ? (
-        <DevCollect />
-      ) : isDev && currentPath === '/dev/roundtrip' ? (
-        <DevRoundtrip />
+      ) : isDev && currentPath === '/dev/collect' && DevCollect ? (
+        <Suspense fallback={<div style={{ padding: '2rem' }}>Loading DevCollect...</div>}>
+          <DevCollect />
+        </Suspense>
+      ) : isDev && currentPath === '/dev/roundtrip' && DevRoundtrip ? (
+        <Suspense fallback={<div style={{ padding: '2rem' }}>Loading DevRoundtrip...</div>}>
+          <DevRoundtrip />
+        </Suspense>
       ) : (
-        <main className="welcome">
-          <section aria-labelledby="solli-title">
-            <p className="eyebrow">Voice form helper</p>
-            <h1 id="solli-title">Solli</h1>
-            <p className="tagline">Just say it. We&apos;ll fill the form.</p>
-            <p className={`status ${connected ? 'connected' : 'offline'}`} role="status">
-              {connected ? 'Server connected' : 'Server not reachable'}
-            </p>
-            <p style={{ marginTop: '2rem' }}>
-              <button
-                type="button"
-                onClick={() => navigate('/app')}
-                style={{
-                  fontSize: '1.25rem',
-                  fontWeight: 700,
-                  padding: '1rem 2rem',
-                  background: '#2563eb',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '9999px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.3)',
-                }}
-              >
-                Open Voice Form Helper (/app) →
-              </button>
-            </p>
-            {isDev && (
-              <p style={{ marginTop: '1.5rem' }}>
-                <a
-                  href="/dev/roundtrip"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    navigate('/dev/roundtrip')
-                  }}
-                  style={{
-                    color: '#64748b',
-                    fontSize: '0.9rem',
-                    textDecoration: 'underline',
-                  }}
-                >
-                  Go to /dev/roundtrip (Prisma & Timbre Tester) →
-                </a>
-              </p>
-            )}
-          </section>
-        </main>
+        <VoiceApp />
       )}
     </div>
   )

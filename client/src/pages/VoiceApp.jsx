@@ -1,11 +1,40 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import AudioMeter from '../components/AudioMeter'
+import InactivityModal from '../components/InactivityModal'
+import OperatorBar from '../components/OperatorBar'
+import StateBanner from '../components/StateBanner'
+import {
+  INACTIVITY_TIMEOUT_MS,
+  INACTIVITY_WARNING_MS,
+  LONG_WAIT_THRESHOLD_MS,
+} from '../config'
 import { STATES } from '../conversation/stateMachine'
 import { useConversation } from '../conversation/useConversation'
+import { triggerHaptic } from '../utils/haptics'
+import { releaseScreenWakeLock, requestScreenWakeLock } from '../utils/wakeLock'
 
 export default function VoiceApp() {
   const isDev = Boolean(import.meta.env.DEV)
+
+  // In-memory UI accessibility preferences (Never written to storage)
+  const [fontSize, setFontSize] = useState('normal') // 'normal' | 'large' | 'xlarge'
+  const [contrast, setContrast] = useState('normal') // 'normal' | 'high'
+  const [uiLang, setUiLang] = useState('both') // 'both' | 'ta' | 'en'
+
+  // Typed input for dev mode only
   const [typedInput, setTypedInput] = useState('')
   const [unconfirmedOnly, setUnconfirmedOnly] = useState(false)
+
+  // Waiting feedback & Long wait (>6s) state
+  const [isTakingLong, setIsTakingLong] = useState(false)
+  const waitTimerRef = useRef(null)
+
+  // Inactivity timeout & countdown state (Kiosk Privacy)
+  const [inactivityCountdown, setInactivityCountdown] = useState(null)
+  const [wasTimedOut, setWasTimedOut] = useState(false)
+  const lastActivityRef = useRef(Date.now())
+  const inactivityCheckTimerRef = useRef(null)
+  const countdownIntervalRef = useRef(null)
 
   const {
     state,
@@ -16,10 +45,9 @@ export default function VoiceApp() {
     summary,
     error,
     isRecording,
-    isPlayingAudio,
     pendingConfirmation,
-    showConfirmButtons,
     summaryReading,
+    audioLevel,
     start,
     startListening,
     stopListening,
@@ -34,7 +62,6 @@ export default function VoiceApp() {
     confirmFullForm,
     readFullSummary,
     stopSummary,
-    setMode,
     setVoiceMuted,
     restart,
     speakChangeReview,
@@ -44,7 +71,7 @@ export default function VoiceApp() {
     cancelChooseField,
     executeCommand,
   } = useConversation({
-    mode: isDev ? 'typed' : 'voice',
+    mode: 'voice',
     voiceMuted: false,
   })
 
@@ -53,11 +80,153 @@ export default function VoiceApp() {
     state === STATES.LISTENING_CONFIRM ||
     state === STATES.PROCESSING_CONFIRM
 
+  const isWaitingState =
+    state === STATES.TRANSCRIBING ||
+    state === STATES.PROCESSING ||
+    state === STATES.PROCESSING_CONFIRM ||
+    state === STATES.LOADING_FORM
+
+  // 1. Long wait feedback (> 6 seconds)
+  useEffect(() => {
+    if (isWaitingState) {
+      waitTimerRef.current = setTimeout(() => {
+        setIsTakingLong(true)
+      }, LONG_WAIT_THRESHOLD_MS)
+    } else {
+      setIsTakingLong(false)
+      if (waitTimerRef.current) {
+        clearTimeout(waitTimerRef.current)
+        waitTimerRef.current = null
+      }
+    }
+
+    return () => {
+      if (waitTimerRef.current) {
+        clearTimeout(waitTimerRef.current)
+      }
+    }
+  }, [isWaitingState])
+
+  // 2. Screen Wake Lock management (Active during session, released on finish/idle)
+  useEffect(() => {
+    if (
+      state !== STATES.IDLE &&
+      state !== STATES.FINISHED &&
+      state !== STATES.READY_FOR_PDF &&
+      state !== STATES.ERROR
+    ) {
+      requestScreenWakeLock()
+    } else {
+      releaseScreenWakeLock()
+    }
+
+    return () => {
+      releaseScreenWakeLock()
+    }
+  }, [state])
+
+  // 3. Kiosk Inactivity Safety Loop (3 minutes idle -> 20s warning -> clear answers)
+  const registerUserActivity = useCallback(() => {
+    lastActivityRef.current = Date.now()
+    if (inactivityCountdown !== null) {
+      setInactivityCountdown(null)
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current)
+        countdownIntervalRef.current = null
+      }
+    }
+  }, [inactivityCountdown])
+
+  // Clear in-memory answers on demand
+  const handleClearSession = useCallback(() => {
+    triggerHaptic(40)
+    restart()
+    setWasTimedOut(false)
+    setInactivityCountdown(null)
+    releaseScreenWakeLock()
+  }, [restart])
+
+  useEffect(() => {
+    const isSessionActive =
+      state !== STATES.IDLE &&
+      state !== STATES.FINISHED &&
+      state !== STATES.READY_FOR_PDF
+
+    if (!isSessionActive) {
+      if (inactivityCheckTimerRef.current) {
+        clearInterval(inactivityCheckTimerRef.current)
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current)
+      }
+      return
+    }
+
+    // Attach interaction listeners to reset idle timer
+    const activityEvents = ['pointerdown', 'keydown', 'touchstart', 'focusin']
+    const handleActivity = () => registerUserActivity()
+
+    activityEvents.forEach((ev) => window.addEventListener(ev, handleActivity, { passive: true }))
+
+    // Check idle status every 2 seconds
+    inactivityCheckTimerRef.current = setInterval(() => {
+      const idleMs = Date.now() - lastActivityRef.current
+      const warningThreshold = INACTIVITY_TIMEOUT_MS - INACTIVITY_WARNING_MS
+
+      if (idleMs >= INACTIVITY_TIMEOUT_MS) {
+        // Timeout expired: clear all answers immediately and return to Welcome screen
+        clearInterval(inactivityCheckTimerRef.current)
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current)
+        }
+        setInactivityCountdown(null)
+        setWasTimedOut(true)
+        restart()
+      } else if (idleMs >= warningThreshold && inactivityCountdown === null) {
+        // Start 20s countdown warning
+        const remainingSec = Math.max(1, Math.ceil((INACTIVITY_TIMEOUT_MS - idleMs) / 1000))
+        setInactivityCountdown(remainingSec)
+
+        countdownIntervalRef.current = setInterval(() => {
+          setInactivityCountdown((prev) => {
+            if (prev === null || prev <= 1) {
+              clearInterval(countdownIntervalRef.current)
+              countdownIntervalRef.current = null
+              setWasTimedOut(true)
+              restart()
+              return null
+            }
+            return prev - 1
+          })
+        }, 1000)
+      }
+    }, 2000)
+
+    return () => {
+      activityEvents.forEach((ev) => window.removeEventListener(ev, handleActivity))
+      if (inactivityCheckTimerRef.current) {
+        clearInterval(inactivityCheckTimerRef.current)
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current)
+      }
+    }
+  }, [state, registerUserActivity, restart, inactivityCountdown])
+
+  // Handle tap with haptic feedback
+  const handleButtonTap = (action) => {
+    triggerHaptic(25)
+    registerUserActivity()
+    action()
+  }
+
+  // Handle typed submission (Dev Mode Only)
   const handleTypedSubmit = (e) => {
     e.preventDefault()
     if (!typedInput.trim()) return
     const text = typedInput.trim()
     setTypedInput('')
+    registerUserActivity()
 
     if (state === STATES.LISTENING_CONFIRM) {
       submitTypedConfirm(text)
@@ -66,1133 +235,907 @@ export default function VoiceApp() {
     }
   }
 
-  const renderStateBadge = () => {
-    switch (state) {
-      case STATES.SPEAKING_QUESTION:
-        return {
-          text: '🔊 கேள்வி கேட்கப்படுகிறது... / Speaking question...',
-          bg: '#e0f2fe',
-          color: '#0369a1',
-        }
-      case STATES.LISTENING:
-        return {
-          text: isRecording
-            ? '🔴 பதிவு செய்யப்படுகிறது... பேசுங்கள் / Recording... speak now'
-            : '🎙️ பேச தயாராக உள்ளது / Ready for speech',
-          bg: isRecording ? '#fee2e2' : '#fef3c7',
-          color: isRecording ? '#b91c1c' : '#92400e',
-        }
-      case STATES.TRANSCRIBING:
-        return {
-          text: '⏳ குரல் எழுத்தாக்கம்... / Transcribing audio...',
-          bg: '#f3e8ff',
-          color: '#7e22ce',
-        }
-      case STATES.PROCESSING:
-        return {
-          text: '🧠 விடை சரிபார்க்கப்படுகிறது... / Checking answer...',
-          bg: '#ede9fe',
-          color: '#6d28d9',
-        }
-      case STATES.SPEAKING_READBACK:
-        return {
-          text: '🔊 விவரம் சரிபார்க்கப்படுகிறது... / Speaking read-back...',
-          bg: '#fef3c7',
-          color: '#92400e',
-        }
-      case STATES.LISTENING_CONFIRM:
-        return {
-          text: isRecording
-            ? '🔴 "ஆம்" அல்லது "இல்லை" என்று சொல்லுங்கள் / Say Yes or No'
-            : '👂 "ஆம்" அல்லது "இல்லை" என்று சொல்லுங்கள் அல்லது தட்டவும் / Say Yes or No or Tap below',
-          bg: isRecording ? '#fee2e2' : '#ecfdf5',
-          color: isRecording ? '#b91c1c' : '#065f46',
-        }
-      case STATES.PROCESSING_CONFIRM:
-        return {
-          text: '🧠 உறுதிப்படுத்தல் சரிபார்க்கப்படுகிறது... / Verifying confirmation...',
-          bg: '#ede9fe',
-          color: '#6d28d9',
-        }
-      case STATES.SPEAKING_HELP:
-        return {
-          text: '💡 உதவி விளக்கம்... / Speaking help prompt...',
-          bg: '#fef9c3',
-          color: '#854d0e',
-        }
-      case STATES.SPEAKING_ERROR:
-        return {
-          text: '⚠️ மீண்டும் சொல்லவும்... / Please say it again...',
-          bg: '#fee2e2',
-          color: '#b91c1c',
-        }
-      case STATES.REVIEW:
-        return {
-          text: '📋 படிவ மதிப்பாய்வு / Form Review',
-          bg: '#e0f2fe',
-          color: '#0369a1',
-        }
-      case STATES.READY_FOR_PDF:
-        return {
-          text: '✅ PDF உருவாக்கத்திற்கு தயார் / Ready for PDF',
-          bg: '#dcfce7',
-          color: '#15803d',
-        }
-      case STATES.LOADING_FORM:
-        return {
-          text: '⏳ படிவம் ஏற்றப்படுகிறது... / Loading form...',
-          bg: '#f1f5f9',
-          color: '#475569',
-        }
-      case STATES.PAUSED:
-        return {
-          text: '⏸️ நிறுத்தி வைக்கப்பட்டுள்ளது / Conversation Paused',
-          bg: '#f1f5f9',
-          color: '#475569',
-        }
-      case STATES.OPERATOR_PAUSED:
-        return {
-          text: '👤 பணியாளர் உதவி தேவை / Operator Needed',
-          bg: '#fee2e2',
-          color: '#b91c1c',
-        }
-      case STATES.CONFIRM_START_OVER:
-        return {
-          text: '⚠️ மீண்டும் தொடங்குவதை உறுதிப்படுத்தவும் / Confirm Start Over',
-          bg: '#fef3c7',
-          color: '#92400e',
-        }
-      default:
-        return null
-    }
-  }
-
-  const badge = renderStateBadge()
-
   // Identify fields needing operator help
   const operatorHelpFields = (summary || []).filter((f) => f.needsOperatorHelp)
 
+  // Progress calculations
+  const currentStep = progress.done + 1
+  const totalSteps = progress.total || 12
+  const progressPercent = Math.min(100, Math.round((progress.done / totalSteps) * 100))
+
   return (
     <div
-      style={{
-        maxWidth: '680px',
-        margin: '0 auto',
-        padding: '1.25rem',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        minHeight: '80vh',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
+      className="app-wrapper"
+      data-font-size={fontSize}
+      data-contrast={contrast}
     >
-      {/* Dev Bar (Mode Toggles) */}
-      {isDev && (
-        <div
-          style={{
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '8px',
-            padding: '0.6rem 0.8rem',
-            marginBottom: '1rem',
-            fontSize: '0.9rem',
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          <div>
-            <strong>Mode:</strong>{' '}
-            <label style={{ marginRight: '0.8rem', cursor: 'pointer' }}>
-              <input
-                type="radio"
-                name="devMode"
-                value="voice"
-                checked={context.mode === 'voice'}
-                onChange={() => setMode('voice')}
-              />{' '}
-              Voice (Prisma STT)
-            </label>
-            <label style={{ cursor: 'pointer' }}>
-              <input
-                type="radio"
-                name="devMode"
-                value="typed"
-                checked={context.mode === 'typed'}
-                onChange={() => setMode('typed')}
-              />{' '}
-              Typed (Zero API Calls)
-            </label>
-          </div>
-          <div>
-            <label style={{ cursor: 'pointer', fontWeight: 600 }}>
-              <input
-                type="checkbox"
-                checked={context.voiceMuted}
-                onChange={(e) => setVoiceMuted(e.target.checked)}
-              />{' '}
-              Mute Voice (Skip Timbre)
-            </label>
-          </div>
+      {/* Accessible live region for assertive alerts (Errors & Inactivity) */}
+      <div className="sr-only" aria-live="assertive" aria-atomic="true">
+        {error ? `பிழை: ${error.messageTa} - Error: ${error.messageEn}` : ''}
+        {inactivityCountdown !== null
+          ? `எச்சரிக்கை: ${inactivityCountdown} வினாடிகளில் அமர்வு முடிவடையும். Warning: session will expire in ${inactivityCountdown} seconds.`
+          : ''}
+      </div>
 
-          {/* Phase 12: Quick on-screen voice command buttons in dev mode */}
-          <div
-            style={{
-              width: '100%',
-              borderTop: '1px solid #cbd5e1',
-              paddingTop: '0.5rem',
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '0.4rem',
-              alignItems: 'center',
+      <main className="main-container">
+        {/* Operator Bar (Collapsed by default, in-memory controls) */}
+        <OperatorBar
+          fontSize={fontSize}
+          setFontSize={setFontSize}
+          contrast={contrast}
+          setContrast={setContrast}
+          voiceMuted={context.voiceMuted}
+          setVoiceMuted={setVoiceMuted}
+          canResume={state === STATES.PAUSED || state === STATES.OPERATOR_PAUSED}
+          onResume={() => handleButtonTap(resumeFromPause)}
+          onRestart={() => handleButtonTap(restart)}
+          onClearData={handleClearSession}
+        />
+
+        {/* Inactivity Warning Modal */}
+        {inactivityCountdown !== null && (
+          <InactivityModal
+            countdown={inactivityCountdown}
+            onStayActive={() => {
+              triggerHaptic(30)
+              registerUserActivity()
             }}
-          >
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>Commands:</span>
-            <button type="button" onClick={() => executeCommand('repeat')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', cursor: 'pointer' }}>Repeat</button>
-            <button type="button" onClick={() => executeCommand('skip')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', cursor: 'pointer' }}>Skip</button>
-            <button type="button" onClick={() => executeCommand('dont_know')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: '4px', cursor: 'pointer' }}>Don't Know</button>
-            <button type="button" onClick={() => executeCommand('back')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', cursor: 'pointer' }}>Back</button>
-            <button type="button" onClick={() => executeCommand('change_field', { target: 'village' })} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', cursor: 'pointer' }}>Change Village</button>
-            <button type="button" onClick={() => executeCommand('change_field', { target: 'phone' })} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', cursor: 'pointer' }}>Change Phone</button>
-            <button type="button" onClick={() => executeCommand('help')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#fef9c3', border: '1px solid #fef08a', borderRadius: '4px', cursor: 'pointer' }}>Help</button>
-            <button type="button" onClick={() => executeCommand('operator')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: '4px', cursor: 'pointer' }}>Operator</button>
-            <button type="button" onClick={() => executeCommand('stop')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' }}>Stop</button>
-            <button type="button" onClick={() => executeCommand('start_over')} style={{ fontSize: '0.78rem', padding: '0.2rem 0.5rem', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '4px', cursor: 'pointer' }}>Start Over</button>
-          </div>
-        </div>
-      )}
+          />
+        )}
 
-      {/* Operator Needed Banner */}
-      {(state === STATES.OPERATOR_PAUSED || context.sessionNeedsOperatorHelp) && (
-        <div
-          style={{
-            background: '#fef2f2',
-            border: '2px solid #ef4444',
-            borderRadius: '12px',
-            padding: '1.25rem',
-            marginBottom: '1.25rem',
-            textAlign: 'center',
-          }}
-        >
-          <h2 style={{ color: '#b91c1c', margin: '0 0 0.5rem', fontSize: '1.35rem' }}>
-            👤 பணியாளர் உதவி தேவை / Operator Needed
-          </h2>
-          <p style={{ color: '#7f1d1d', margin: '0 0 1rem', fontSize: '1rem' }}>
-            விண்ணப்பதாரருக்கு உதவி தேவைப்படுகிறது. தயவுசெய்து விண்ணப்பதாரரிடம் பேசி படிவத்தை தொடரவும்.
-          </p>
-          <button
-            type="button"
-            onClick={resumeFromPause}
+        {/* Operator Needed Alert Banner */}
+        {(state === STATES.OPERATOR_PAUSED || context.sessionNeedsOperatorHelp) && (
+          <aside
+            className="status-card"
             style={{
-              padding: '0.75rem 1.75rem',
-              background: '#dc2626',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 700,
-              fontSize: '1.05rem',
-              cursor: 'pointer',
+              backgroundColor: 'var(--color-warning-bg)',
+              border: '3px solid var(--color-warning-border)',
+              marginBottom: 'var(--space-4)',
             }}
+            role="alert"
           >
-            ▶️ பணியாளர் உதவினார், தொடரவும் / Resume Session
-          </button>
-        </div>
-      )}
-
-      {/* Paused Banner */}
-      {state === STATES.PAUSED && (
-        <div
-          style={{
-            background: '#f8fafc',
-            border: '2px solid #94a3b8',
-            borderRadius: '12px',
-            padding: '1.25rem',
-            marginBottom: '1.25rem',
-            textAlign: 'center',
-          }}
-        >
-          <h2 style={{ color: '#334155', margin: '0 0 0.5rem', fontSize: '1.35rem' }}>
-            ⏸️ உரையாடல் இடைநிறுத்தப்பட்டுள்ளது / Conversation Paused
-          </h2>
-          <p style={{ color: '#64748b', margin: '0 0 1rem', fontSize: '0.95rem' }}>
-            மைக்ரோஃபோன் அணைக்கப்பட்டுள்ளது. / The microphone has been released.
-          </p>
-          <button
-            type="button"
-            onClick={resumeFromPause}
-            style={{
-              padding: '0.75rem 1.75rem',
-              background: '#2563eb',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 700,
-              fontSize: '1.05rem',
-              cursor: 'pointer',
-            }}
-          >
-            ▶️ மீண்டும் தொடரவும் / Resume
-          </button>
-        </div>
-      )}
-
-      {/* Start Over Confirmation Modal */}
-      {state === STATES.CONFIRM_START_OVER && (
-        <div
-          style={{
-            background: '#fffbeb',
-            border: '2px solid #f59e0b',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            marginBottom: '1.5rem',
-            textAlign: 'center',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          }}
-        >
-          <h2 style={{ color: '#92400e', margin: '0 0 0.5rem', fontSize: '1.4rem' }}>
-            ⚠️ அனைத்தையும் அழித்து மீண்டும் தொடங்கவா? / Delete everything and start again?
-          </h2>
-          <p style={{ color: '#b45309', margin: '0 0 1.25rem', fontSize: '1rem' }}>
-            இதுவரை உள்ளிட்ட அனைத்து விவரங்களும் நீக்கப்படும். / All entered answers will be cleared.
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-            <button
-              type="button"
-              onClick={() => confirmStartOver(true)}
-              style={{
-                padding: '0.85rem 1.75rem',
-                background: '#dc2626',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 700,
-                fontSize: '1.1rem',
-                cursor: 'pointer',
-              }}
-            >
-              🗑️ ஆம், அனைத்தையும் அழி / Yes, delete all
-            </button>
-            <button
-              type="button"
-              onClick={() => confirmStartOver(false)}
-              style={{
-                padding: '0.85rem 1.75rem',
-                background: '#e2e8f0',
-                color: '#1e293b',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 700,
-                fontSize: '1.1rem',
-                cursor: 'pointer',
-              }}
-            >
-              ❌ வேண்டாம், ரத்து செய் / No, keep answers
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Tappable Field Selection for Generic Change or Ambiguous Target */}
-      {(context.choosingField || (context.ambiguousCandidates && context.ambiguousCandidates.length > 0)) && (
-        <div
-          style={{
-            background: '#f0f9ff',
-            border: '2px solid #0284c7',
-            borderRadius: '12px',
-            padding: '1.25rem',
-            marginBottom: '1.25rem',
-          }}
-        >
-          <h3 style={{ color: '#0369a1', margin: '0 0 0.75rem', fontSize: '1.15rem' }}>
-            {context.ambiguousCandidates
-              ? 'எந்த விவரத்தை மாற்ற வேண்டும்? / Which field?'
-              : 'மாற்ற வேண்டிய விவரத்தைத் தேர்ந்தெடுக்கவும் / Select field to change:'}
-          </h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            {(context.ambiguousCandidates || context.form?.fields?.filter((f) => f.spoken).map((f) => f.id) || []).map(
-              (fid) => {
-                const fObj = context.form?.fields?.find((f) => f.id === fid)
-                return (
-                  <button
-                    key={fid}
-                    type="button"
-                    onClick={() => chooseTargetField(fid)}
-                    style={{
-                      padding: '0.5rem 0.85rem',
-                      background: '#ffffff',
-                      border: '1px solid #0284c7',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      color: '#0369a1',
-                    }}
-                  >
-                    ✏️ {fObj?.labels?.ta || fid} ({fObj?.labels?.en || fid})
-                  </button>
-                )
-              }
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={cancelChooseField}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#64748b',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-            }}
-          >
-            ரத்து செய் / Cancel
-          </button>
-        </div>
-      )}
-
-      {/* Screen 1: Welcome Screen (IDLE) */}
-      {state === STATES.IDLE && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '2rem 1rem',
-            background: '#ffffff',
-            borderRadius: '12px',
-            border: '2px solid #e2e8f0',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-            margin: 'auto 0',
-          }}
-        >
-          <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>👵🧓</div>
-          <h1 style={{ fontSize: '1.75rem', color: '#0f172a', margin: '0 0 0.5rem' }}>
-            சொல்லி / Solli
-          </h1>
-          <p style={{ fontSize: '1.15rem', color: '#334155', fontWeight: 600, margin: '0 0 0.5rem' }}>
-            முதியோர் உதவித்தொகை குரல் விண்ணப்பம்
-          </p>
-          <p style={{ fontSize: '1rem', color: '#64748b', margin: '0 0 1.5rem' }}>
-            Old-Age Pension Voice Application
-          </p>
-
-          <button
-            type="button"
-            onClick={start}
-            style={{
-              fontSize: '1.25rem',
-              fontWeight: 700,
-              padding: '1rem 2.5rem',
-              background: '#2563eb',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '50px',
-              cursor: 'pointer',
-              boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.3)',
-            }}
-          >
-            தொடங்கு / Start Application
-          </button>
-        </div>
-      )}
-
-      {/* Screen 2: Error Screen */}
-      {state === STATES.ERROR && (
-        <div
-          style={{
-            background: '#fef2f2',
-            border: '2px solid #ef4444',
-            borderRadius: '12px',
-            padding: '1.5rem',
-            margin: 'auto 0',
-          }}
-        >
-          <h2 style={{ color: '#b91c1c', marginTop: 0, fontSize: '1.4rem' }}>
-            பிழை ஏற்பட்டது / Error Encountered
-          </h2>
-          <p style={{ fontSize: '1.2rem', color: '#7f1d1d', fontWeight: 600 }}>
-            {error?.messageTa}
-          </p>
-          <p style={{ fontSize: '1rem', color: '#991b1b' }}>{error?.messageEn}</p>
-          <button
-            type="button"
-            onClick={restart}
-            style={{
-              marginTop: '1.5rem',
-              padding: '0.75rem 1.5rem',
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              background: '#b91c1c',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-          >
-            மறுதொடக்கம் / Restart
-          </button>
-        </div>
-      )}
-
-      {/* Screen 3: Ready for PDF (Post-confirmation final state) */}
-      {state === STATES.READY_FOR_PDF && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '2.5rem 1.5rem',
-            background: '#f0fdf4',
-            borderRadius: '12px',
-            border: '2px solid #22c55e',
-            margin: 'auto 0',
-          }}
-        >
-          <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>🎉</div>
-          <h2 style={{ fontSize: '1.6rem', color: '#15803d', margin: '0 0 0.5rem' }}>
-            விண்ணப்பம் வெற்றிகரமாக உறுதிப்படுத்தப்பட்டது!
-          </h2>
-          <p style={{ fontSize: '1.2rem', color: '#166534', fontWeight: 600, margin: '0 0 1rem' }}>
-            Application Verified & Ready for PDF (Phase 14)
-          </p>
-          <p style={{ color: '#475569', fontSize: '1rem', marginBottom: '2rem' }}>
-            அனைத்து விவரங்களும் சரிபார்க்கப்பட்டுவிட்டன. அடுத்த கட்டமாக அரசு படிவ PDF உருவாக்கப்படும்.
-          </p>
-          <button
-            type="button"
-            onClick={restart}
-            style={{
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              padding: '0.75rem 2rem',
-              background: '#15803d',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-          >
-            புதிய விண்ணப்பம் / Start New
-          </button>
-        </div>
-      )}
-
-      {/* Screen 4: Final Review Screen */}
-      {(state === STATES.REVIEW || state === STATES.FINISHED) && (
-        <div style={{ margin: '1rem 0' }}>
-          <div
-            style={{
-              background: '#ecfdf5',
-              border: '1px solid #10b981',
-              borderRadius: '8px',
-              padding: '1rem',
-              marginBottom: '1rem',
-            }}
-          >
-            <h2 style={{ color: '#065f46', margin: 0, fontSize: '1.5rem' }}>
-              விண்ணப்ப மதிப்பாய்வு / Application Review
+            <h2 style={{ color: 'var(--color-warning-text)', margin: '0 0 var(--space-2)' }}>
+              👤 பணியாளர் உதவி தேவை / Operator Assistance Needed
             </h2>
-            <p style={{ color: '#047857', margin: '0.5rem 0 0', fontSize: '1.05rem' }}>
-              உங்கள் பதில்களை சரிபார்க்கவும். ரகசிய எண்கள் திரையில் மறைக்கப்பட்டுள்ளன.
+            <p style={{ color: 'var(--color-warning-text)', fontSize: 'var(--font-size-body)' }}>
+              விண்ணப்பதாரருக்கு உதவி தேவைப்படுகிறது. தயவுசெய்து விவரங்களை சரிபார்த்து உதவவும்.
               <br />
-              Please review your recorded answers (sensitive numbers are masked).
+              <span style={{ fontSize: 'var(--font-size-caption)' }}>
+                Please review the question with the applicant, then resume the session.
+              </span>
             </p>
-          </div>
-
-          {/* Highlight fields marked needsOperatorHelp at top */}
-          {operatorHelpFields.length > 0 && (
-            <div
-              style={{
-                background: '#fffbeb',
-                border: '2px solid #f59e0b',
-                borderRadius: '8px',
-                padding: '0.85rem 1rem',
-                marginBottom: '1rem',
-              }}
+            <button
+              type="button"
+              onClick={() => handleButtonTap(resumeFromPause)}
+              className="btn btn-primary"
+              style={{ minHeight: '56px', width: '100%', maxWidth: '360px', margin: 'var(--space-3) auto 0' }}
             >
-              <h3 style={{ margin: '0 0 0.4rem', color: '#b45309', fontSize: '1.15rem' }}>
-                ⚠️ பணியாளர் உதவி தேவைப்படும் விவரங்கள் / Needs Operator Help ({operatorHelpFields.length})
-              </h3>
-              <p style={{ margin: '0 0 0.5rem', color: '#92400e', fontSize: '0.95rem' }}>
-                கீழ்கண்ட விவரங்களை பணியாளர் சரிபார்த்து உதவ வேண்டும்:
-              </p>
-              <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#78350f' }}>
-                {operatorHelpFields.map((f) => (
-                  <li key={f.id} style={{ marginBottom: '0.25rem' }}>
-                    <strong>{f.label}:</strong> {f.display}{' '}
-                    <button
-                      type="button"
-                      onClick={() => startEditField(f.id)}
-                      style={{
-                        padding: '0.2rem 0.6rem',
-                        fontSize: '0.85rem',
-                        background: '#fef3c7',
-                        border: '1px solid #d97706',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        marginLeft: '0.5rem',
-                      }}
-                    >
-                      ✏️ Edit
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+              ▶️ பணியாளர் உதவினார், தொடரவும் / Resume Session
+            </button>
+          </aside>
+        )}
 
-          {/* Full Summary Speech Reader Controls */}
-          <div
-            style={{
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              borderRadius: '8px',
-              padding: '0.85rem 1rem',
-              marginBottom: '1.25rem',
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: '0.75rem',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-              <button
-                type="button"
-                onClick={summaryReading?.active ? stopSummary : () => readFullSummary({ unconfirmedOnly })}
-                style={{
-                  padding: '0.65rem 1.25rem',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  background: summaryReading?.active ? '#dc2626' : '#0284c7',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                }}
-              >
-                {summaryReading?.active ? '⏹ நிறுத்து / Stop Reading' : '🔊 அனைத்தையும் படிக்கவும் / Read everything'}
-              </button>
-
-              <button
-                type="button"
-                onClick={speakChangeReview}
-                style={{
-                  padding: '0.65rem 1.25rem',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  background: isRecording ? '#fee2e2' : '#f0fdf4',
-                  color: isRecording ? '#b91c1c' : '#166534',
-                  border: isRecording ? '2px solid #ef4444' : '2px solid #22c55e',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                }}
-              >
-                🎙️ {isRecording ? 'பேசுங்கள் (8s)... / Listening...' : 'பேசி மாற்றவும் / Speak a change'}
-              </button>
-
-              <label style={{ fontSize: '0.95rem', color: '#334155', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={unconfirmedOnly}
-                  onChange={(e) => setUnconfirmedOnly(e.target.checked)}
-                />{' '}
-                உறுதிப்படுத்தப்படாதவற்றை மட்டும் / Unconfirmed only
-              </label>
-            </div>
-
-            {summaryReading?.active && (
-              <div style={{ fontSize: '0.9rem', color: '#0369a1', fontWeight: 600 }}>
-                படிக்கப்படுகிறது: {summaryReading.currentLabel || `Field ${summaryReading.index + 1}/${summaryReading.total}`}
-                <br />
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                  மதிப்பிடப்பட்ட Timbre எழுத்துகள்: ~{summaryReading.estimatedChars}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Table of all fields with masked values & status badges */}
-          <div
-            style={{
-              background: '#ffffff',
-              border: '1px solid #e2e8f0',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              marginBottom: '1.5rem',
-            }}
-          >
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1rem' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
-                  <th style={{ padding: '0.65rem 0.85rem', color: '#475569' }}>விவரம் / Field</th>
-                  <th style={{ padding: '0.65rem 0.85rem', color: '#475569' }}>பதிவு / Value</th>
-                  <th style={{ padding: '0.65rem 0.85rem', color: '#475569' }}>நிலை / Status</th>
-                  <th style={{ padding: '0.65rem 0.85rem', textAlign: 'right', color: '#475569' }}>செயல் / Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(summary || []).map((row, idx) => {
-                  let statusBadge = {
-                    text: '⏳ உறுதிப்படுத்தப்படவில்லை',
-                    bg: '#f1f5f9',
-                    color: '#475569',
-                  }
-                  if (row.needsOperatorHelp) {
-                    statusBadge = {
-                      text: '⚠️ பணியாளர் உதவி',
-                      bg: '#fef3c7',
-                      color: '#b45309',
-                    }
-                  } else if (row.confirmed) {
-                    statusBadge = {
-                      text: '✅ சரிபார்க்கப்பட்டது',
-                      bg: '#dcfce7',
-                      color: '#15803d',
-                    }
-                  } else if (row.skipped) {
-                    statusBadge = {
-                      text: '⏭ தவிர்க்கப்பட்டது',
-                      bg: '#f1f5f9',
-                      color: '#64748b',
-                    }
-                  }
-
-                  return (
-                    <tr
-                      key={row.id || idx}
-                      style={{
-                        borderBottom: '1px solid #f1f5f9',
-                        background: idx % 2 === 0 ? '#fafafa' : '#ffffff',
-                      }}
-                    >
-                      <td style={{ padding: '0.75rem 0.85rem', fontWeight: 600, color: '#334155' }}>
-                        {row.label}
-                      </td>
-                      <td
-                        style={{
-                          padding: '0.75rem 0.85rem',
-                          color: row.sensitive ? '#0284c7' : '#0f172a',
-                          fontWeight: row.sensitive ? 700 : 500,
-                        }}
-                      >
-                        {row.display}
-                      </td>
-                      <td style={{ padding: '0.75rem 0.85rem' }}>
-                        <span
-                          style={{
-                            padding: '0.2rem 0.5rem',
-                            borderRadius: '4px',
-                            fontSize: '0.82rem',
-                            fontWeight: 600,
-                            background: statusBadge.bg,
-                            color: statusBadge.color,
-                          }}
-                        >
-                          {statusBadge.text}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.75rem 0.85rem', textAlign: 'right' }}>
-                        {row.spoken && (
-                          <button
-                            type="button"
-                            onClick={() => startEditField(row.id)}
-                            style={{
-                              padding: '0.35rem 0.75rem',
-                              fontSize: '0.9rem',
-                              fontWeight: 600,
-                              background: '#f8fafc',
-                              color: '#2563eb',
-                              border: '1px solid #bfdbfe',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            ✏️ Edit
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Final Question Section: "Is everything correct?" */}
-          <div
-            style={{
-              background: '#f8fafc',
-              border: '2px solid #cbd5e1',
-              borderRadius: '12px',
-              padding: '1.5rem',
-              textAlign: 'center',
-            }}
-          >
-            <h3 style={{ fontSize: '1.35rem', color: '#0f172a', margin: '0 0 0.5rem' }}>
-              அனைத்து விவரங்களும் சரியா? / Is everything correct?
-            </h3>
-            <p style={{ fontSize: '1rem', color: '#64748b', margin: '0 0 1.25rem' }}>
-              சரியாக இருந்தால் "ஆம்" என்பதை அழுத்தவும். மாற்ற வேண்டியிருந்தால் மேலே உள்ள "Edit" பொத்தானைத் தட்டவும்.
+        {/* Paused Screen */}
+        {state === STATES.PAUSED && (
+          <div className="status-card status-card-paused" role="status">
+            <h2 style={{ color: 'var(--text-primary)', marginBottom: 'var(--space-2)' }}>
+              ⏸️ உரையாடல் இடைநிறுத்தப்பட்டுள்ளது / Conversation Paused
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
+              மைக்ரோஃபோன் அணைக்கப்பட்டுள்ளது. நீங்கள் தயாரானதும் தொடரலாம்.
+              <br />
+              <span style={{ fontSize: 'var(--font-size-caption)' }}>
+                Microphone is released. Tap Resume when ready.
+              </span>
             </p>
-
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-              <button
-                type="button"
-                onClick={confirmFullForm}
-                style={{
-                  padding: '0.85rem 2rem',
-                  fontSize: '1.15rem',
-                  fontWeight: 700,
-                  background: '#16a34a',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 6px -1px rgba(22, 163, 74, 0.3)',
-                }}
-              >
-                ✅ ஆம், எல்லாம் சரி / Yes, all correct
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => handleButtonTap(resumeFromPause)}
+              className="btn btn-primary"
+              style={{ minHeight: '60px', padding: '0.85rem 2.5rem' }}
+            >
+              ▶️ மீண்டும் தொடரவும் / Resume Session
+            </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Screen 5: Active Question / Confirmation Loop */}
-      {state !== STATES.IDLE &&
-        state !== STATES.ERROR &&
-        state !== STATES.FINISHED &&
-        state !== STATES.REVIEW &&
-        state !== STATES.READY_FOR_PDF &&
-        currentField && (
+        {/* Start Over Confirmation Modal */}
+        {state === STATES.CONFIRM_START_OVER && (
           <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              flex: 1,
-              justifyContent: 'space-between',
-            }}
+            className="modal-overlay"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="startover-title"
           >
-            {/* Top Bar: Progress & Status */}
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '0.75rem',
-                  fontSize: '1.05rem',
-                  color: '#475569',
-                  fontWeight: 600,
-                }}
-              >
-                <span>
-                  {isConfirmState
-                    ? 'சரிபார்த்தல் / Confirmation'
-                    : `கேள்வி ${progress.done + 1} / ${progress.total}`}
+            <div className="modal-content">
+              <span style={{ fontSize: '3rem' }} aria-hidden="true">
+                ⚠️
+              </span>
+              <h2 id="startover-title" style={{ color: 'var(--color-no)', margin: '0.5rem 0' }}>
+                அனைத்தையும் அழித்து மீண்டும் தொடங்கவா?
+                <br />
+                <span style={{ fontSize: 'var(--font-size-btn)', color: 'var(--text-secondary)' }}>
+                  Delete everything and start again?
                 </span>
+              </h2>
+              <p style={{ margin: 'var(--space-3) 0 var(--space-5)' }}>
+                இதுவரை உள்ளிட்ட அனைத்து விவரங்களும் நினைவகத்திலிருந்து நீக்கப்படும்.
+                <br />
+                <span style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-muted)' }}>
+                  All entered answers will be permanently erased.
+                </span>
+              </p>
+              <div className="confirm-btn-row">
                 <button
                   type="button"
-                  onClick={restart}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '4px',
-                    padding: '0.2rem 0.5rem',
-                    color: '#64748b',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                  }}
+                  onClick={() => handleButtonTap(() => confirmStartOver(true))}
+                  className="btn btn-no"
                 >
-                  Stop / நிறுத்து
+                  🗑️ ஆம், அழி / Yes, delete
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleButtonTap(() => confirmStartOver(false))}
+                  className="btn btn-neutral"
+                >
+                  ❌ ரத்து / Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        )}
 
-              {badge && (
-                <div
-                  style={{
-                    background: badge.bg,
-                    color: badge.color,
-                    padding: '0.45rem 0.75rem',
-                    borderRadius: '6px',
-                    fontSize: '0.95rem',
-                    fontWeight: 600,
-                    marginBottom: '1.25rem',
-                  }}
-                >
-                  {badge.text}
-                </div>
+        {/* Field Targeting Selection (When Voice Command asks to change a field) */}
+        {(context.choosingField || (context.ambiguousCandidates && context.ambiguousCandidates.length > 0)) && (
+          <div
+            className="status-card"
+            style={{
+              backgroundColor: 'var(--color-yes-bg)',
+              border: '2px solid var(--color-yes-border)',
+              marginBottom: 'var(--space-4)',
+              textAlign: 'left',
+            }}
+          >
+            <h3 style={{ color: 'var(--color-yes)', marginBottom: 'var(--space-3)' }}>
+              ✏️ மாற்ற வேண்டிய விவரத்தைத் தேர்ந்தெடுக்கவும் / Select field to change:
+            </h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
+              {(context.ambiguousCandidates || context.form?.fields?.filter((f) => f.spoken).map((f) => f.id) || []).map(
+                (fid) => {
+                  const fObj = context.form?.fields?.find((f) => f.id === fid)
+                  return (
+                    <button
+                      key={fid}
+                      type="button"
+                      onClick={() => handleButtonTap(() => chooseTargetField(fid))}
+                      className="btn btn-neutral"
+                      style={{ fontSize: 'var(--font-size-caption)', minHeight: '48px' }}
+                    >
+                      ✏️ {fObj?.labels?.ta || fid} ({fObj?.labels?.en || fid})
+                    </button>
+                  )
+                }
               )}
+            </div>
+            <button
+              type="button"
+              onClick={() => handleButtonTap(cancelChooseField)}
+              className="btn btn-neutral"
+              style={{ minHeight: '44px' }}
+            >
+              ரத்து செய் / Cancel
+            </button>
+          </div>
+        )}
 
-              {/* Main Card: Prompt / Readback Text */}
-              <div
-                style={{
-                  background: isConfirmState ? '#fffbeb' : '#ffffff',
-                  border: isConfirmState ? '2px solid #f59e0b' : '2px solid #e2e8f0',
-                  borderRadius: '12px',
-                  padding: '1.5rem',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                  marginBottom: '1.5rem',
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: '1.45rem',
-                    fontWeight: 700,
-                    color: '#0f172a',
-                    margin: '0 0 0.5rem',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {context.activePromptText?.ta || currentField.question?.ta}
-                </p>
-                <p
-                  style={{
-                    fontSize: '1.1rem',
-                    color: '#475569',
-                    margin: '0 0 0.5rem',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  {context.activePromptText?.taRoman || currentField.question?.taRoman}
-                </p>
-                <p
-                  style={{
-                    fontSize: '1rem',
-                    color: '#64748b',
-                    margin: 0,
-                  }}
-                >
-                  {context.activePromptText?.en || currentField.question?.en}
-                </p>
-              </div>
+        {/* ==========================================================================
+            SCREEN 1: Welcome Screen (STATES.IDLE)
+            ========================================================================== */}
+        {state === STATES.IDLE && (
+          <section className="welcome-card" aria-labelledby="solli-welcome-title">
+            <div className="welcome-logo" aria-hidden="true">
+              👵🧓
             </div>
 
-            {/* Middle Section: Confirmation Buttons / Mic / Typed Input */}
-            <div style={{ textAlign: 'center', margin: '0.5rem 0 1.5rem' }}>
-              {/* Always show prominent Yes and No buttons during confirmation */}
-              {isConfirmState && (
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <p style={{ fontSize: '1.1rem', fontWeight: 600, color: '#334155', marginBottom: '0.75rem' }}>
-                    தட்டவும் அல்லது பேசவும் / Tap or Speak:
-                  </p>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      gap: '1.25rem',
-                      maxWidth: '420px',
-                      margin: '0 auto',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => handleConfirmTap('yes')}
-                      style={{
-                        flex: 1,
-                        padding: '1.15rem 1rem',
-                        fontSize: '1.35rem',
-                        fontWeight: 700,
-                        background: '#16a34a',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        boxShadow: '0 6px 12px rgba(22, 163, 74, 0.3)',
-                        transition: 'transform 0.1s',
-                      }}
-                    >
-                      👍 ஆம் / Yes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleConfirmTap('no')}
-                      style={{
-                        flex: 1,
-                        padding: '1.15rem 1rem',
-                        fontSize: '1.35rem',
-                        fontWeight: 700,
-                        background: '#dc2626',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        boxShadow: '0 6px 12px rgba(220, 38, 38, 0.3)',
-                        transition: 'transform 0.1s',
-                      }}
-                    >
-                      👎 இல்லை / No
-                    </button>
-                  </div>
+            <h1 id="solli-welcome-title" className="welcome-title">
+              <span lang="ta">சொல்லி</span> / <span lang="en">Solli</span>
+            </h1>
+
+            <p className="welcome-tagline">
+              {uiLang !== 'en' && <span lang="ta">சொல்லுங்கள். நாங்கள் படிவத்தை நிரப்புகிறோம்.</span>}
+              {uiLang === 'both' && <br />}
+              {uiLang !== 'ta' && <span lang="en">Just say it. We&apos;ll fill the form.</span>}
+            </p>
+
+            <p style={{ color: 'var(--brand-primary)', fontWeight: 700, marginBottom: 'var(--space-4)' }}>
+              முதியோர் உதவித்தொகை குரல் விண்ணப்பம்
+              <br />
+              <span style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)' }}>
+                Old-Age Pension Voice Application
+              </span>
+            </p>
+
+            {/* Language toggle for UI text */}
+            <div
+              className="lang-toggle-group"
+              role="radiogroup"
+              aria-label="Language selection for UI display"
+            >
+              <button
+                type="button"
+                role="radio"
+                aria-checked={uiLang === 'both'}
+                className={`lang-btn ${uiLang === 'both' ? 'active' : ''}`}
+                onClick={() => handleButtonTap(() => setUiLang('both'))}
+              >
+                தமிழ் / English
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={uiLang === 'ta'}
+                className={`lang-btn ${uiLang === 'ta' ? 'active' : ''}`}
+                onClick={() => handleButtonTap(() => setUiLang('ta'))}
+              >
+                தமிழ் மட்டும்
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={uiLang === 'en'}
+                className={`lang-btn ${uiLang === 'en' ? 'active' : ''}`}
+                onClick={() => handleButtonTap(() => setUiLang('en'))}
+              >
+                English only
+              </button>
+            </div>
+
+            {/* Large Start Button */}
+            <div style={{ margin: 'var(--space-5) 0 var(--space-4)' }}>
+              <button
+                type="button"
+                onClick={() => handleButtonTap(start)}
+                className="btn btn-primary"
+                style={{
+                  minHeight: '68px',
+                  fontSize: 'var(--font-size-btn-large)',
+                  padding: '1.25rem 2.75rem',
+                  borderRadius: 'var(--radius-pill)',
+                  width: '100%',
+                  maxWidth: '420px',
+                  boxShadow: 'var(--shadow-md)',
+                }}
+              >
+                {uiLang === 'en' ? 'Start Application →' : uiLang === 'ta' ? 'தொடங்கு →' : 'தொடங்கு / Start Application →'}
+              </button>
+            </div>
+
+            {/* Inactivity cleared notification notice */}
+            {wasTimedOut && (
+              <p
+                role="alert"
+                style={{
+                  color: 'var(--color-no)',
+                  fontWeight: 700,
+                  fontSize: 'var(--font-size-caption)',
+                  margin: 'var(--space-3) 0',
+                }}
+              >
+                🔒 செயலற்ற நேரம் முடிந்ததால் பாதுகாப்பிற்காக விவரங்கள் அழிக்கப்பட்டன.
+                <br />
+                Previous session timed out; answers were cleared for your privacy.
+              </p>
+            )}
+
+            {/* Prototype and Privacy Notices */}
+            <div className="welcome-notice">
+              <span aria-hidden="true">⚠️</span>{' '}
+              <strong>முன்மாதிரி - மாதிரி தரவு மட்டுமே, எங்கும் சமர்ப்பிக்கப்படாது.</strong>
+              <br />
+              <span style={{ fontSize: 'var(--font-size-small)' }}>
+                Prototype — Fake data only, nothing is submitted to any government portal.
+              </span>
+            </div>
+
+            <p className="welcome-privacy">
+              🔒 <strong>எந்த விவரமும் சேமிக்கப்படுவதில்லை.</strong> நீங்கள் முடித்ததும் உங்கள் பதில்கள் அழிந்துவிடும்.
+              <br />
+              <span style={{ fontSize: 'var(--font-size-small)', color: 'var(--text-muted)' }}>
+                Nothing is stored. Your answers disappear completely when you finish.
+              </span>
+            </p>
+          </section>
+        )}
+
+        {/* ==========================================================================
+            SCREEN 2: Error Screen (STATES.ERROR)
+            ========================================================================== */}
+        {state === STATES.ERROR && (
+          <section className="status-card status-card-error" role="alert" aria-labelledby="error-heading">
+            <span style={{ fontSize: '3.5rem' }} aria-hidden="true">
+              ⚠️
+            </span>
+            <h2 id="error-heading" style={{ color: 'var(--color-no)', margin: 'var(--space-2) 0' }}>
+              பிழை ஏற்பட்டது / Error Encountered
+            </h2>
+
+            {/* Mic Blocked specific guidance */}
+            {error?.code === 'MIC_DENIED' ? (
+              <div style={{ textAlign: 'left', margin: 'var(--space-4) 0' }}>
+                <p style={{ fontWeight: 700, color: 'var(--color-no)', fontSize: 'var(--font-size-btn)' }}>
+                  மைக்ரோஃபோன் அணுகல் மறுக்கப்பட்டது / Microphone Access Blocked
+                </p>
+                <ol style={{ paddingLeft: '1.5rem', lineHeight: 1.6, color: 'var(--text-primary)' }}>
+                  <li>உலாவி முகவரிப் பட்டியில் உள்ள பூட்டு (🔒) அல்லது அமைப்புகள் குறியீட்டைத் தட்டவும். (Tap lock icon in browser bar)</li>
+                  <li>மைக்ரோஃபோன் அனுமதியை &quot;Allow&quot; என மாற்றவும். (Allow microphone access)</li>
+                  <li>கீழே உள்ள &quot;மீண்டும் முயற்சி&quot; பொத்தானைத் தட்டவும். (Tap Retry below)</li>
+                </ol>
+              </div>
+            ) : error?.code === 'RATE_LIMIT' ? (
+              <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-no)', fontWeight: 600 }}>
+                அனுமதிக்கப்பட்ட வரம்பு முடிந்தது. தயவுசெய்து பணியாளரின் உதவியை நாடவும்.
+                <br />
+                <span style={{ fontSize: 'var(--font-size-caption)' }}>
+                  Rate limit reached. Please inform the kiosk operator.
+                </span>
+              </p>
+            ) : (
+              <div>
+                <p style={{ fontSize: 'var(--font-size-btn)', color: 'var(--color-no)', fontWeight: 700 }}>
+                  {error?.messageTa || 'எதிர்பாராத பிழை ஏற்பட்டது.'}
+                </p>
+                <p style={{ color: 'var(--text-secondary)' }}>
+                  {error?.messageEn || 'An unexpected error occurred. Please contact the operator.'}
+                </p>
+              </div>
+            )}
+
+            <div style={{ marginTop: 'var(--space-5)', display: 'flex', justifyContent: 'center', gap: 'var(--space-3)' }}>
+              <button
+                type="button"
+                onClick={() => handleButtonTap(restart)}
+                className="btn btn-no"
+                style={{ minHeight: '56px', padding: '0.85rem 2rem' }}
+              >
+                🔄 மறுதொடக்கம் / Restart Application
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* ==========================================================================
+            SCREEN 3: Finished / Ready for PDF Screen (STATES.READY_FOR_PDF)
+            ========================================================================== */}
+        {state === STATES.READY_FOR_PDF && (
+          <section className="status-card status-card-success" aria-labelledby="done-title">
+            <span style={{ fontSize: '3.5rem' }} aria-hidden="true">
+              🎉
+            </span>
+
+            <h2 id="done-title" style={{ color: 'var(--color-yes)', margin: 'var(--space-2) 0' }}>
+              விண்ணப்பம் முடிந்தது! / Application Complete!
+            </h2>
+
+            <p style={{ fontSize: 'var(--font-size-btn)', color: 'var(--color-yes)', fontWeight: 700 }}>
+              அனைத்து விவரங்களும் வெற்றிகரமாக பதிவு செய்யப்பட்டன.
+              <br />
+              <span style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)' }}>
+                All details have been verified and are ready.
+              </span>
+            </p>
+
+            <div style={{ margin: 'var(--space-5) 0' }}>
+              {/* PDF Placeholder disabled button */}
+              <button
+                type="button"
+                disabled
+                className="btn btn-neutral"
+                style={{
+                  width: '100%',
+                  maxWidth: '420px',
+                  minHeight: '64px',
+                  margin: '0 auto',
+                  opacity: 0.75,
+                }}
+                aria-describedby="pdf-phase-note"
+              >
+                📄 படிவத்தைப் பதிவிறக்கு (PDF) / Download Form (PDF)
+              </button>
+              <p
+                id="pdf-phase-note"
+                style={{
+                  fontSize: 'var(--font-size-small)',
+                  color: 'var(--text-muted)',
+                  marginTop: 'var(--space-2)',
+                }}
+              >
+                (கட்டம் 14-ல் அரசு PDF உருவாக்கம் வரும் / Coming in Phase 14)
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', maxWidth: '380px', margin: '0 auto' }}>
+              <button
+                type="button"
+                onClick={() => handleButtonTap(restart)}
+                className="btn btn-primary"
+                style={{ minHeight: '56px' }}
+              >
+                புதிய விண்ணப்பம் / Start New
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClearSession}
+                className="btn btn-neutral"
+                style={{ minHeight: '56px', color: 'var(--color-no)' }}
+              >
+                🗑️ முடித்து அழிக்கவும் / Finish & Clear Data
+              </button>
+            </div>
+
+            <p style={{ fontSize: 'var(--font-size-small)', color: 'var(--text-muted)', marginTop: 'var(--space-5)' }}>
+              🔒 இந்த சாதனத்தில் உங்கள் பதில்கள் சேமிக்கப்படாது.
+              <br />
+              No answers or transcripts are retained in this kiosk.
+            </p>
+          </section>
+        )}
+
+        {/* ==========================================================================
+            SCREEN 4: Application Review Screen (STATES.REVIEW || STATES.FINISHED)
+            ========================================================================== */}
+        {(state === STATES.REVIEW || state === STATES.FINISHED) && (
+          <section aria-labelledby="review-heading" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <h1 id="review-heading" style={{ fontSize: 'var(--font-size-btn-large)', marginBottom: 'var(--space-1)' }}>
+                📋 விண்ணப்ப மதிப்பாய்வு / Application Review
+              </h1>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-body)' }}>
+                உங்கள் பதில்களை சரிபார்க்கவும். ரகசிய எண்கள் பாதுகாப்பாக மறைக்கப்பட்டுள்ளன.
+                <br />
+                <span style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-muted)' }}>
+                  Please check your answers. Sensitive numbers remain masked.
+                </span>
+              </p>
+            </div>
+
+            {/* Highlighted Needs Operator Section */}
+            {operatorHelpFields.length > 0 && (
+              <aside
+                className="status-card"
+                style={{
+                  backgroundColor: 'var(--color-warning-bg)',
+                  border: '2px solid var(--color-warning-border)',
+                  marginBottom: 'var(--space-4)',
+                  textAlign: 'left',
+                }}
+                role="alert"
+              >
+                <h2 style={{ fontSize: 'var(--font-size-btn)', color: 'var(--color-warning-text)', margin: '0 0 var(--space-2)' }}>
+                  ⚠️ பணியாளர் உதவி தேவைப்படும் விவரங்கள் / Needs Operator Help ({operatorHelpFields.length})
+                </h2>
+                <p style={{ color: 'var(--color-warning-text)', fontSize: 'var(--font-size-caption)', marginBottom: 'var(--space-3)' }}>
+                  கீழ்கண்ட விவரங்களை பணியாளர் சரிபார்த்து உதவ வேண்டும்:
+                </p>
+                <ul style={{ paddingLeft: '1.25rem', color: 'var(--color-warning-text)' }}>
+                  {operatorHelpFields.map((f) => (
+                    <li key={f.id} style={{ marginBottom: 'var(--space-2)' }}>
+                      <strong>{f.label}:</strong> {f.display}{' '}
+                      <button
+                        type="button"
+                        onClick={() => handleButtonTap(() => startEditField(f.id))}
+                        className="edit-btn"
+                        style={{ marginLeft: 'var(--space-2)' }}
+                      >
+                        ✏️ Edit / மாற்று
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            )}
+
+            {/* Speech Reader Controls & Speak Change */}
+            <div
+              style={{
+                backgroundColor: 'var(--bg-surface-subtle)',
+                border: '1px solid var(--border-default)',
+                borderRadius: 'var(--radius-md)',
+                padding: 'var(--space-3) var(--space-4)',
+                marginBottom: 'var(--space-4)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 'var(--space-3)',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleButtonTap(summaryReading?.active ? stopSummary : () => readFullSummary({ unconfirmedOnly }))
+                  }
+                  className="btn btn-neutral"
+                  style={{ minHeight: '48px', fontSize: 'var(--font-size-caption)' }}
+                >
+                  {summaryReading?.active ? '⏹ நிறுத்து / Stop' : '🔊 அனைத்தையும் படி / Read all'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleButtonTap(speakChangeReview)}
+                  className={`btn ${isRecording ? 'btn-no' : 'btn-neutral'}`}
+                  style={{ minHeight: '48px', fontSize: 'var(--font-size-caption)' }}
+                >
+                  🎙️ {isRecording ? 'பேசுங்கள் (8s)...' : 'பேசி மாற்றவும் / Speak change'}
+                </button>
+
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--font-size-caption)', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={unconfirmedOnly}
+                    onChange={(e) => setUnconfirmedOnly(e.target.checked)}
+                    style={{ width: '20px', height: '20px' }}
+                  />
+                  <span>உறுதிப்படுத்தப்படாதவை மட்டும்</span>
+                </label>
+              </div>
+
+              {summaryReading?.active && (
+                <div style={{ fontSize: 'var(--font-size-small)', color: 'var(--brand-primary)', fontWeight: 700 }}>
+                  படிக்கப்படுகிறது: {summaryReading.currentLabel || `Field ${summaryReading.index + 1}/${summaryReading.total}`}
                 </div>
               )}
+            </div>
 
-              {context.mode === 'voice' ? (
-                <div>
-                  {/* Large Mic Button */}
+            {/* Review Table */}
+            <div className="review-table-container">
+              <table className="review-table">
+                <thead>
+                  <tr>
+                    <th scope="col">விவரம் / Field</th>
+                    <th scope="col">பதிவு / Value</th>
+                    <th scope="col">நிலை / Status</th>
+                    <th scope="col" style={{ textAlign: 'right' }}>செயல் / Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(summary || []).map((row, idx) => {
+                    let statusClass = 'status-badge-unconfirmed'
+                    let statusLabel = '⏳ உறுதிப்படுத்தப்படவில்லை'
+
+                    if (row.needsOperatorHelp) {
+                      statusClass = 'status-badge-operator'
+                      statusLabel = '⚠️ பணியாளர் உதவி'
+                    } else if (row.confirmed) {
+                      statusClass = 'status-badge-verified'
+                      statusLabel = '✅ சரிபார்க்கப்பட்டது'
+                    } else if (row.skipped) {
+                      statusClass = 'status-badge-skipped'
+                      statusLabel = '⏭ தவிர்க்கப்பட்டது'
+                    }
+
+                    return (
+                      <tr key={row.id || idx}>
+                        <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                          {row.label}
+                        </td>
+                        <td style={{ fontWeight: row.sensitive ? 800 : 600, color: row.sensitive ? 'var(--brand-primary)' : 'inherit' }}>
+                          {row.display}
+                        </td>
+                        <td>
+                          <span className={`status-badge ${statusClass}`}>
+                            {statusLabel}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          {row.spoken && (
+                            <button
+                              type="button"
+                              onClick={() => handleButtonTap(() => startEditField(row.id))}
+                              className="edit-btn"
+                              aria-label={`Edit ${row.label}`}
+                            >
+                              ✏️ Edit
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Final Confirmation Action */}
+            <div
+              className="status-card"
+              style={{
+                backgroundColor: 'var(--bg-surface-subtle)',
+                border: '2px solid var(--border-default)',
+                marginBottom: 'var(--space-5)',
+              }}
+            >
+              <h2 style={{ fontSize: 'var(--font-size-btn)', color: 'var(--text-primary)', margin: '0 0 var(--space-2)' }}>
+                அனைத்து விவரங்களும் சரியா? / Is everything correct?
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
+                சரியாக இருந்தால் &quot;ஆம்&quot; என்பதை அழுத்தவும். மாற்ற வேண்டியிருந்தால் மேலே &quot;Edit&quot; தட்டவும்.
+              </p>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-3)', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => handleButtonTap(confirmFullForm)}
+                  className="btn btn-yes"
+                  style={{ minHeight: '64px', minWidth: '260px' }}
+                >
+                  ✅ ஆம், எல்லாம் சரி / All Correct
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleClearSession}
+                  className="btn btn-neutral"
+                  style={{ minHeight: '64px', color: 'var(--color-no)' }}
+                >
+                  🗑️ முடித்து அழிக்கவும் / Finish & Clear
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ==========================================================================
+            SCREEN 5: Active Question & Confirmation Loop
+            ========================================================================== */}
+        {state !== STATES.IDLE &&
+          state !== STATES.ERROR &&
+          state !== STATES.FINISHED &&
+          state !== STATES.REVIEW &&
+          state !== STATES.READY_FOR_PDF &&
+          currentField && (
+            <section
+              aria-label="Active voice question"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
+                justifyContent: 'space-between',
+              }}
+            >
+              {/* Top Progress & Stop Header */}
+              <div>
+                <div className="progress-container">
+                  <div className="progress-header-info">
+                    <span>
+                      {isConfirmState
+                        ? 'சரிபார்த்தல் / Confirmation'
+                        : `கேள்வி ${currentStep} / ${totalSteps} (Question ${currentStep} of ${totalSteps})`}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleButtonTap(restart)}
+                      className="btn btn-neutral"
+                      style={{ minHeight: '44px', padding: '0.25rem 0.75rem', fontSize: 'var(--font-size-caption)' }}
+                    >
+                      ⏹ நிறுத்து / Stop
+                    </button>
+                  </div>
+                  <div
+                    className="progress-track"
+                    role="progressbar"
+                    aria-label="Application question progress"
+                    aria-valuenow={progressPercent}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  >
+                    <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
+                  </div>
+                </div>
+
+                {/* State Banner */}
+                <StateBanner
+                  state={state}
+                  isRecording={isRecording}
+                  isTakingLong={isTakingLong}
+                  onRetry={() => handleButtonTap(repeatQuestion)}
+                  uiLang={uiLang}
+                />
+
+                {/* Question / Read-back Text Card */}
+                <div className="question-card">
+                  {uiLang !== 'en' && (
+                    <p className="question-text-ta" lang="ta">
+                      {context.activePromptText?.ta || currentField.question?.ta}
+                    </p>
+                  )}
+                  {uiLang === 'both' && (
+                    <p className="question-text-roman" lang="ta-Latn">
+                      {context.activePromptText?.taRoman || currentField.question?.taRoman}
+                    </p>
+                  )}
+                  {uiLang !== 'ta' && (
+                    <p className="question-text-en" lang="en">
+                      {context.activePromptText?.en || currentField.question?.en}
+                    </p>
+                  )}
+                </div>
+
+                {/* Confirmation Heard Value Display (Screen 2c) */}
+                {isConfirmState && pendingConfirmation && (
+                  <div className="heard-value-card" role="region" aria-label="Heard value verification">
+                    <p className="heard-value-title">
+                      பதிவான பதில் / Heard Value:
+                    </p>
+                    <p className="heard-value-text">
+                      {pendingConfirmation.displayValue || pendingConfirmation.value}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Middle Section: Mic Button OR Confirmation Buttons */}
+              <div>
+                {/* Confirmation Prominent Yes / No Buttons (Screen 2c) */}
+                {isConfirmState && (
+                  <div style={{ margin: 'var(--space-3) 0 var(--space-4)' }}>
+                    <p style={{ textAlign: 'center', fontWeight: 700, marginBottom: 'var(--space-3)' }}>
+                      தட்டவும் அல்லது பேசவும் / Tap or Speak:
+                    </p>
+                    <div className="confirm-btn-row">
+                      <button
+                        type="button"
+                        onClick={() => handleButtonTap(() => handleConfirmTap('yes'))}
+                        className="btn btn-yes"
+                      >
+                        👍 ஆம் / Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleButtonTap(() => handleConfirmTap('no'))}
+                        className="btn btn-no"
+                      >
+                        👎 இல்லை / No
+                      </button>
+                    </div>
+
+                    <div style={{ textAlign: 'center', marginTop: 'var(--space-2)' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleButtonTap(repeatQuestion)}
+                        className="btn btn-neutral"
+                        style={{ minHeight: '48px', fontSize: 'var(--font-size-caption)' }}
+                      >
+                        🔄 மீண்டும் சொல்லவும் / Say it again
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Huge Mic Button (At least 96px, elderly-friendly) */}
+                <div className="mic-container">
                   <button
                     type="button"
                     disabled={
                       state === STATES.SPEAKING_QUESTION ||
                       state === STATES.SPEAKING_READBACK ||
                       state === STATES.PROCESSING ||
-                      state === STATES.PROCESSING_CONFIRM
+                      state === STATES.PROCESSING_CONFIRM ||
+                      state === STATES.TRANSCRIBING
                     }
                     onClick={() => {
+                      triggerHaptic(30)
+                      registerUserActivity()
                       if (isConfirmState) {
                         isRecording ? stopListeningConfirm() : startListeningConfirm()
                       } else {
                         isRecording ? stopListening() : startListening()
                       }
                     }}
-                    style={{
-                      width: '120px',
-                      height: '120px',
-                      borderRadius: '50%',
-                      fontSize: '2.75rem',
-                      background: isRecording
-                        ? '#dc2626'
-                        : state === STATES.LISTENING || state === STATES.LISTENING_CONFIRM
-                          ? '#2563eb'
-                          : '#94a3b8',
-                      color: '#ffffff',
-                      border: isRecording ? '6px solid #fecaca' : 'none',
-                      cursor:
-                        state === STATES.SPEAKING_QUESTION ||
-                        state === STATES.SPEAKING_READBACK ||
-                        state === STATES.PROCESSING ||
-                        state === STATES.PROCESSING_CONFIRM
-                          ? 'not-allowed'
-                          : 'pointer',
-                      boxShadow: isRecording
-                        ? '0 0 25px rgba(220, 38, 38, 0.6)'
-                        : '0 10px 20px rgba(37, 99, 235, 0.3)',
-                      transition: 'all 0.2s ease',
-                      outline: 'none',
-                    }}
-                    aria-label={isRecording ? 'Stop Recording' : 'Start Recording'}
+                    className={`mic-button ${isRecording ? 'mic-button-recording' : ''}`}
+                    aria-label={
+                      isRecording
+                        ? 'பதிவை நிறுத்து / Stop Recording'
+                        : isConfirmState
+                          ? 'தட்டி ஆம் அல்லது இல்லை சொல்லவும் / Tap to speak Yes or No'
+                          : 'தட்டி பேசவும் / Tap to Speak'
+                    }
                   >
-                    {isRecording ? '⏹' : '🎤'}
+                    <span aria-hidden="true">{isRecording ? '⏹' : '🎤'}</span>
                   </button>
 
-                  <p
-                    style={{
-                      fontSize: '1.1rem',
-                      fontWeight: 600,
-                      color: isRecording ? '#dc2626' : '#334155',
-                      marginTop: '0.75rem',
-                    }}
-                  >
+                  {/* Audio Level Indicator */}
+                  <AudioMeter level={audioLevel} isRecording={isRecording} />
+
+                  <p className={`mic-label ${isRecording ? 'recording' : ''}`}>
                     {isRecording
                       ? 'தட்டி முடிக்கவும் / Tap to Stop'
                       : state === STATES.LISTENING || state === STATES.LISTENING_CONFIRM
                         ? isConfirmState
                           ? 'தட்டி "ஆம்" அல்லது "இல்லை" சொல்லவும் / Tap & say Yes/No'
                           : 'தட்டி பேசவும் / Tap to Speak'
-                        : 'காத்திருக்கவும் / Please wait...'}
+                        : 'காத்திருக்கவும்... / Please wait...'}
                   </p>
                 </div>
-              ) : (
-                /* Typed Test Mode Input */
-                <form onSubmit={handleTypedSubmit} style={{ maxWidth: '480px', margin: '0 auto' }}>
-                  <p style={{ fontSize: '1rem', color: '#64748b', margin: '0 0 0.5rem' }}>
-                    {isConfirmState
-                      ? 'Type confirmation ("yes" / "no" / "aama" / "illa"):'
-                      : 'Type answer (Test Mode - Zero API Credits):'}
-                  </p>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input
-                      type="text"
-                      value={typedInput}
-                      onChange={(e) => setTypedInput(e.target.value)}
-                      placeholder={isConfirmState ? 'Type yes or no...' : 'Type answer here...'}
-                      style={{
-                        flex: 1,
-                        fontSize: '1.15rem',
-                        padding: '0.75rem 1rem',
-                        border: '2px solid #cbd5e1',
-                        borderRadius: '8px',
-                      }}
-                    />
-                    <button
-                      type="submit"
-                      disabled={state !== STATES.LISTENING && state !== STATES.LISTENING_CONFIRM}
-                      style={{
-                        padding: '0.75rem 1.25rem',
-                        fontSize: '1.1rem',
-                        fontWeight: 600,
-                        background: '#2563eb',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor:
-                          state === STATES.LISTENING || state === STATES.LISTENING_CONFIRM
-                            ? 'pointer'
-                            : 'not-allowed',
-                      }}
-                    >
-                      Submit
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
 
-            {/* Bottom Actions Row */}
-            {!isConfirmState && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: '0.75rem',
-                  borderTop: '1px solid #e2e8f0',
-                  paddingTop: '1rem',
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={repeatQuestion}
-                  disabled={state !== STATES.LISTENING}
-                  style={{
-                    flex: 1,
-                    padding: '0.75rem',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    background: '#f1f5f9',
-                    color: '#334155',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '8px',
-                    cursor: state === STATES.LISTENING ? 'pointer' : 'not-allowed',
-                  }}
-                >
-                  🔄 மீண்டும் கேள் / Repeat
-                </button>
-
-                {!currentField.required && (
-                  <button
-                    type="button"
-                    onClick={skipCurrentField}
-                    disabled={state !== STATES.LISTENING}
-                    style={{
-                      flex: 1,
-                      padding: '0.75rem',
-                      fontSize: '1rem',
-                      fontWeight: 600,
-                      background: '#f8fafc',
-                      color: '#64748b',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      cursor: state === STATES.LISTENING ? 'pointer' : 'not-allowed',
-                    }}
-                  >
-                    ⏭ தவிர் / Skip
-                  </button>
+                {/* Dev-only Typed Input (Completely omitted in production builds) */}
+                {isDev && context.mode === 'typed' && (
+                  <form onSubmit={handleTypedSubmit} style={{ maxWidth: '480px', margin: 'var(--space-3) auto' }}>
+                    <p style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-muted)', marginBottom: 'var(--space-2)' }}>
+                      DEV Mode: Type answer (Zero API credits):
+                    </p>
+                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                      <input
+                        type="text"
+                        value={typedInput}
+                        onChange={(e) => setTypedInput(e.target.value)}
+                        placeholder="Type test answer..."
+                        style={{
+                          flex: 1,
+                          fontSize: 'var(--font-size-body)',
+                          padding: '0.65rem 0.85rem',
+                          border: '2px solid var(--border-default)',
+                          borderRadius: 'var(--radius-sm)',
+                        }}
+                      />
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        style={{ minHeight: '48px' }}
+                      >
+                        Submit
+                      </button>
+                    </div>
+                  </form>
                 )}
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Bottom Secondary Actions (Repeat, Skip, Help, Operator) */}
+              {!isConfirmState && (
+                <div className="secondary-btn-row">
+                  <button
+                    type="button"
+                    onClick={() => handleButtonTap(repeatQuestion)}
+                    disabled={state !== STATES.LISTENING}
+                    className="btn btn-neutral"
+                  >
+                    🔄 மீண்டும் கேள் / Repeat
+                  </button>
+
+                  {!currentField.required && (
+                    <button
+                      type="button"
+                      onClick={() => handleButtonTap(skipCurrentField)}
+                      disabled={state !== STATES.LISTENING}
+                      className="btn btn-neutral"
+                    >
+                      ⏭ தவிர் / Skip
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleButtonTap(() => executeCommand('help'))}
+                    disabled={state !== STATES.LISTENING}
+                    className="btn btn-neutral"
+                  >
+                    💡 உதவி / Help
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleButtonTap(() => executeCommand('operator'))}
+                    className="btn btn-neutral"
+                  >
+                    👤 பணியாளர் / Operator
+                  </button>
+                </div>
+              )}
+            </section>
+          )}
+      </main>
     </div>
   )
 }

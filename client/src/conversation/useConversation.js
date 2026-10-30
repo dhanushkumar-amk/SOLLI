@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import {
   detectCommandApi,
   fetchForm,
@@ -27,6 +27,8 @@ export function useConversation(initialOptions = {}) {
     createInitialContext(initialOptions)
   )
 
+  const [audioLevel, setAudioLevel] = useState(0)
+
   const abortControllerRef = useRef(null)
   const currentAudioRef = useRef(null)
   const isPlayingRef = useRef(false)
@@ -54,6 +56,7 @@ export function useConversation(initialOptions = {}) {
         await stopRecording()
       } catch (_) {}
       isRecordingRef.current = false
+      setAudioLevel(0)
     }
   }, [])
 
@@ -484,14 +487,17 @@ export function useConversation(initialOptions = {}) {
       dispatch({ type: 'START_RECORDING' })
 
       await startRecording({
+        onVolume: (lvl) => setAudioLevel(lvl),
         onAutoStop: async (wavBlob) => {
           isRecordingRef.current = false
+          setAudioLevel(0)
           dispatch({ type: 'RECORDING_STOPPED' })
           await handleAudioTranscription(wavBlob)
         },
       })
     } catch (err) {
       isRecordingRef.current = false
+      setAudioLevel(0)
       dispatch({
         type: 'FAIL',
         payload: {
@@ -508,6 +514,7 @@ export function useConversation(initialOptions = {}) {
   const stopListening = useCallback(async () => {
     if (!isRecordingRef.current) return
     isRecordingRef.current = false
+    setAudioLevel(0)
     dispatch({ type: 'RECORDING_STOPPED' })
 
     try {
@@ -572,15 +579,18 @@ export function useConversation(initialOptions = {}) {
       }, 6000)
 
       await startRecording({
+        onVolume: (lvl) => setAudioLevel(lvl),
         onAutoStop: async (wavBlob) => {
           clearTimeout(autoStopTimer)
           isRecordingRef.current = false
+          setAudioLevel(0)
           dispatch({ type: 'RECORDING_CONFIRM_STOPPED' })
           await handleConfirmTranscription(wavBlob)
         },
       })
     } catch (err) {
       isRecordingRef.current = false
+      setAudioLevel(0)
       // Mic error in confirm fallback to unclear
       dispatch({ type: 'CONFIRM_ANSWER', payload: { answer: 'unclear' } })
     }
@@ -590,6 +600,7 @@ export function useConversation(initialOptions = {}) {
   const stopListeningConfirm = useCallback(async () => {
     if (!isRecordingRef.current) return
     isRecordingRef.current = false
+    setAudioLevel(0)
     dispatch({ type: 'RECORDING_CONFIRM_STOPPED' })
 
     try {
@@ -841,10 +852,6 @@ export function useConversation(initialOptions = {}) {
         validatedItems.push(item)
       }
 
-      console.log(
-        `[TTS Full Summary] Estimated Timbre characters: ${totalChars} chars across ${validatedItems.length} fields.`
-      )
-
       dispatch({
         type: 'SET_SUMMARY_READING',
         payload: {
@@ -1053,6 +1060,7 @@ export function useConversation(initialOptions = {}) {
     pendingConfirmation: state.pendingConfirmation,
     showConfirmButtons: state.showConfirmButtons,
     summaryReading: state.summaryReading,
+    audioLevel,
     start,
     startListening,
     stopListening,

@@ -84,10 +84,10 @@ function encodeWAV(samples, sampleRate = TARGET_SAMPLE_RATE) {
 
 /**
  * Starts recording audio from the user's microphone.
- * @param {Object} options - { onAutoStop: (blob) => void }
+ * @param {Object} options - { onAutoStop: (blob) => void, onVolume: (level: number) => void }
  * @returns {Promise<void>}
  */
-export async function startRecording({ onAutoStop } = {}) {
+export async function startRecording({ onAutoStop, onVolume } = {}) {
   // Reset any previous state
   if (processorNode) {
     try {
@@ -126,11 +126,27 @@ export async function startRecording({ onAutoStop } = {}) {
   processorNode = audioContext.createScriptProcessor(4096, 1, 1)
 
   recordingStartTime = Date.now()
+  let lastVolumeCheck = 0
 
   processorNode.onaudioprocess = (e) => {
     const inputData = e.inputBuffer.getChannelData(0)
     // Clone float samples
     recordedChunks.push(new Float32Array(inputData))
+
+    if (typeof onVolume === 'function') {
+      const now = Date.now()
+      if (now - lastVolumeCheck >= 80) {
+        lastVolumeCheck = now
+        let sum = 0
+        const step = 8
+        for (let i = 0; i < inputData.length; i += step) {
+          sum += inputData[i] * inputData[i]
+        }
+        const rms = Math.sqrt(sum / (inputData.length / step))
+        const normalized = Math.min(1, Math.max(0, rms * 4))
+        onVolume(normalized)
+      }
+    }
   }
 
   sourceNode.connect(processorNode)
