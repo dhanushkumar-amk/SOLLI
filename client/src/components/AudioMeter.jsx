@@ -1,6 +1,6 @@
 /**
- * AudioMeter Component (Apple iOS Voice Memo Style)
- * Displays a sleek audio level meter when recording is active.
+ * AudioMeter Component (Flutter Mobile Audio Waveform Style)
+ * Displays a sleek audio wave meter when recording is active.
  */
 export default function AudioMeter({ level = 0, isRecording = false }) {
   if (!isRecording) return null
@@ -18,7 +18,7 @@ export default function AudioMeter({ level = 0, isRecording = false }) {
     >
       <div
         className="ios-audio-bar-fill"
-        style={{ width: `${Math.max(8, percentage)}%` }}
+        style={{ width: `${Math.max(10, percentage)}%` }}
       />
     </div>
   )

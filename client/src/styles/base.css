@@ -1,5 +1,6 @@
+/* hallmark: v2.0.0 · theme: sunset-coral · genre: modern-minimal · floor: verified */
 /**
- * Solli Base Styles (Phase 13)
+ * Solli Base Styles (Flutter Mobile Redesign)
  * Resets, accessible focus rings, typography, and Tamil font fallback.
  */
 
@@ -12,22 +13,22 @@
 }
 
 html {
-  font-size: var(--font-size-base, 20px);
+  font-size: var(--font-size-base, 14px);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  background-color: var(--bg-app);
+  background-color: var(--app-bg);
   color: var(--text-primary);
   font-family: var(--font-stack);
   line-height: var(--line-height-base);
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
   min-height: 100vh;
   min-width: 320px;
   max-width: 100%;
-  overflow-x: hidden;
-  background-color: var(--bg-app);
+  overflow-x: clip;
+  background-color: var(--app-bg);
   color: var(--text-primary);
   font-family: var(--font-stack);
   font-size: var(--font-size-body);
@@ -38,8 +39,8 @@ body {
 
 /* Tamil script rendering hints */
 :lang(ta) {
-  font-family: "Noto Sans Tamil", "Latha", "Vijaya", system-ui, sans-serif;
-  line-height: 1.6;
+  font-family: "Noto Sans Tamil", "Latha", system-ui, sans-serif;
+  line-height: 1.5;
   letter-spacing: 0.01em;
 }
 
@@ -48,6 +49,7 @@ h1, h2, h3, h4 {
   color: var(--text-primary);
   line-height: var(--line-height-heading);
   font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 h1 {
@@ -63,17 +65,17 @@ h3 {
 }
 
 p {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
-/* Strong focus ring for keyboard & switch navigation */
+/* Strong, instant focus ring (Hallmark Floor Rule 6) */
 :focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
   outline-offset: var(--focus-ring-offset) !important;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-ios-sm);
 }
 
-/* Screen reader only utility for aria-live regions */
+/* Screen reader only utility */
 .sr-only {
   position: absolute !important;
   width: 1px !important;
@@ -96,16 +98,4 @@ button {
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-/* Inputs */
-input, textarea, select {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
 }

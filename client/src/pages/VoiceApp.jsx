@@ -1,5 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import AudioMeter from '../components/AudioMeter'
+import {
+  IconAlert,
+  IconArrowRight,
+  IconCheck,
+  IconClose,
+  IconDoc,
+  IconGear,
+  IconHelp,
+  IconMic,
+  IconPause,
+  IconPencil,
+  IconPlay,
+  IconRefresh,
+  IconSparkles,
+  IconStop,
+  IconTrash,
+  IconVolume,
+} from '../components/Icons'
 import InactivityModal from '../components/InactivityModal'
 import OperatorSheet from '../components/OperatorSheet'
 import StateBanner from '../components/StateBanner'
@@ -155,45 +173,38 @@ export default function VoiceApp() {
     if (!isSessionActive) {
       if (inactivityCheckTimerRef.current) {
         clearInterval(inactivityCheckTimerRef.current)
+        inactivityCheckTimerRef.current = null
       }
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current)
+        countdownIntervalRef.current = null
       }
       return
     }
 
-    // Attach interaction listeners to reset idle timer
-    const activityEvents = ['pointerdown', 'keydown', 'touchstart', 'focusin']
+    const activityEvents = ['pointerdown', 'keydown', 'touchstart']
     const handleActivity = () => registerUserActivity()
 
-    activityEvents.forEach((ev) => window.addEventListener(ev, handleActivity, { passive: true }))
+    activityEvents.forEach((ev) =>
+      window.addEventListener(ev, handleActivity, { passive: true })
+    )
 
-    // Check idle status every 2 seconds
     inactivityCheckTimerRef.current = setInterval(() => {
-      const idleMs = Date.now() - lastActivityRef.current
-      const warningThreshold = INACTIVITY_TIMEOUT_MS - INACTIVITY_WARNING_MS
+      const idleTime = Date.now() - lastActivityRef.current
 
-      if (idleMs >= INACTIVITY_TIMEOUT_MS) {
-        // Timeout expired: clear all answers immediately and return to Welcome screen
-        clearInterval(inactivityCheckTimerRef.current)
-        if (countdownIntervalRef.current) {
-          clearInterval(countdownIntervalRef.current)
-        }
-        setInactivityCountdown(null)
-        setWasTimedOut(true)
-        restart()
-      } else if (idleMs >= warningThreshold && inactivityCountdown === null) {
-        // Start 20s countdown warning
-        const remainingSec = Math.max(1, Math.ceil((INACTIVITY_TIMEOUT_MS - idleMs) / 1000))
-        setInactivityCountdown(remainingSec)
+      if (idleTime >= INACTIVITY_TIMEOUT_MS && inactivityCountdown === null) {
+        setInactivityCountdown(Math.round(INACTIVITY_WARNING_MS / 1000))
 
         countdownIntervalRef.current = setInterval(() => {
           setInactivityCountdown((prev) => {
-            if (prev === null || prev <= 1) {
+            if (prev === null) return null
+            if (prev <= 1) {
               clearInterval(countdownIntervalRef.current)
               countdownIntervalRef.current = null
-              setWasTimedOut(true)
+              triggerHaptic([50, 100, 50])
               restart()
+              setWasTimedOut(true)
+              releaseScreenWakeLock()
               return null
             }
             return prev - 1
@@ -257,13 +268,13 @@ export default function VoiceApp() {
           : ''}
       </div>
 
-      {/* Modern iOS Navigation Bar (No clutter, single gear button for operator) */}
+      {/* Flutter Cupertino Navigation Bar */}
       <header className="ios-navbar">
         <div className="ios-brand-badge">
           <div className="ios-brand-icon" aria-hidden="true">
-            🗣️
+            <IconSparkles size={16} />
           </div>
-          <span>சொல்லி • Solli</span>
+          <span>சொல்லி &bull; Solli</span>
         </div>
 
         <button
@@ -276,12 +287,12 @@ export default function VoiceApp() {
           aria-label="Open operator settings"
           title="Operator Settings"
         >
-          ⚙️
+          <IconGear size={18} />
         </button>
       </header>
 
       <main className="ios-main-container">
-        {/* Inactivity Warning Modal (Cupertino Alert Dialog) */}
+        {/* Inactivity Warning Modal */}
         {inactivityCountdown !== null && (
           <InactivityModal
             countdown={inactivityCountdown}
@@ -292,7 +303,7 @@ export default function VoiceApp() {
           />
         )}
 
-        {/* Cupertino iOS Bottom Sheet for Operator Settings */}
+        {/* Flutter Modal Bottom Sheet for Operator Settings */}
         <OperatorSheet
           isOpen={isOperatorSheetOpen}
           onClose={() => setIsOperatorSheetOpen(false)}
@@ -311,13 +322,14 @@ export default function VoiceApp() {
         {/* Operator Needed Alert Banner */}
         {(state === STATES.OPERATOR_PAUSED || context.sessionNeedsOperatorHelp) && (
           <aside className="ios-status-card ios-status-card-warning" role="alert">
-            <h2 style={{ color: 'var(--ios-amber)', fontSize: 'var(--font-size-btn)', margin: '0 0 0.5rem', fontWeight: 800 }}>
-              👤 பணியாளர் உதவி தேவை / Operator Needed
-            </h2>
-            <p style={{ color: 'var(--ios-text-primary)', fontSize: 'var(--font-size-body)' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--amber-warning)', fontWeight: 700, fontSize: 'var(--font-size-btn)', margin: '0 0 0.35rem' }}>
+              <IconAlert size={20} />
+              <h2>பணியாளர் உதவி தேவை / Operator Needed</h2>
+            </div>
+            <p style={{ color: 'var(--text-primary)', fontSize: 'var(--font-size-body)' }}>
               விண்ணப்பதாரருக்கு உதவி தேவைப்படுகிறது. தயவுசெய்து விவரங்களை சரிபார்த்து உதவவும்.
               <br />
-              <span style={{ fontSize: 'var(--font-size-caption)', color: 'var(--ios-text-secondary)' }}>
+              <span style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)' }}>
                 Please review the question with the applicant, then resume the session.
               </span>
             </p>
@@ -325,9 +337,9 @@ export default function VoiceApp() {
               type="button"
               onClick={() => handleButtonTap(resumeFromPause)}
               className="ios-btn ios-btn-primary ios-btn-block"
-              style={{ marginTop: '1rem', minHeight: '56px' }}
+              style={{ marginTop: '0.75rem' }}
             >
-              ▶️ பணியாளர் உதவினார், தொடரவும் / Resume
+              <IconPlay size={16} /> பணியாளர் உதவினார், தொடரவும் / Resume
             </button>
           </aside>
         )}
@@ -335,25 +347,37 @@ export default function VoiceApp() {
         {/* Paused Screen */}
         {state === STATES.PAUSED && (
           <div className="ios-status-card" role="status">
-            <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.5rem' }} aria-hidden="true">
-              ⏸️
-            </span>
-            <h2 style={{ fontSize: 'var(--font-size-btn-large)', fontWeight: 800, margin: '0 0 0.5rem' }}>
+            <div
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                background: 'var(--track-fill)',
+                color: 'var(--text-primary)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 0.5rem',
+              }}
+              aria-hidden="true"
+            >
+              <IconPause size={22} />
+            </div>
+            <h2 style={{ fontSize: 'var(--font-size-btn-large)', fontWeight: 700, margin: '0 0 0.35rem' }}>
               உரையாடல் இடைநிறுத்தப்பட்டுள்ளது
-              <span style={{ display: 'block', fontSize: 'var(--font-size-caption)', color: 'var(--ios-text-secondary)', fontWeight: 600 }}>
+              <span style={{ display: 'block', fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '2px' }}>
                 Conversation Paused
               </span>
             </h2>
-            <p style={{ color: 'var(--ios-text-secondary)', marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-body)', marginBottom: '1rem' }}>
               மைக்ரோஃபோன் அணைக்கப்பட்டுள்ளது. நீங்கள் தயாரானதும் தொடரலாம்.
             </p>
             <button
               type="button"
               onClick={() => handleButtonTap(resumeFromPause)}
               className="ios-btn ios-btn-primary ios-btn-block"
-              style={{ minHeight: '60px' }}
             >
-              ▶️ மீண்டும் தொடரவும் / Resume
+              <IconPlay size={16} /> மீண்டும் தொடரவும் / Resume
             </button>
           </div>
         )}
@@ -367,17 +391,30 @@ export default function VoiceApp() {
             aria-modal="true"
             aria-labelledby="startover-title"
           >
-            <div className="ios-card" style={{ maxWidth: '440px', width: '90%', textAlign: 'center', padding: '1.75rem 1.25rem' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.5rem' }} aria-hidden="true">
-                ⚠️
-              </span>
-              <h2 id="startover-title" style={{ color: 'var(--ios-red)', fontSize: 'var(--font-size-btn)', fontWeight: 800, margin: '0 0 0.5rem' }}>
+            <div className="ios-card" style={{ maxWidth: '400px', width: '92%', textAlign: 'center', padding: '1.5rem 1.25rem' }}>
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  background: 'var(--danger-light)',
+                  color: 'var(--danger-red)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 0.5rem',
+                }}
+                aria-hidden="true"
+              >
+                <IconAlert size={22} />
+              </div>
+              <h2 id="startover-title" style={{ color: 'var(--danger-red)', fontSize: 'var(--font-size-btn)', fontWeight: 700, margin: '0 0 0.35rem' }}>
                 அனைத்தையும் அழித்து மீண்டும் தொடங்கவா?
-                <span style={{ display: 'block', fontSize: 'var(--font-size-small)', color: 'var(--ios-text-secondary)', fontWeight: 600 }}>
+                <span style={{ display: 'block', fontSize: 'var(--font-size-small)', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '2px' }}>
                   Delete everything and start again?
                 </span>
               </h2>
-              <p style={{ color: 'var(--ios-text-secondary)', fontSize: 'var(--font-size-small)', marginBottom: '1.25rem' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-small)', marginBottom: '1rem' }}>
                 இதுவரை உள்ளிட்ட அனைத்து விவரங்களும் நினைவகத்திலிருந்து நீக்கப்படும்.
               </p>
               <div className="ios-confirm-grid" style={{ margin: 0 }}>
@@ -386,14 +423,14 @@ export default function VoiceApp() {
                   onClick={() => handleButtonTap(() => confirmStartOver(true))}
                   className="ios-btn ios-btn-no"
                 >
-                  🗑️ அழி / Delete
+                  <IconTrash size={16} /> அழி / Delete
                 </button>
                 <button
                   type="button"
                   onClick={() => handleButtonTap(() => confirmStartOver(false))}
                   className="ios-btn ios-btn-secondary"
                 >
-                  ❌ ரத்து / Cancel
+                  <IconClose size={16} /> ரத்து / Cancel
                 </button>
               </div>
             </div>
@@ -402,11 +439,11 @@ export default function VoiceApp() {
 
         {/* Field Targeting Selection (When Voice Command asks to change a field) */}
         {(context.choosingField || (context.ambiguousCandidates && context.ambiguousCandidates.length > 0)) && (
-          <div className="ios-card" style={{ backgroundColor: '#f0f9ff', borderColor: '#b9dcff' }}>
-            <h3 style={{ color: '#0062d2', fontSize: 'var(--font-size-btn)', marginBottom: '0.75rem' }}>
-              ✏️ மாற்ற வேண்டிய விவரத்தைத் தேர்ந்தெடுக்கவும் / Select field to change:
+          <div className="ios-card" style={{ backgroundColor: 'var(--brand-light)', borderColor: 'var(--brand-light-border)' }}>
+            <h3 style={{ color: 'var(--brand-primary)', fontSize: 'var(--font-size-btn)', marginBottom: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <IconPencil size={18} /> மாற்ற வேண்டிய விவரத்தைத் தேர்ந்தெடுக்கவும் / Select field:
             </h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.85rem' }}>
               {(context.ambiguousCandidates || context.form?.fields?.filter((f) => f.spoken).map((f) => f.id) || []).map(
                 (fid) => {
                   const fObj = context.form?.fields?.find((f) => f.id === fid)
@@ -416,9 +453,9 @@ export default function VoiceApp() {
                       type="button"
                       onClick={() => handleButtonTap(() => chooseTargetField(fid))}
                       className="ios-btn ios-btn-secondary"
-                      style={{ fontSize: 'var(--font-size-caption)', minHeight: '48px', padding: '0.5rem 1rem' }}
+                      style={{ fontSize: 'var(--font-size-caption)', minHeight: '40px', padding: '0.4rem 0.85rem' }}
                     >
-                      ✏️ {fObj?.labels?.ta || fid} ({fObj?.labels?.en || fid})
+                      <IconPencil size={14} /> {fObj?.labels?.ta || fid} ({fObj?.labels?.en || fid})
                     </button>
                   )
                 }
@@ -428,7 +465,7 @@ export default function VoiceApp() {
               type="button"
               onClick={() => handleButtonTap(cancelChooseField)}
               className="ios-btn ios-btn-secondary"
-              style={{ minHeight: '44px' }}
+              style={{ minHeight: '38px', fontSize: 'var(--font-size-caption)' }}
             >
               ரத்து செய் / Cancel
             </button>
@@ -439,24 +476,38 @@ export default function VoiceApp() {
             SCREEN 1: Welcome Screen (STATES.IDLE)
             ========================================================================== */}
         {state === STATES.IDLE && (
-          <section className="ios-card" style={{ textAlign: 'center', padding: '2rem 1.25rem' }} aria-labelledby="solli-welcome-title">
-            <div style={{ fontSize: '4rem', marginBottom: '0.5rem', lineHeight: 1 }} aria-hidden="true">
-              👵🧓
+          <section className="ios-card" style={{ textAlign: 'center', padding: '1.75rem 1.25rem' }} aria-labelledby="solli-welcome-title">
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '18px',
+                background: 'var(--brand-gradient)',
+                color: 'var(--text-inverse)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 0.85rem',
+                boxShadow: 'var(--shadow-btn)',
+              }}
+              aria-hidden="true"
+            >
+              <IconSparkles size={32} />
             </div>
 
-            <h1 id="solli-welcome-title" style={{ fontSize: 'var(--font-size-question)', fontWeight: 900, marginBottom: '0.35rem' }}>
-              <span lang="ta">சொல்லி</span> • <span lang="en">Solli</span>
+            <h1 id="solli-welcome-title" style={{ fontSize: 'var(--font-size-question)', fontWeight: 800, marginBottom: '0.25rem' }}>
+              <span lang="ta">சொல்லி</span> &bull; <span lang="en">Solli</span>
             </h1>
 
-            <p style={{ fontSize: 'var(--font-size-tagline)', fontWeight: 600, color: 'var(--ios-text-secondary)', lineHeight: 1.4, marginBottom: '0.75rem' }}>
+            <p style={{ fontSize: 'var(--font-size-tagline)', fontWeight: 500, color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '0.75rem' }}>
               {uiLang !== 'en' && <span lang="ta">சொல்லுங்கள். நாங்கள் படிவத்தை நிரப்புகிறோம்.</span>}
               {uiLang === 'both' && <br />}
               {uiLang !== 'ta' && <span lang="en">Just say it. We&apos;ll fill the form.</span>}
             </p>
 
-            <div style={{ display: 'inline-block', backgroundColor: 'var(--ios-gray-fill)', borderRadius: 'var(--radius-ios-pill)', padding: '0.3rem 0.85rem', marginBottom: '1.25rem' }}>
-              <span style={{ fontSize: 'var(--font-size-small)', fontWeight: 700, color: 'var(--ios-blue-dark)' }}>
-                முதியோர் உதவித்தொகை • Old-Age Pension
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', backgroundColor: 'var(--brand-light)', border: '1px solid var(--brand-light-border)', borderRadius: 'var(--radius-ios-pill)', padding: '0.25rem 0.75rem', marginBottom: '1rem' }}>
+              <span style={{ fontSize: 'var(--font-size-small)', fontWeight: 600, color: 'var(--brand-primary)' }}>
+                முதியோர் உதவித்தொகை &bull; Old-Age Pension
               </span>
             </div>
 
@@ -495,26 +546,27 @@ export default function VoiceApp() {
               </button>
             </div>
 
-            {/* Large Start Button (Apple Pill Button) */}
-            <div style={{ margin: '1.5rem 0 1rem' }}>
+            {/* Large Start Button (Flutter Gradient Button) */}
+            <div style={{ margin: '1.25rem 0 0.85rem' }}>
               <button
                 type="button"
                 onClick={() => handleButtonTap(start)}
                 className="ios-btn ios-btn-primary ios-btn-block"
                 style={{
-                  minHeight: '68px',
+                  minHeight: '54px',
                   fontSize: 'var(--font-size-btn-large)',
                   borderRadius: 'var(--radius-ios-pill)',
                 }}
               >
-                {uiLang === 'en' ? 'Start Application →' : uiLang === 'ta' ? 'தொடங்கு →' : 'தொடங்கு / Start Application →'}
+                <span>{uiLang === 'en' ? 'Start Application' : uiLang === 'ta' ? 'விண்ணப்பத்தைத் தொடங்கு' : 'தொடங்கு / Start Application'}</span>
+                <IconArrowRight size={18} />
               </button>
             </div>
 
             {/* Session Timeout Cleared Warning */}
             {wasTimedOut && (
-              <p role="alert" style={{ color: 'var(--ios-red)', fontWeight: 700, fontSize: 'var(--font-size-small)', margin: '0.75rem 0' }}>
-                🔒 செயலற்ற நேரம் முடிந்ததால் பாதுகாப்பிற்காக விவரங்கள் அழிக்கப்பட்டன.
+              <p role="alert" style={{ color: 'var(--danger-red)', fontWeight: 600, fontSize: 'var(--font-size-small)', margin: '0.5rem 0' }}>
+                செயலற்ற நேரம் முடிந்ததால் பாதுகாப்பிற்காக விவரங்கள் அழிக்கப்பட்டன.
                 <br />
                 Answers were cleared for your privacy due to inactivity.
               </p>
@@ -523,27 +575,33 @@ export default function VoiceApp() {
             {/* Prototype Notice Tile */}
             <div
               style={{
-                backgroundColor: 'var(--ios-card-secondary)',
-                borderRadius: '16px',
-                padding: '0.85rem 1rem',
-                margin: '1.25rem 0 0.85rem',
-                border: '1px solid var(--ios-separator)',
+                backgroundColor: 'var(--app-card-secondary)',
+                borderRadius: '12px',
+                padding: '0.65rem 0.85rem',
+                margin: '1rem 0 0.65rem',
+                border: '1px solid var(--border-subtle)',
                 lineHeight: 1.4,
+                textAlign: 'left',
               }}
             >
-              <p style={{ fontSize: 'var(--font-size-small)', fontWeight: 700, color: 'var(--ios-text-secondary)', margin: 0 }}>
-                ⚠️ மாதிரி தரவு மட்டுமே, எங்கும் சமர்ப்பிக்கப்படாது.
-              </p>
-              <p style={{ fontSize: 'var(--font-size-small)', color: 'var(--ios-text-tertiary)', margin: '0.2rem 0 0' }}>
-                Prototype — Fake data only, nothing is submitted.
-              </p>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+                <IconAlert size={16} className="text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <p style={{ fontSize: 'var(--font-size-small)', fontWeight: 600, color: 'var(--text-secondary)', margin: 0 }}>
+                    மாதிரி தரவு மட்டுமே, எங்கும் சமர்ப்பிக்கப்படாது.
+                  </p>
+                  <p style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-tertiary)', margin: '0.15rem 0 0' }}>
+                    Prototype &mdash; Fake data only, nothing is submitted to any server.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Privacy Line */}
-            <p style={{ fontSize: 'var(--font-size-small)', color: 'var(--ios-text-tertiary)', margin: '0.5rem 0 0' }}>
-              🔒 <strong>எந்த விவரமும் சேமிக்கப்படுவதில்லை.</strong> முடித்ததும் பதில்கள் அழிந்துவிடும்.
+            <p style={{ fontSize: 'var(--font-size-small)', color: 'var(--text-tertiary)', margin: '0.4rem 0 0' }}>
+              <strong>எந்த விவரமும் சேமிக்கப்படுவதில்லை.</strong> முடித்ததும் பதில்கள் அழிந்துவிடும்.
               <br />
-              Nothing is stored. Your answers disappear when finished.
+              <span style={{ fontSize: 'var(--font-size-caption)' }}>Nothing is stored. Your answers disappear when finished.</span>
             </p>
           </section>
         )}
@@ -553,38 +611,51 @@ export default function VoiceApp() {
             ========================================================================== */}
         {state === STATES.ERROR && (
           <section className="ios-status-card ios-status-card-error" role="alert" aria-labelledby="error-heading">
-            <span style={{ fontSize: '3.5rem', display: 'block', marginBottom: '0.5rem' }} aria-hidden="true">
-              ⚠️
-            </span>
-            <h2 id="error-heading" style={{ color: 'var(--ios-red)', fontSize: 'var(--font-size-btn-large)', fontWeight: 800, margin: '0 0 0.5rem' }}>
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'var(--danger-light)',
+                color: 'var(--danger-red)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 0.5rem',
+              }}
+              aria-hidden="true"
+            >
+              <IconAlert size={24} />
+            </div>
+            <h2 id="error-heading" style={{ color: 'var(--danger-red)', fontSize: 'var(--font-size-btn-large)', fontWeight: 700, margin: '0 0 0.35rem' }}>
               பிழை ஏற்பட்டது / Error Encountered
             </h2>
 
             {error?.code === 'MIC_DENIED' ? (
-              <div style={{ textAlign: 'left', margin: '1rem 0' }}>
-                <p style={{ fontWeight: 700, color: 'var(--ios-red)', fontSize: 'var(--font-size-body)' }}>
+              <div style={{ textAlign: 'left', margin: '0.85rem 0' }}>
+                <p style={{ fontWeight: 600, color: 'var(--danger-red)', fontSize: 'var(--font-size-body)' }}>
                   மைக்ரோஃபோன் அணுகல் மறுக்கப்பட்டது / Microphone Blocked
                 </p>
-                <ol style={{ paddingLeft: '1.25rem', lineHeight: 1.6, color: 'var(--ios-text-primary)', fontSize: 'var(--font-size-caption)' }}>
-                  <li>உலாவி முகவரிப் பட்டியில் உள்ள பூட்டு (🔒) குறியீட்டைத் தட்டவும். (Tap lock icon in browser bar)</li>
+                <ol style={{ paddingLeft: '1.25rem', lineHeight: 1.5, color: 'var(--text-primary)', fontSize: 'var(--font-size-caption)', marginTop: '0.35rem' }}>
+                  <li>உலாவி முகவரிப் பட்டியில் உள்ள அமைப்புகள் குறியீட்டைத் தட்டவும். (Tap permissions icon in browser bar)</li>
                   <li>மைக்ரோஃபோன் அனுமதியை &quot;Allow&quot; என மாற்றவும். (Allow microphone)</li>
                   <li>கீழே உள்ள &quot;மீண்டும் முயற்சி&quot; பொத்தானைத் தட்டவும். (Tap Restart below)</li>
                 </ol>
               </div>
             ) : error?.code === 'RATE_LIMIT' ? (
-              <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--ios-red)', fontWeight: 700 }}>
+              <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--danger-red)', fontWeight: 600 }}>
                 அனுமதிக்கப்பட்ட வரம்பு முடிந்தது. தயவுசெய்து பணியாளரின் உதவியை நாடவும்.
                 <br />
-                <span style={{ fontSize: 'var(--font-size-caption)', color: 'var(--ios-text-secondary)', fontWeight: 500 }}>
+                <span style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', fontWeight: 500 }}>
                   Rate limit reached. Please inform the kiosk operator.
                 </span>
               </p>
             ) : (
               <div>
-                <p style={{ fontSize: 'var(--font-size-btn)', color: 'var(--ios-red)', fontWeight: 800 }}>
+                <p style={{ fontSize: 'var(--font-size-btn)', color: 'var(--danger-red)', fontWeight: 700 }}>
                   {error?.messageTa || 'எதிர்பாராத பிழை ஏற்பட்டது.'}
                 </p>
-                <p style={{ color: 'var(--ios-text-secondary)', fontSize: 'var(--font-size-caption)' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-caption)' }}>
                   {error?.messageEn || 'An unexpected error occurred. Please contact the operator.'}
                 </p>
               </div>
@@ -594,9 +665,9 @@ export default function VoiceApp() {
               type="button"
               onClick={() => handleButtonTap(restart)}
               className="ios-btn ios-btn-no ios-btn-block"
-              style={{ marginTop: '1.25rem', minHeight: '56px' }}
+              style={{ marginTop: '1rem' }}
             >
-              🔄 மறுதொடக்கம் / Restart Application
+              <IconRefresh size={16} /> மறுதொடக்கம் / Restart Application
             </button>
           </section>
         )}
@@ -606,50 +677,63 @@ export default function VoiceApp() {
             ========================================================================== */}
         {state === STATES.READY_FOR_PDF && (
           <section className="ios-status-card ios-status-card-success" aria-labelledby="done-title">
-            <span style={{ fontSize: '4rem', display: 'block', marginBottom: '0.5rem' }} aria-hidden="true">
-              🎉
-            </span>
+            <div
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                background: 'var(--success-light)',
+                color: 'var(--success-green)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 0.75rem',
+                border: '1.5px solid var(--success-border)',
+              }}
+              aria-hidden="true"
+            >
+              <IconCheck size={28} />
+            </div>
 
-            <h2 id="done-title" style={{ color: 'var(--ios-green)', fontSize: 'var(--font-size-btn-large)', fontWeight: 800, margin: '0 0 0.5rem' }}>
+            <h2 id="done-title" style={{ color: 'var(--success-green-dark)', fontSize: 'var(--font-size-btn-large)', fontWeight: 800, margin: '0 0 0.35rem' }}>
               விண்ணப்பம் முடிந்தது! / Application Complete!
             </h2>
 
-            <p style={{ fontSize: 'var(--font-size-btn)', color: 'var(--ios-green)', fontWeight: 700, margin: '0 0 1.25rem' }}>
+            <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--success-green-dark)', fontWeight: 600, margin: '0 0 1rem' }}>
               அனைத்து விவரங்களும் வெற்றிகரமாக பதிவு செய்யப்பட்டன.
             </p>
 
-            {/* Disabled PDF placeholder button */}
-            <div style={{ margin: '1rem 0 1.5rem' }}>
+            {/* PDF placeholder button */}
+            <div style={{ margin: '0.85rem 0 1.25rem' }}>
               <button
                 type="button"
                 disabled
                 className="ios-btn ios-btn-secondary ios-btn-block"
-                style={{ minHeight: '64px' }}
+                style={{ minHeight: '52px' }}
               >
-                📄 படிவத்தைப் பதிவிறக்கு (PDF) / Download Form (PDF)
+                <IconDoc size={18} /> படிவத்தைப் பதிவிறக்கு (PDF) / Download Form
               </button>
-              <p style={{ fontSize: 'var(--font-size-small)', color: 'var(--ios-text-tertiary)', marginTop: '0.4rem' }}>
-                (கட்டம் 14-ல் அரசு PDF உருவாக்கம் வரும் / Coming in Phase 14)
+              <p style={{ fontSize: 'var(--font-size-small)', color: 'var(--text-tertiary)', marginTop: '0.35rem' }}>
+                (அரசு PDF உருவாக்கம் கட்டம் 14-ல் வரும் / Coming in Phase 14)
               </p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <button
                 type="button"
                 onClick={() => handleButtonTap(restart)}
                 className="ios-btn ios-btn-primary ios-btn-block"
-                style={{ minHeight: '56px' }}
               >
-                புதிய விண்ணப்பம் / Start New
+                <IconPlay size={16} /> புதிய விண்ணப்பம் / Start New
               </button>
 
               <button
                 type="button"
                 onClick={handleClearSession}
                 className="ios-btn ios-btn-secondary ios-btn-block"
-                style={{ minHeight: '56px', color: 'var(--ios-red)' }}
+                style={{ color: 'var(--danger-red)' }}
               >
-                🗑️ முடித்து அழிக்கவும் / Finish & Clear Data
+                <IconTrash size={16} /> முடித்து அழிக்கவும் / Finish & Clear
               </button>
             </div>
           </section>
@@ -660,35 +744,36 @@ export default function VoiceApp() {
             ========================================================================== */}
         {(state === STATES.REVIEW || state === STATES.FINISHED) && (
           <section aria-labelledby="review-heading" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ marginBottom: '1rem' }}>
-              <h1 id="review-heading" style={{ fontSize: 'var(--font-size-btn-large)', fontWeight: 800, margin: '0 0 0.25rem' }}>
-                📋 விண்ணப்ப மதிப்பாய்வு
-                <span style={{ display: 'block', fontSize: 'var(--font-size-caption)', color: 'var(--ios-text-secondary)', fontWeight: 600 }}>
+            <div style={{ marginBottom: '0.85rem' }}>
+              <h1 id="review-heading" style={{ fontSize: 'var(--font-size-btn-large)', fontWeight: 700, margin: '0 0 0.2rem' }}>
+                விண்ணப்ப மதிப்பாய்வு
+                <span style={{ display: 'block', fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '2px' }}>
                   Application Review
                 </span>
               </h1>
-              <p style={{ color: 'var(--ios-text-secondary)', fontSize: 'var(--font-size-small)', margin: 0 }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-small)', margin: 0 }}>
                 ரகசிய எண்கள் பாதுகாப்பாக மறைக்கப்பட்டுள்ளன. (Sensitive digits masked)
               </p>
             </div>
 
             {/* Needs Operator Help Highlighted Section */}
             {operatorHelpFields.length > 0 && (
-              <aside className="ios-status-card ios-status-card-warning" style={{ textAlign: 'left', marginBottom: '1rem' }} role="alert">
-                <h2 style={{ fontSize: 'var(--font-size-btn)', color: 'var(--ios-amber)', fontWeight: 800, margin: '0 0 0.35rem' }}>
-                  ⚠️ பணியாளர் உதவி தேவைப்படும் விவரங்கள் ({operatorHelpFields.length})
-                </h2>
-                <ul style={{ paddingLeft: '1.25rem', color: 'var(--ios-text-primary)' }}>
+              <aside className="ios-status-card ios-status-card-warning" style={{ textAlign: 'left', marginBottom: '0.85rem' }} role="alert">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--amber-warning)', fontWeight: 700, fontSize: 'var(--font-size-btn)', margin: '0 0 0.35rem' }}>
+                  <IconAlert size={18} />
+                  <h2>பணியாளர் உதவி தேவைப்படும் விவரங்கள் ({operatorHelpFields.length})</h2>
+                </div>
+                <ul style={{ paddingLeft: '1.25rem', color: 'var(--text-primary)', margin: 0 }}>
                   {operatorHelpFields.map((f) => (
-                    <li key={f.id} style={{ marginBottom: '0.4rem' }}>
+                    <li key={f.id} style={{ marginBottom: '0.35rem', fontSize: 'var(--font-size-small)' }}>
                       <strong>{f.label}:</strong> {f.display}{' '}
                       <button
                         type="button"
                         onClick={() => handleButtonTap(() => startEditField(f.id))}
                         className="ios-btn ios-btn-secondary"
-                        style={{ minHeight: '38px', padding: '0.2rem 0.65rem', fontSize: 'var(--font-size-small)', marginLeft: '0.5rem' }}
+                        style={{ minHeight: '32px', padding: '0.15rem 0.55rem', fontSize: 'var(--font-size-small)', marginLeft: '0.4rem' }}
                       >
-                        ✏️ Edit
+                        <IconPencil size={12} /> Edit
                       </button>
                     </li>
                   ))}
@@ -699,81 +784,85 @@ export default function VoiceApp() {
             {/* Speech Reader Controls & Speak Change */}
             <div
               style={{
-                backgroundColor: 'var(--ios-card)',
-                borderRadius: '16px',
-                padding: '0.75rem 1rem',
-                border: '1px solid var(--ios-border)',
-                marginBottom: '1rem',
+                backgroundColor: 'var(--app-card)',
+                borderRadius: '14px',
+                padding: '0.65rem 0.85rem',
+                border: '1px solid var(--border)',
+                marginBottom: '0.85rem',
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: '0.5rem',
+                gap: '0.4rem',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}
             >
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
                 <button
                   type="button"
                   onClick={() =>
                     handleButtonTap(summaryReading?.active ? stopSummary : () => readFullSummary({ unconfirmedOnly }))
                   }
                   className="ios-btn ios-btn-secondary"
-                  style={{ minHeight: '44px', padding: '0.4rem 0.85rem', fontSize: 'var(--font-size-caption)' }}
+                  style={{ minHeight: '38px', padding: '0.35rem 0.75rem', fontSize: 'var(--font-size-caption)' }}
                 >
-                  {summaryReading?.active ? '⏹ நிறுத்து / Stop' : '🔊 அனைத்தையும் படி / Read all'}
+                  {summaryReading?.active ? (
+                    <><IconStop size={14} /> நிறுத்து / Stop</>
+                  ) : (
+                    <><IconVolume size={14} /> அனைத்தையும் படி / Read all</>
+                  )}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleButtonTap(speakChangeReview)}
                   className={`ios-btn ${isRecording ? 'ios-btn-no' : 'ios-btn-secondary'}`}
-                  style={{ minHeight: '44px', padding: '0.4rem 0.85rem', fontSize: 'var(--font-size-caption)' }}
+                  style={{ minHeight: '38px', padding: '0.35rem 0.75rem', fontSize: 'var(--font-size-caption)' }}
                 >
-                  🎙️ {isRecording ? 'பேசுங்கள் (8s)...' : 'பேசி மாற்றவும் / Speak change'}
+                  <IconMic size={14} /> {isRecording ? 'பேசுங்கள் (8s)...' : 'பேசி மாற்றவும் / Speak change'}
                 </button>
               </div>
 
               {summaryReading?.active && (
-                <span style={{ fontSize: 'var(--font-size-small)', color: 'var(--ios-blue-dark)', fontWeight: 700 }}>
+                <span style={{ fontSize: 'var(--font-size-small)', color: 'var(--brand-primary)', fontWeight: 600 }}>
                   படிக்கப்படுகிறது: {summaryReading.currentLabel || `Field ${summaryReading.index + 1}/${summaryReading.total}`}
                 </span>
               )}
             </div>
 
-            {/* Inset Grouped List (Cupertino Inset Grouped TableView) */}
+            {/* Inset Grouped List (Flutter ListTiles) */}
             <div className="ios-list-group">
               {(summary || []).map((row, idx) => {
                 let statusClass = 'ios-pill-unconfirmed'
-                let statusLabel = '⏳ சரிபார்க்கப்படவில்லை'
+                let statusLabel = 'சரிபார்க்கப்படவில்லை'
 
                 if (row.needsOperatorHelp) {
                   statusClass = 'ios-pill-operator'
-                  statusLabel = '⚠️ பணியாளர் உதவி'
+                  statusLabel = 'பணியாளர் உதவி'
                 } else if (row.confirmed) {
                   statusClass = 'ios-pill-verified'
-                  statusLabel = '✅ சரிபார்க்கப்பட்டது'
+                  statusLabel = 'சரிபார்க்கப்பட்டது'
                 } else if (row.skipped) {
                   statusClass = 'ios-pill-skipped'
-                  statusLabel = '⏭ தவிர்க்கப்பட்டது'
+                  statusLabel = 'தவிர்க்கப்பட்டது'
                 }
 
                 return (
                   <div key={row.id || idx} className="ios-list-row">
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 'var(--font-size-body)', fontWeight: 700, color: 'var(--ios-text-primary)' }}>
+                      <div style={{ fontSize: 'var(--font-size-body)', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {row.label}
                       </div>
                       <div
                         style={{
                           fontSize: 'var(--font-size-caption)',
-                          fontWeight: row.sensitive ? 800 : 600,
-                          color: row.sensitive ? 'var(--ios-blue-dark)' : 'var(--ios-text-secondary)',
-                          marginTop: '0.15rem',
+                          fontWeight: row.sensitive ? 700 : 500,
+                          color: row.sensitive ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                          marginTop: '0.1rem',
                         }}
                       >
                         {row.display}
                       </div>
-                      <div style={{ marginTop: '0.35rem' }}>
+                      <div style={{ marginTop: '0.25rem' }}>
                         <span className={`ios-pill-tag ${statusClass}`}>
                           {statusLabel}
                         </span>
@@ -785,10 +874,10 @@ export default function VoiceApp() {
                         type="button"
                         onClick={() => handleButtonTap(() => startEditField(row.id))}
                         className="ios-btn ios-btn-secondary"
-                        style={{ minHeight: '44px', padding: '0.35rem 0.85rem', fontSize: 'var(--font-size-caption)' }}
+                        style={{ minHeight: '36px', padding: '0.25rem 0.65rem', fontSize: 'var(--font-size-caption)' }}
                         aria-label={`Edit ${row.label}`}
                       >
-                        ✏️ Edit
+                        <IconPencil size={13} /> Edit
                       </button>
                     )}
                   </div>
@@ -798,30 +887,29 @@ export default function VoiceApp() {
 
             {/* Final Confirmation Card */}
             <div className="ios-card" style={{ textAlign: 'center' }}>
-              <h2 style={{ fontSize: 'var(--font-size-btn)', fontWeight: 800, margin: '0 0 0.5rem' }}>
+              <h2 style={{ fontSize: 'var(--font-size-btn)', fontWeight: 700, margin: '0 0 0.35rem' }}>
                 அனைத்து விவரங்களும் சரியா? / Is everything correct?
               </h2>
-              <p style={{ color: 'var(--ios-text-secondary)', fontSize: 'var(--font-size-caption)', marginBottom: '1.25rem' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-caption)', marginBottom: '1rem' }}>
                 சரியாக இருந்தால் &quot;ஆம்&quot; என்பதை அழுத்தவும்.
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <button
                   type="button"
                   onClick={() => handleButtonTap(confirmFullForm)}
                   className="ios-btn ios-btn-yes ios-btn-block"
-                  style={{ minHeight: '64px' }}
                 >
-                  ✅ ஆம், எல்லாம் சரி / All Correct
+                  <IconCheck size={18} /> ஆம், எல்லாம் சரி / All Correct
                 </button>
 
                 <button
                   type="button"
                   onClick={handleClearSession}
                   className="ios-btn ios-btn-secondary ios-btn-block"
-                  style={{ minHeight: '52px', color: 'var(--ios-red)' }}
+                  style={{ color: 'var(--danger-red)' }}
                 >
-                  🗑️ முடித்து அழிக்கவும் / Finish & Clear
+                  <IconTrash size={16} /> முடித்து அழிக்கவும் / Finish & Clear
                 </button>
               </div>
             </div>
@@ -847,9 +935,9 @@ export default function VoiceApp() {
               }}
             >
               <div>
-                {/* Slim iOS Progress Bar */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--font-size-caption)', fontWeight: 700, color: 'var(--ios-text-secondary)' }}>
+                {/* Slim Flutter Progress Bar */}
+                <div style={{ marginBottom: '0.85rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--font-size-caption)', fontWeight: 600, color: 'var(--text-secondary)' }}>
                     <span>
                       {isConfirmState
                         ? 'சரிபார்த்தல் • Confirmation'
@@ -859,9 +947,9 @@ export default function VoiceApp() {
                       type="button"
                       onClick={() => handleButtonTap(restart)}
                       className="ios-btn ios-btn-secondary"
-                      style={{ minHeight: '38px', padding: '0.2rem 0.65rem', fontSize: 'var(--font-size-small)' }}
+                      style={{ minHeight: '32px', padding: '0.15rem 0.55rem', fontSize: 'var(--font-size-small)' }}
                     >
-                      ⏹ Stop
+                      <IconStop size={12} /> Stop
                     </button>
                   </div>
                   <div
@@ -886,19 +974,19 @@ export default function VoiceApp() {
                 />
 
                 {/* Question Text Card */}
-                <div className="ios-card" style={{ marginBottom: '1rem' }}>
+                <div className="ios-card" style={{ marginBottom: '0.85rem' }}>
                   {uiLang !== 'en' && (
-                    <p style={{ fontSize: 'var(--font-size-question)', fontWeight: 800, lineHeight: 1.4, margin: '0 0 0.5rem' }} lang="ta">
+                    <p style={{ fontSize: 'var(--font-size-question)', fontWeight: 700, lineHeight: 1.4, margin: '0 0 0.4rem' }} lang="ta">
                       {context.activePromptText?.ta || currentField.question?.ta}
                     </p>
                   )}
                   {uiLang === 'both' && (
-                    <p style={{ fontSize: 'var(--font-size-caption)', color: 'var(--ios-text-secondary)', fontStyle: 'italic', margin: '0 0 0.5rem' }} lang="ta-Latn">
+                    <p style={{ fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', margin: '0 0 0.4rem' }} lang="ta-Latn">
                       {context.activePromptText?.taRoman || currentField.question?.taRoman}
                     </p>
                   )}
                   {uiLang !== 'ta' && (
-                    <p style={{ fontSize: 'var(--font-size-question-en)', color: 'var(--ios-text-tertiary)', lineHeight: 1.4, margin: 0 }} lang="en">
+                    <p style={{ fontSize: 'var(--font-size-question-en)', color: 'var(--text-tertiary)', lineHeight: 1.4, margin: 0 }} lang="en">
                       {context.activePromptText?.en || currentField.question?.en}
                     </p>
                   )}
@@ -919,10 +1007,10 @@ export default function VoiceApp() {
 
               {/* Middle Section: Mic Button OR Confirmation Yes/No */}
               <div>
-                {/* Confirmation Prominent Action Buttons */}
+                {/* Confirmation Action Buttons */}
                 {isConfirmState && (
-                  <div style={{ margin: '1rem 0' }}>
-                    <p style={{ textAlign: 'center', fontWeight: 700, fontSize: 'var(--font-size-body)', marginBottom: '0.75rem' }}>
+                  <div style={{ margin: '0.85rem 0' }}>
+                    <p style={{ textAlign: 'center', fontWeight: 600, fontSize: 'var(--font-size-body)', marginBottom: '0.65rem' }}>
                       தட்டவும் அல்லது பேசவும் / Tap or Speak:
                     </p>
                     <div className="ios-confirm-grid">
@@ -931,31 +1019,31 @@ export default function VoiceApp() {
                         onClick={() => handleButtonTap(() => handleConfirmTap('yes'))}
                         className="ios-btn ios-btn-yes"
                       >
-                        👍 ஆம் / Yes
+                        <IconCheck size={20} /> ஆம் / Yes
                       </button>
                       <button
                         type="button"
                         onClick={() => handleButtonTap(() => handleConfirmTap('no'))}
                         className="ios-btn ios-btn-no"
                       >
-                        👎 இல்லை / No
+                        <IconClose size={20} /> இல்லை / No
                       </button>
                     </div>
 
-                    <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                    <div style={{ textAlign: 'center', marginTop: '0.45rem' }}>
                       <button
                         type="button"
                         onClick={() => handleButtonTap(repeatQuestion)}
                         className="ios-btn ios-btn-secondary"
-                        style={{ minHeight: '44px', fontSize: 'var(--font-size-caption)' }}
+                        style={{ minHeight: '38px', fontSize: 'var(--font-size-caption)' }}
                       >
-                        🔄 மீண்டும் சொல்லவும் / Say it again
+                        <IconRefresh size={14} /> மீண்டும் சொல்லவும் / Say it again
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Siri / Floating Microphone Button */}
+                {/* Flutter Floating Microphone Button */}
                 <div className="ios-mic-wrap">
                   <button
                     type="button"
@@ -984,7 +1072,9 @@ export default function VoiceApp() {
                           : 'Tap to Speak'
                     }
                   >
-                    <span aria-hidden="true">{isRecording ? '⏹' : '🎤'}</span>
+                    <span aria-hidden="true">
+                      {isRecording ? <IconStop size={32} /> : <IconMic size={36} />}
+                    </span>
                   </button>
 
                   {/* Audio Level Indicator */}
@@ -1003,8 +1093,8 @@ export default function VoiceApp() {
 
                 {/* Dev Mode Typed Input Form (Only in Dev) */}
                 {isDev && context.mode === 'typed' && (
-                  <form onSubmit={handleTypedSubmit} style={{ maxWidth: '480px', margin: '0.75rem auto' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <form onSubmit={handleTypedSubmit} style={{ maxWidth: '440px', margin: '0.65rem auto' }}>
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
                       <input
                         type="text"
                         value={typedInput}
@@ -1013,15 +1103,17 @@ export default function VoiceApp() {
                         style={{
                           flex: 1,
                           fontSize: 'var(--font-size-body)',
-                          padding: '0.65rem 0.85rem',
-                          border: '1px solid var(--ios-border)',
-                          borderRadius: '12px',
+                          padding: '0.5rem 0.75rem',
+                          border: '1px solid var(--border)',
+                          borderRadius: '10px',
+                          backgroundColor: 'var(--app-card)',
+                          color: 'var(--text-primary)',
                         }}
                       />
                       <button
                         type="submit"
                         className="ios-btn ios-btn-primary"
-                        style={{ minHeight: '44px' }}
+                        style={{ minHeight: '38px', padding: '0.4rem 0.85rem' }}
                       >
                         Submit
                       </button>
@@ -1039,7 +1131,7 @@ export default function VoiceApp() {
                     disabled={state !== STATES.LISTENING}
                     className="ios-btn ios-btn-secondary"
                   >
-                    🔄 மீண்டும் கேள்
+                    <IconRefresh size={14} /> மீண்டும் கேள்
                   </button>
 
                   {!currentField.required && (
@@ -1049,7 +1141,7 @@ export default function VoiceApp() {
                       disabled={state !== STATES.LISTENING}
                       className="ios-btn ios-btn-secondary"
                     >
-                      ⏭ தவிர் / Skip
+                      <IconArrowRight size={14} /> தவிர் / Skip
                     </button>
                   )}
 
@@ -1059,7 +1151,7 @@ export default function VoiceApp() {
                     disabled={state !== STATES.LISTENING}
                     className="ios-btn ios-btn-secondary"
                   >
-                    💡 உதவி / Help
+                    <IconHelp size={14} /> உதவி / Help
                   </button>
 
                   <button
@@ -1067,7 +1159,7 @@ export default function VoiceApp() {
                     onClick={() => handleButtonTap(() => executeCommand('operator'))}
                     className="ios-btn ios-btn-secondary"
                   >
-                    👤 பணியாளர்
+                    <IconGear size={14} /> பணியாளர்
                   </button>
                 </div>
               )}

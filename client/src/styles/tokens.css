@@ -1,143 +1,215 @@
+/* hallmark: v2.0.0 · theme: sunset-coral · genre: modern-minimal · floor: verified */
 /**
- * Solli Design System Tokens (Apple iOS / Flutter Mobile Theme)
- * Cupertino-inspired aesthetic with accessible WCAG AAA / AA contrast ratios.
+ * Solli Design System Tokens (Flutter Mobile Aesthetic - Sunset Coral Palette)
+ * Compact typography, tactile gradients, and smooth rounded squircles.
  */
 
 :root {
   /* ==========================================================================
-     Apple iOS / Cupertino Palette
+     Sunset Coral Theme Palette
      ========================================================================== */
 
-  /* Backgrounds */
-  --ios-bg: #f2f2f7;                 /* iOS System Grouped Background */
-  --ios-card: #ffffff;               /* iOS System Card Background */
-  --ios-card-secondary: #f8f8fa;     /* Secondary Grouped Tile */
-  --ios-sheet-bg: #ffffff;           /* Bottom Sheet Background */
-  --ios-backdrop: rgba(0, 0, 0, 0.45);/* Frosted Glass Backdrop */
+  /* Surfaces & Backgrounds */
+  --app-bg: #fbfaf9;                   /* Silky warm porcelain background */
+  --app-card: #ffffff;                 /* Pure crisp white card surface */
+  --app-card-secondary: #fff8f6;       /* Soft coral-tinted secondary tile */
+  --app-sheet-bg: #ffffff;             /* Flutter modal bottom sheet background */
+  --app-backdrop: rgba(24, 24, 27, 0.45); /* Backdrop dim overlay */
 
-  /* Typography Colors */
-  --ios-text-primary: #000000;       /* 19.5:1 on #f2f2f7, 21:1 on #ffffff */
-  --ios-text-secondary: #3c3c43;     /* 8.5:1 on #ffffff (WCAG AAA) */
-  --ios-text-tertiary: #636366;      /* 5.1:1 on #ffffff (WCAG AA) */
-  --ios-text-inverse: #ffffff;
+  /* Text & Typography Colors */
+  --text-primary: #18181b;             /* Zinc 900 - High contrast text (15:1+) */
+  --text-secondary: #52525b;           /* Zinc 600 - Readable subtext */
+  --text-tertiary: #71717a;            /* Zinc 500 - Captions and hints */
+  --text-inverse: #ffffff;             /* Crisp white text for buttons & badges */
 
-  /* iOS System Colors (Accessible Shades) */
-  --ios-blue: #007aff;               /* iOS System Blue */
-  --ios-blue-dark: #0062d2;          /* Accessible Deep Blue (5.9:1 on white) */
-  --ios-green: #248a3d;              /* Accessible iOS Green (6.2:1 with white text) */
-  --ios-green-light: #e8f7ec;        /* Green tint */
-  --ios-red: #d70015;                /* Accessible iOS Red (5.6:1 with white text) */
-  --ios-red-light: #feecee;          /* Red tint */
-  --ios-amber: #b25e00;              /* Accessible iOS Amber/Orange */
-  --ios-amber-light: #fff8eb;        /* Amber tint */
-  --ios-indigo: #5856d6;
-  --ios-gray-fill: rgba(118, 118, 128, 0.12); /* iOS Segmented Track */
-  --ios-separator: rgba(60, 60, 67, 0.14);    /* iOS Hairline Divider */
-  --ios-border: rgba(60, 60, 67, 0.18);
+  /* Brand Sunset Coral & Gradients */
+  --brand-primary: #ff5e62;            /* Vibrant Sunset Coral */
+  --brand-primary-hover: #e84c50;      /* Deepened Coral for active state */
+  --brand-secondary: #ff9966;          /* Warm Peach Glow */
+  --brand-gradient: linear-gradient(135deg, #ff5e62 0%, #ff9966 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #f04e52 0%, #f48b57 100%);
+  --brand-light: #fff5f3;              /* Soft Coral tint */
+  --brand-light-border: #fed7cf;
 
-  /* Shadows */
-  --ios-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
-  --ios-shadow-card-elevated: 0 10px 30px rgba(0, 0, 0, 0.08);
-  --ios-shadow-btn: 0 6px 18px rgba(0, 102, 210, 0.28);
-  --ios-shadow-mic: 0 10px 28px rgba(0, 122, 255, 0.38);
-  --ios-shadow-mic-active: 0 0 32px rgba(215, 0, 21, 0.55);
-  --ios-shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.2);
+  /* Semantic Feedback Colors */
+  --success-green: #10b981;            /* Emerald Green */
+  --success-green-dark: #059669;
+  --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --success-light: #edfbf3;
+  --success-border: #bbf0c8;
 
-  /* Radii (Apple Continuous Corners) */
-  --radius-ios-card: 24px;
-  --radius-ios-btn: 18px;
+  --danger-red: #ef4444;               /* Clear Coral-Red */
+  --danger-red-dark: #dc2626;
+  --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --danger-light: #fef2f2;
+  --danger-border: #fecaca;
+
+  --amber-warning: #d97706;            /* Warm Amber */
+  --amber-light: #fffbeb;
+  --amber-border: #fde68a;
+
+  --sky-accent: #0284c7;               /* Sky Blue for focus/info */
+  --sky-light: #f0f9ff;
+  --sky-border: #bae6fd;
+
+  --track-fill: rgba(24, 24, 27, 0.06); /* Pill segmented track */
+  --separator: rgba(24, 24, 27, 0.08);  /* Micro divider */
+  --border: rgba(24, 24, 27, 0.1);     /* 1px crisp outline */
+  --border-subtle: rgba(255, 94, 98, 0.14);
+
+  /* Backward Compatibility Aliases for --ios-* tokens */
+  --ios-bg: var(--app-bg);
+  --ios-card: var(--app-card);
+  --ios-card-secondary: var(--app-card-secondary);
+  --ios-sheet-bg: var(--app-sheet-bg);
+  --ios-backdrop: var(--app-backdrop);
+  --ios-text-primary: var(--text-primary);
+  --ios-text-secondary: var(--text-secondary);
+  --ios-text-tertiary: var(--text-tertiary);
+  --ios-text-inverse: var(--text-inverse);
+  --ios-blue: var(--brand-primary);
+  --ios-blue-dark: var(--brand-primary-hover);
+  --ios-green: var(--success-green);
+  --ios-green-light: var(--success-light);
+  --ios-red: var(--danger-red);
+  --ios-red-light: var(--danger-light);
+  --ios-amber: var(--amber-warning);
+  --ios-amber-light: var(--amber-light);
+  --ios-indigo: #6366f1;
+  --ios-gray-fill: var(--track-fill);
+  --ios-separator: var(--separator);
+  --ios-border: var(--border);
+
+  /* Shadows (Flutter Elevation Levels) */
+  --shadow-card: 0 2px 10px rgba(24, 24, 27, 0.04), 0 1px 3px rgba(24, 24, 27, 0.02);
+  --shadow-card-elevated: 0 10px 25px -4px rgba(255, 94, 98, 0.09), 0 4px 10px -2px rgba(24, 24, 27, 0.04);
+  --shadow-btn: 0 4px 14px -1px rgba(255, 94, 98, 0.35);
+  --shadow-btn-green: 0 4px 14px -1px rgba(16, 185, 129, 0.32);
+  --shadow-mic: 0 8px 24px -2px rgba(255, 94, 98, 0.38);
+  --shadow-mic-active: 0 0 32px rgba(239, 68, 68, 0.5);
+  --shadow-sheet: 0 -8px 30px rgba(0, 0, 0, 0.12);
+
+  --ios-shadow-card: var(--shadow-card);
+  --ios-shadow-card-elevated: var(--shadow-card-elevated);
+  --ios-shadow-btn: var(--shadow-btn);
+  --ios-shadow-mic: var(--shadow-mic);
+  --ios-shadow-mic-active: var(--shadow-mic-active);
+  --ios-shadow-sheet: var(--shadow-sheet);
+
+  /* Flutter Radii (Squircles & Pills) */
+  --radius-ios-card: 20px;
+  --radius-ios-btn: 12px;
   --radius-ios-pill: 9999px;
-  --radius-ios-sm: 10px;
+  --radius-ios-sm: 8px;
 
-  /* Typography Scales (Body >= 20px, Buttons >= 22px, Question >= 28px) */
-  --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", "Noto Sans Tamil", "Latha", system-ui, sans-serif;
-  --line-height-base: 1.5;
+  /* Typography Scale: Compact & Mobile Optimized (Clean Flutter Font Hierarchy) */
+  --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Noto Sans Tamil", system-ui, sans-serif;
+  --line-height-base: 1.45;
   --line-height-heading: 1.25;
 
-  /* Font Scale: Normal (Default) */
-  --font-size-base: 20px;
-  --font-size-body: 1.25rem;       /* 20px */
-  --font-size-question: 1.875rem;   /* 30px */
-  --font-size-question-en: 1.35rem; /* ~22px */
-  --font-size-btn: 1.375rem;       /* 22px */
-  --font-size-btn-large: 1.5rem;   /* 24px */
-  --font-size-heard: 2.125rem;     /* 34px */
-  --font-size-tagline: 1.35rem;    /* ~22px */
-  --font-size-caption: 1.125rem;   /* 18px */
-  --font-size-small: 1.05rem;      /* ~17px */
+  /* Compact Scale: Default */
+  --font-size-base: 14px;
+  --font-size-body: 0.9375rem;       /* 15px */
+  --font-size-question: 1.25rem;     /* 20px - crisp, bold, readable */
+  --font-size-question-en: 0.9375rem;/* 15px */
+  --font-size-btn: 0.9375rem;        /* 15px */
+  --font-size-btn-large: 1.0625rem;  /* 17px */
+  --font-size-heard: 1.35rem;        /* 21.6px */
+  --font-size-tagline: 0.9375rem;    /* 15px */
+  --font-size-caption: 0.8125rem;    /* 13px */
+  --font-size-small: 0.75rem;        /* 12px */
 
-  /* Touch Targets */
-  --touch-target-min: 48px;
-  --touch-target-preferred: 56px;
-  --mic-btn-size: 108px;
+  /* Touch Targets (Mobile-first, minimum 44px) */
+  --touch-target-min: 44px;
+  --touch-target-preferred: 48px;
+  --mic-btn-size: 88px;
 
   /* Focus Ring */
-  --focus-ring-color: #007aff;
-  --focus-ring-width: 4px;
-  --focus-ring-offset: 3px;
+  --focus-ring-color: #ff5e62;
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
 }
 
 /* ==========================================================================
-   Operator Font Size Overrides
+   Operator Font Size Overrides (Scaled Compactly)
    ========================================================================== */
 [data-font-size="large"] {
-  --font-size-base: 23px;
-  --font-size-body: 1.4375rem;     /* 23px */
-  --font-size-question: 2.125rem;  /* 34px */
-  --font-size-question-en: 1.5rem; /* 24px */
-  --font-size-btn: 1.5625rem;      /* 25px */
-  --font-size-btn-large: 1.75rem;  /* 28px */
-  --font-size-heard: 2.375rem;     /* 38px */
-  --font-size-tagline: 1.5rem;
-  --font-size-caption: 1.25rem;    /* 20px */
+  --font-size-base: 16px;
+  --font-size-body: 1.0625rem;     /* 17px */
+  --font-size-question: 1.4rem;    /* 22.4px */
+  --font-size-question-en: 1.0625rem; /* 17px */
+  --font-size-btn: 1.0625rem;      /* 17px */
+  --font-size-btn-large: 1.1875rem;/* 19px */
+  --font-size-heard: 1.55rem;      /* 24.8px */
+  --font-size-tagline: 1.0625rem;
+  --font-size-caption: 0.875rem;   /* 14px */
+  --font-size-small: 0.8125rem;    /* 13px */
 }
 
 [data-font-size="xlarge"] {
-  --font-size-base: 26px;
-  --font-size-body: 1.625rem;      /* 26px */
-  --font-size-question: 2.375rem;  /* 38px */
-  --font-size-question-en: 1.65rem;/* 26px */
-  --font-size-btn: 1.75rem;        /* 28px */
-  --font-size-btn-large: 2rem;     /* 32px */
-  --font-size-heard: 2.625rem;     /* 42px */
-  --font-size-tagline: 1.7rem;
-  --font-size-caption: 1.375rem;   /* 22px */
+  --font-size-base: 18px;
+  --font-size-body: 1.1875rem;     /* 19px */
+  --font-size-question: 1.5625rem; /* 25px */
+  --font-size-question-en: 1.1875rem;
+  --font-size-btn: 1.1875rem;      /* 19px */
+  --font-size-btn-large: 1.3125rem;/* 21px */
+  --font-size-heard: 1.75rem;      /* 28px */
+  --font-size-tagline: 1.1875rem;
+  --font-size-caption: 0.9375rem;  /* 15px */
+  --font-size-small: 0.875rem;     /* 14px */
 }
 
 /* ==========================================================================
    High Contrast Mode Overrides ([data-contrast="high"])
    ========================================================================== */
 [data-contrast="high"] {
-  --ios-bg: #000000;
-  --ios-card: #000000;
-  --ios-card-secondary: #0a0a0a;
-  --ios-sheet-bg: #000000;
-  --ios-backdrop: rgba(0, 0, 0, 0.85);
+  --app-bg: #000000;
+  --app-card: #0a0a0a;
+  --app-card-secondary: #141414;
+  --app-sheet-bg: #0a0a0a;
+  --app-backdrop: rgba(0, 0, 0, 0.85);
 
-  --ios-text-primary: #ffffff;
-  --ios-text-secondary: #ffff00;
-  --ios-text-tertiary: #e2e8f0;
-  --ios-text-inverse: #000000;
+  --text-primary: #ffffff;
+  --text-secondary: #ffff00;
+  --text-tertiary: #f4f4f5;
+  --text-inverse: #000000;
 
-  --ios-blue: #ffffff;
-  --ios-blue-dark: #ffff00;
-  --ios-green: #00ff00;
-  --ios-green-light: #002200;
-  --ios-red: #ff3333;
-  --ios-red-light: #220000;
-  --ios-amber: #ffff00;
-  --ios-amber-light: #221c00;
-  --ios-gray-fill: #1a1a1a;
-  --ios-separator: #ffffff;
-  --ios-border: #ffffff;
+  --brand-primary: #ffffff;
+  --brand-primary-hover: #ffff00;
+  --brand-gradient: linear-gradient(135deg, #ffffff 0%, #ffff00 100%);
+  --brand-light: #222200;
+
+  --success-green: #00ff00;
+  --success-gradient: linear-gradient(135deg, #00ff00 0%, #00cc00 100%);
+  --success-light: #002200;
+
+  --danger-red: #ff3333;
+  --danger-gradient: linear-gradient(135deg, #ff3333 0%, #cc0000 100%);
+  --danger-light: #220000;
+
+  --amber-warning: #ffff00;
+  --amber-light: #221c00;
+
+  --track-fill: #1f1f23;
+  --separator: #ffffff;
+  --border: #ffffff;
 
   --focus-ring-color: #ffff00;
-  --focus-ring-width: 5px;
-  --focus-ring-offset: 4px;
+  --focus-ring-width: 4px;
+  --focus-ring-offset: 3px;
 }
 
 /* ==========================================================================
-   Prefers-Reduced-Motion
+   Prefers-Reduced-Motion (Hallmark Floor Rule 7)
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
   *,

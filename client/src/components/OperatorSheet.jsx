@@ -1,6 +1,16 @@
+import {
+  IconClose,
+  IconGear,
+  IconPlay,
+  IconRefresh,
+  IconTrash,
+  IconVolume,
+  IconVolumeMute,
+} from './Icons'
+
 /**
- * OperatorSheet Component (Cupertino iOS Modal Bottom Sheet)
- * Slides up from the bottom of the device screen when the operator taps ⚙️.
+ * OperatorSheet Component (Flutter Modal Bottom Sheet)
+ * Slides up from the bottom of the device screen when the operator taps settings.
  * Settings persist only in memory for the active kiosk session.
  */
 export default function OperatorSheet({
@@ -31,30 +41,49 @@ export default function OperatorSheet({
         className="ios-sheet-panel"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* iOS Drag Handle */}
+        {/* Flutter Drag Handle */}
         <div className="ios-sheet-handle" aria-hidden="true" />
 
         {/* Sheet Header */}
         <div className="ios-sheet-header">
-          <h2 id="ios-operator-title" style={{ fontSize: 'var(--font-size-btn)', fontWeight: 800 }}>
-            ⚙️ பணியாளர் அமைப்புகள்
-            <span style={{ display: 'block', fontSize: 'var(--font-size-small)', color: 'var(--ios-text-secondary)', fontWeight: 500 }}>
-              Operator Assistance Settings (In-Memory Only)
-            </span>
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: 'var(--brand-light)',
+                color: 'var(--brand-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <IconGear size={18} />
+            </div>
+            <div>
+              <h2 id="ios-operator-title" style={{ fontSize: 'var(--font-size-btn)', fontWeight: 700, margin: 0 }}>
+                பணியாளர் அமைப்புகள்
+              </h2>
+              <span style={{ display: 'block', fontSize: 'var(--font-size-small)', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                Operator Assistance Settings (In-Memory Only)
+              </span>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={onClose}
             className="ios-icon-btn"
             aria-label="Close operator settings"
           >
-            ✕
+            <IconClose size={18} />
           </button>
         </div>
 
         {/* Group 1: Font Size */}
         <div className="ios-sheet-cell">
-          <span style={{ display: 'block', fontWeight: 700, fontSize: 'var(--font-size-small)', marginBottom: '0.5rem' }}>
+          <span style={{ display: 'block', fontWeight: 600, fontSize: 'var(--font-size-small)', marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
             எழுத்து அளவு / Font Scale:
           </span>
           <div className="ios-segmented-control" style={{ margin: 0 }}>
@@ -63,28 +92,28 @@ export default function OperatorSheet({
               className={`ios-segment-btn ${fontSize === 'normal' ? 'active' : ''}`}
               onClick={() => setFontSize('normal')}
             >
-              20px (Normal)
+              Compact (14px)
             </button>
             <button
               type="button"
               className={`ios-segment-btn ${fontSize === 'large' ? 'active' : ''}`}
               onClick={() => setFontSize('large')}
             >
-              23px (Large)
+              Large (16px)
             </button>
             <button
               type="button"
               className={`ios-segment-btn ${fontSize === 'xlarge' ? 'active' : ''}`}
               onClick={() => setFontSize('xlarge')}
             >
-              26px (X-Large)
+              X-Large (18px)
             </button>
           </div>
         </div>
 
         {/* Group 2: Contrast */}
         <div className="ios-sheet-cell">
-          <span style={{ display: 'block', fontWeight: 700, fontSize: 'var(--font-size-small)', marginBottom: '0.5rem' }}>
+          <span style={{ display: 'block', fontWeight: 600, fontSize: 'var(--font-size-small)', marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
             மாறுபட்ட வண்ணம் / Contrast:
           </span>
           <div className="ios-segmented-control" style={{ margin: 0 }}>
@@ -109,30 +138,30 @@ export default function OperatorSheet({
         <div className="ios-sheet-cell">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <span style={{ display: 'block', fontWeight: 700, fontSize: 'var(--font-size-small)' }}>
-                குரல் ஒலி / Voice Speech (Timbre):
+              <span style={{ display: 'block', fontWeight: 600, fontSize: 'var(--font-size-small)', color: 'var(--text-primary)' }}>
+                குரல் ஒலி / Voice Speech:
               </span>
-              <span style={{ fontSize: 'var(--font-size-small)', color: 'var(--ios-text-secondary)' }}>
-                {voiceMuted ? 'ஒலி முடக்கப்பட்டுள்ளது (Muted)' : 'ஒலி இயக்கத்தில் உள்ளது (Active)'}
+              <span style={{ fontSize: 'var(--font-size-small)', color: 'var(--text-secondary)' }}>
+                {voiceMuted ? 'ஒலி முடக்கப்பட்டுள்ளது (Muted)' : 'இயக்கத்தில் உள்ளது (Active)'}
               </span>
             </div>
             <button
               type="button"
               onClick={() => setVoiceMuted(!voiceMuted)}
               className="ios-btn ios-btn-secondary"
-              style={{ minHeight: '44px', padding: '0.4rem 1rem', fontSize: 'var(--font-size-small)' }}
+              style={{ minHeight: '38px', padding: '0.35rem 0.85rem', fontSize: 'var(--font-size-small)' }}
             >
-              {voiceMuted ? '🔊 Unmute' : '🔇 Mute'}
+              {voiceMuted ? <><IconVolume size={16} /> Unmute</> : <><IconVolumeMute size={16} /> Mute</>}
             </button>
           </div>
         </div>
 
         {/* Group 4: Session Controls */}
         <div className="ios-sheet-cell">
-          <span style={{ display: 'block', fontWeight: 700, fontSize: 'var(--font-size-small)', marginBottom: '0.65rem' }}>
+          <span style={{ display: 'block', fontWeight: 600, fontSize: 'var(--font-size-small)', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
             அமர்வு கட்டுப்பாடு / Session Controls:
           </span>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
             {canResume && (
               <button
                 type="button"
@@ -142,7 +171,7 @@ export default function OperatorSheet({
                 }}
                 className="ios-btn ios-btn-primary ios-btn-block"
               >
-                ▶️ உரையாடலைத் தொடரவும் / Resume Session
+                <IconPlay size={16} /> உரையாடலைத் தொடரவும் / Resume
               </button>
             )}
 
@@ -154,7 +183,7 @@ export default function OperatorSheet({
               }}
               className="ios-btn ios-btn-secondary ios-btn-block"
             >
-              🔄 அமர்வை மீட்டமை / Restart
+              <IconRefresh size={16} /> அமர்வை மீட்டமை / Restart
             </button>
 
             <button
@@ -165,7 +194,7 @@ export default function OperatorSheet({
               }}
               className="ios-btn ios-btn-no ios-btn-block"
             >
-              🗑️ விவரங்களை அழி / Clear Memory
+              <IconTrash size={16} /> விவரங்களை அழி / Clear Memory
             </button>
           </div>
         </div>

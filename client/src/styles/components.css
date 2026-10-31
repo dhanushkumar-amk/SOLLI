@@ -1,11 +1,12 @@
+/* hallmark: v2.0.0 · theme: sunset-coral · genre: modern-minimal · floor: verified */
 /**
- * Solli Component Styles (Apple iOS / Flutter Mobile Theme)
- * Smooth rounded squircle cards, Cupertino segmented controls, Siri-inspired mic,
- * and iOS bottom sheets.
+ * Solli Component Styles (Flutter Mobile Aesthetic - Sunset Coral Palette)
+ * Smooth rounded squircle cards, Cupertino segmented controls, Sunset Coral mic,
+ * and Flutter modal bottom sheets.
  */
 
 /* ==========================================================================
-   Top App Navigation Bar (iOS / Flutter Cupertino Style)
+   Top App Navigation Bar (Flutter Cupertino AppBar)
    ========================================================================== */
 .ios-navbar {
   position: sticky;
@@ -14,11 +15,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.65rem 1rem;
-  background: rgba(242, 242, 247, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--ios-separator);
+  padding: 0.5rem 0.85rem;
+  background: rgba(251, 250, 249, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--separator);
 }
 
 [data-contrast="high"] .ios-navbar {
@@ -30,78 +31,87 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 800;
-  font-size: var(--font-size-caption);
-  color: var(--ios-text-primary);
+  font-weight: 700;
+  font-size: var(--font-size-body);
+  color: var(--text-primary);
   text-decoration: none;
 }
 
 .ios-brand-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #007aff 0%, #0056c6 100%);
-  color: #ffffff;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--brand-gradient);
+  color: var(--text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+  font-size: 0.95rem;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(255, 94, 98, 0.35);
 }
 
 .ios-icon-btn {
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: var(--ios-gray-fill);
-  color: var(--ios-text-primary);
+  background: var(--track-fill);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
   cursor: pointer;
-  border: none;
-  transition: transform 0.15s ease, background 0.15s ease;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
   touch-action: manipulation;
 }
 
-.ios-icon-btn:active {
-  transform: scale(0.92);
-  background: rgba(118, 118, 128, 0.22);
+.ios-icon-btn:hover:not(:disabled) {
+  background: rgba(24, 24, 27, 0.09);
+}
+
+.ios-icon-btn:active:not(:disabled) {
+  transform: scale(0.94);
+  background: rgba(24, 24, 27, 0.14);
 }
 
 /* ==========================================================================
-   Cupertino Segmented Control (Language Picker)
+   Cupertino Segmented Control (Language & Mode Switchers)
    ========================================================================== */
 .ios-segmented-control {
   display: flex;
-  background-color: var(--ios-gray-fill);
+  background-color: var(--track-fill);
   border-radius: var(--radius-ios-pill);
-  padding: 4px;
+  padding: 3px;
   gap: 3px;
-  max-width: 420px;
-  margin: 0 auto var(--space-4);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  max-width: 380px;
+  margin: 0 auto var(--space-3);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .ios-segment-btn {
   flex: 1;
-  padding: 0.5rem 0.75rem;
+  padding: 0.4rem 0.65rem;
   font-size: var(--font-size-small);
-  font-weight: 700;
-  color: var(--ios-text-secondary);
+  font-weight: 600;
+  color: var(--text-secondary);
   border-radius: var(--radius-ios-pill);
   border: none;
   background: transparent;
   cursor: pointer;
-  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
-  min-height: 44px;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 .ios-segment-btn.active {
-  background-color: var(--ios-card);
-  color: var(--ios-text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  background-color: var(--app-card);
+  color: var(--brand-primary);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+  font-weight: 700;
 }
 
 [data-contrast="high"] .ios-segment-btn.active {
@@ -110,16 +120,16 @@
 }
 
 /* ==========================================================================
-   iOS Cards
+   Flutter Cards
    ========================================================================== */
 .ios-card {
-  background-color: var(--ios-card);
+  background-color: var(--app-card);
   border-radius: var(--radius-ios-card);
-  padding: 1.5rem;
-  box-shadow: var(--ios-shadow-card);
-  border: 1px solid var(--ios-border);
-  margin-bottom: var(--space-4);
-  transition: transform 0.15s ease;
+  padding: 1.15rem 1.25rem;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
+  margin-bottom: var(--space-3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 [data-contrast="high"] .ios-card {
@@ -127,74 +137,74 @@
 }
 
 /* ==========================================================================
-   State Banner (Pill Badge)
+   State Banner (Pill Chip)
    ========================================================================== */
 .ios-state-pill {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.65rem 1rem;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
   border-radius: var(--radius-ios-pill);
-  font-size: var(--font-size-body);
-  font-weight: 700;
-  margin-bottom: var(--space-4);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  margin-bottom: var(--space-3);
   border: 1px solid transparent;
 }
 
 .ios-state-speaking {
-  background-color: #e5f2ff;
-  color: #0062d2;
-  border-color: #b9dcff;
+  background-color: var(--brand-light);
+  color: var(--brand-primary);
+  border-color: var(--brand-light-border);
 }
 
 .ios-state-listening {
-  background-color: var(--ios-red-light);
-  color: var(--ios-red);
-  border-color: #ffccd0;
+  background-color: var(--danger-light);
+  color: var(--danger-red);
+  border-color: var(--danger-border);
 }
 
 .ios-state-thinking {
-  background-color: #f1eeff;
-  color: #5856d6;
-  border-color: #d6ceff;
+  background-color: var(--sky-light);
+  color: var(--sky-accent);
+  border-color: var(--sky-border);
 }
 
 .ios-state-paused {
-  background-color: #e5e5ea;
-  color: #1c1c1e;
-  border-color: #d1d1d6;
+  background-color: var(--track-fill);
+  color: var(--text-primary);
+  border-color: var(--border);
 }
 
 .ios-state-operator {
-  background-color: var(--ios-amber-light);
-  color: var(--ios-amber);
-  border-color: #fbdca5;
+  background-color: var(--amber-light);
+  color: var(--amber-warning);
+  border-color: var(--amber-border);
 }
 
 /* ==========================================================================
-   iOS Touch Buttons
+   Flutter Touch Buttons
    ========================================================================== */
 .ios-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.85rem 1.5rem;
+  gap: 0.4rem;
+  padding: 0.65rem 1.15rem;
   font-size: var(--font-size-btn);
-  font-weight: 700;
+  font-weight: 600;
   border-radius: var(--radius-ios-btn);
   min-height: var(--touch-target-preferred);
   cursor: pointer;
   text-decoration: none;
   text-align: center;
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
   user-select: none;
   border: none;
 }
 
 .ios-btn:active:not(:disabled) {
-  transform: scale(0.97);
-  opacity: 0.9;
+  transform: scale(0.98);
+  opacity: 0.95;
 }
 
 .ios-btn:disabled {
@@ -202,40 +212,46 @@
   cursor: not-allowed;
 }
 
-/* Primary Action */
+/* Primary Action - Sunset Coral Gradient */
 .ios-btn-primary {
-  background: linear-gradient(180deg, #007aff 0%, #0062d2 100%);
-  color: #ffffff;
-  box-shadow: var(--ios-shadow-btn);
+  background: var(--brand-gradient);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-btn);
 }
 
-/* Affirmative / Yes Action */
+.ios-btn-primary:hover:not(:disabled) {
+  background: var(--brand-gradient-hover);
+}
+
+/* Affirmative / Yes Action - Emerald Green Gradient */
 .ios-btn-yes {
-  background: linear-gradient(180deg, #28a745 0%, #248a3d 100%);
-  color: #ffffff;
-  min-height: 64px;
-  font-size: var(--font-size-btn-large);
-  box-shadow: 0 6px 18px rgba(36, 138, 61, 0.32);
+  background: var(--success-gradient);
+  color: var(--text-inverse);
+  min-height: 50px;
+  font-size: var(--font-size-btn);
+  box-shadow: var(--shadow-btn-green);
 }
 
-/* Destructive / No Action */
+/* Destructive / No Action - Danger Red Gradient */
 .ios-btn-no {
-  background: linear-gradient(180deg, #ff3b30 0%, #d70015 100%);
-  color: #ffffff;
-  min-height: 64px;
-  font-size: var(--font-size-btn-large);
-  box-shadow: 0 6px 18px rgba(215, 0, 21, 0.32);
+  background: var(--danger-gradient);
+  color: var(--text-inverse);
+  min-height: 50px;
+  font-size: var(--font-size-btn);
+  box-shadow: 0 4px 14px -1px rgba(239, 68, 68, 0.32);
 }
 
 /* Secondary Neutral Action */
 .ios-btn-secondary {
-  background-color: var(--ios-gray-fill);
-  color: var(--ios-text-primary);
-  border: 1px solid var(--ios-separator);
+  background-color: var(--app-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .ios-btn-secondary:hover:not(:disabled) {
-  background-color: rgba(118, 118, 128, 0.18);
+  background-color: var(--app-card-secondary);
+  border-color: var(--border-subtle);
 }
 
 /* Full Width Block */
@@ -244,14 +260,14 @@
 }
 
 /* ==========================================================================
-   Microphone Button (Siri / Flutter Floating Action Style)
+   Microphone Button (Flutter Floating Action Style)
    ========================================================================== */
 .ios-mic-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 1.25rem 0;
+  margin: 1rem 0;
 }
 
 .ios-mic-btn {
@@ -261,69 +277,68 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.85rem;
-  background: linear-gradient(135deg, #007aff 0%, #0056c6 100%);
-  color: #ffffff;
+  background: var(--brand-gradient);
+  color: var(--text-inverse);
   border: none;
-  box-shadow: var(--ios-shadow-mic);
+  box-shadow: var(--shadow-mic);
   cursor: pointer;
   position: relative;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
   touch-action: manipulation;
 }
 
 .ios-mic-btn:hover:not(:disabled) {
-  transform: scale(1.04);
+  transform: scale(1.05);
 }
 
 .ios-mic-btn:active:not(:disabled) {
-  transform: scale(0.93);
+  transform: scale(0.94);
 }
 
 .ios-mic-btn-recording {
-  background: linear-gradient(135deg, #ff3b30 0%, #d70015 100%) !important;
-  color: #ffffff !important;
-  box-shadow: var(--ios-shadow-mic-active);
-  animation: ios-pulse 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  background: var(--danger-gradient) !important;
+  color: var(--text-inverse) !important;
+  box-shadow: var(--shadow-mic-active);
+  animation: flutter-pulse 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
-@keyframes ios-pulse {
+@keyframes flutter-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(215, 0, 21, 0.6);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
   }
   70% {
-    box-shadow: 0 0 0 22px rgba(215, 0, 21, 0);
+    box-shadow: 0 0 0 18px rgba(239, 68, 68, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(215, 0, 21, 0);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
 }
 
 .ios-mic-label {
-  margin-top: 0.75rem;
-  font-size: var(--font-size-btn);
-  font-weight: 700;
-  color: var(--ios-text-primary);
+  margin-top: 0.65rem;
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--text-primary);
   text-align: center;
 }
 
 .ios-mic-label.recording {
-  color: var(--ios-red);
+  color: var(--danger-red);
 }
 
 /* Audio Level Indicator */
 .ios-audio-bar {
-  width: 140px;
-  height: 8px;
-  background-color: var(--ios-gray-fill);
+  width: 120px;
+  height: 6px;
+  background-color: var(--track-fill);
   border-radius: var(--radius-ios-pill);
-  margin-top: 0.5rem;
+  margin-top: 0.45rem;
   overflow: hidden;
 }
 
 .ios-audio-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #34c759 0%, #248a3d 100%);
+  background: var(--brand-gradient);
   border-radius: var(--radius-ios-pill);
   transition: width 0.08s ease;
 }
@@ -332,26 +347,26 @@
    Heard Value Verification Card
    ========================================================================== */
 .ios-heard-card {
-  background-color: #fff9eb;
-  border: 2px solid #f59e0b;
+  background-color: var(--brand-light);
+  border: 1.5px solid var(--brand-light-border);
   border-radius: var(--radius-ios-card);
-  padding: 1.25rem;
+  padding: 1rem;
   text-align: center;
-  margin-bottom: var(--space-4);
-  box-shadow: var(--ios-shadow-card);
+  margin-bottom: var(--space-3);
+  box-shadow: var(--shadow-card);
 }
 
 .ios-heard-title {
   font-size: var(--font-size-small);
-  color: #b45309;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
+  color: var(--brand-primary);
+  font-weight: 600;
+  margin-bottom: 0.2rem;
 }
 
 .ios-heard-value {
   font-size: var(--font-size-heard);
-  font-weight: 800;
-  color: var(--ios-text-primary);
+  font-weight: 700;
+  color: var(--text-primary);
   line-height: 1.25;
   word-break: break-word;
 }
@@ -361,39 +376,39 @@
    ========================================================================== */
 .ios-progress-track {
   width: 100%;
-  height: 8px;
-  background-color: var(--ios-gray-fill);
+  height: 6px;
+  background-color: var(--track-fill);
   border-radius: var(--radius-ios-pill);
   overflow: hidden;
-  margin-top: 0.5rem;
+  margin-top: 0.35rem;
 }
 
 .ios-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #007aff 0%, #0056c6 100%);
+  background: var(--brand-gradient);
   border-radius: var(--radius-ios-pill);
   transition: width 0.3s ease;
 }
 
 /* ==========================================================================
-   Review Screen Grouped Inset List (Cupertino Inset Grouped)
+   Review Screen Grouped Inset List (Flutter ListTiles)
    ========================================================================== */
 .ios-list-group {
-  background-color: var(--ios-card);
+  background-color: var(--app-card);
   border-radius: var(--radius-ios-card);
-  border: 1px solid var(--ios-border);
-  box-shadow: var(--ios-shadow-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
 }
 
 .ios-list-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--ios-separator);
-  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--separator);
+  gap: 0.75rem;
 }
 
 .ios-list-row:last-child {
@@ -404,41 +419,45 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.25rem 0.65rem;
+  padding: 0.2rem 0.55rem;
   border-radius: var(--radius-ios-pill);
   font-size: var(--font-size-small);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .ios-pill-verified {
-  background-color: var(--ios-green-light);
-  color: var(--ios-green);
+  background-color: var(--success-light);
+  color: var(--success-green);
+  border: 1px solid var(--success-border);
 }
 
 .ios-pill-operator {
-  background-color: var(--ios-amber-light);
-  color: var(--ios-amber);
+  background-color: var(--amber-light);
+  color: var(--amber-warning);
+  border: 1px solid var(--amber-border);
 }
 
 .ios-pill-skipped {
-  background-color: var(--ios-gray-fill);
-  color: var(--ios-text-tertiary);
+  background-color: var(--track-fill);
+  color: var(--text-tertiary);
+  border: 1px solid var(--border);
 }
 
 .ios-pill-unconfirmed {
-  background-color: #f1eeff;
-  color: #5856d6;
+  background-color: var(--brand-light);
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-light-border);
 }
 
 /* ==========================================================================
-   Cupertino Bottom Sheet (Operator Panel)
+   Flutter Modal Bottom Sheet (Operator Panel & Alerts)
    ========================================================================== */
 .ios-sheet-backdrop {
   position: fixed;
   inset: 0;
-  background-color: var(--ios-backdrop);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background-color: var(--app-backdrop);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 1000;
   display: flex;
   align-items: flex-end;
@@ -446,19 +465,19 @@
 }
 
 .ios-sheet-panel {
-  background-color: var(--ios-sheet-bg);
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
+  background-color: var(--app-sheet-bg);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
   width: 100%;
-  max-width: 600px;
-  max-height: 88vh;
+  max-width: 480px;
+  max-height: 85vh;
   overflow-y: auto;
-  box-shadow: var(--ios-shadow-sheet);
-  padding: 1rem 1.5rem 2.5rem;
-  animation: slide-up 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+  box-shadow: var(--shadow-sheet);
+  padding: 0.85rem 1.25rem 2rem;
+  animation: flutter-slide-up 0.22s cubic-bezier(0.2, 0.9, 0.4, 1);
 }
 
-@keyframes slide-up {
+@keyframes flutter-slide-up {
   from {
     transform: translateY(100%);
   }
@@ -468,24 +487,39 @@
 }
 
 .ios-sheet-handle {
-  width: 40px;
-  height: 5px;
-  border-radius: 3px;
-  background-color: rgba(60, 60, 67, 0.3);
-  margin: 0 auto 1rem;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: rgba(24, 24, 27, 0.2);
+  margin: 0 auto 0.85rem;
 }
 
 .ios-sheet-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .ios-sheet-cell {
-  background-color: var(--ios-card-secondary);
-  border-radius: 14px;
-  padding: 1rem;
-  margin-bottom: 0.85rem;
-  border: 1px solid var(--ios-separator);
+  background-color: var(--app-card-secondary);
+  border-radius: 12px;
+  padding: 0.85rem;
+  margin-bottom: 0.65rem;
+  border: 1px solid var(--border-subtle);
+}
+
+/* Demo Banner */
+.demo-banner {
+  background: var(--amber-light);
+  color: var(--amber-warning);
+  border-bottom: 1px solid var(--amber-border);
+  padding: 0.4rem 0.75rem;
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
 }

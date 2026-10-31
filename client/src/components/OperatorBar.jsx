@@ -1,10 +1,18 @@
 import { useState } from 'react'
+import {
+  IconClose,
+  IconGear,
+  IconPlay,
+  IconRefresh,
+  IconTrash,
+  IconVolume,
+  IconVolumeMute,
+} from './Icons'
 
 /**
  * OperatorBar Component
- * Collapsed by default. Unobtrusive drawer allowing staff to adjust font size,
- * toggle high-contrast, mute TTS audio, resume paused sessions, or clear answers.
- * All settings are stored strictly in component state (in memory), never in storage.
+ * Unobtrusive header allowing staff to adjust font size,
+ * toggle contrast, mute TTS audio, resume paused sessions, or clear answers.
  */
 export default function OperatorBar({
   fontSize = 'normal',
@@ -31,9 +39,8 @@ export default function OperatorBar({
           aria-controls="operator-panel"
           aria-label="Toggle operator options panel"
         >
-          <span aria-hidden="true">⚙️</span>
+          <IconGear size={16} />
           <span>பணியாளர் / Operator</span>
-          <span aria-hidden="true">{isOpen ? '▲' : '▼'}</span>
         </button>
       </div>
 
@@ -42,12 +49,12 @@ export default function OperatorBar({
           id="operator-panel"
           className="operator-drawer"
           aria-label="Operator assistance options"
-          style={{ width: '100%', marginTop: '0.75rem' }}
+          style={{ width: '100%', marginTop: '0.5rem' }}
         >
           <div className="operator-drawer-title">
-            <span>⚙️ பணியாளர் அமைப்புகள் / Operator Assistance Settings</span>
-            <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-muted)' }}>
-              (தற்காலிகமானது / Session memory only)
+            <span>பணியாளர் அமைப்புகள் / Operator Assistance</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-tertiary)' }}>
+              (Session memory only)
             </span>
           </div>
 
@@ -69,7 +76,7 @@ export default function OperatorBar({
                   className={`operator-pill-btn ${fontSize === 'normal' ? 'active' : ''}`}
                   onClick={() => setFontSize('normal')}
                 >
-                  சாதாரண (20px)
+                  Compact (14px)
                 </button>
                 <button
                   type="button"
@@ -78,7 +85,7 @@ export default function OperatorBar({
                   className={`operator-pill-btn ${fontSize === 'large' ? 'active' : ''}`}
                   onClick={() => setFontSize('large')}
                 >
-                  பெரியது (23px)
+                  Large (16px)
                 </button>
                 <button
                   type="button"
@@ -87,7 +94,7 @@ export default function OperatorBar({
                   className={`operator-pill-btn ${fontSize === 'xlarge' ? 'active' : ''}`}
                   onClick={() => setFontSize('xlarge')}
                 >
-                  மிகப் பெரியது (26px)
+                  X-Large (18px)
                 </button>
               </div>
             </div>
@@ -109,7 +116,7 @@ export default function OperatorBar({
                   className={`operator-pill-btn ${contrast === 'normal' ? 'active' : ''}`}
                   onClick={() => setContrast('normal')}
                 >
-                  இயல்பு / Normal
+                  இயல்பு (Normal)
                 </button>
                 <button
                   type="button"
@@ -118,38 +125,34 @@ export default function OperatorBar({
                   className={`operator-pill-btn ${contrast === 'high' ? 'active' : ''}`}
                   onClick={() => setContrast('high')}
                 >
-                  உயர் மாறுபாடு / High Contrast
+                  உயர் மாறுபாடு (High)
                 </button>
               </div>
             </div>
 
-            {/* Voice Mute Toggle */}
+            {/* Audio Mute Toggle */}
             <div className="operator-setting-group">
-              <span className="operator-label">குரல் ஒலி / Voice Output:</span>
-              <div className="operator-btn-group">
-                <button
-                  type="button"
-                  className={`operator-pill-btn ${voiceMuted ? 'active' : ''}`}
-                  onClick={() => setVoiceMuted(!voiceMuted)}
-                  aria-pressed={voiceMuted}
-                >
-                  {voiceMuted ? '🔇 குரல் முடக்கப்பட்டது (Muted)' : '🔊 குரல் இயக்கத்தில் உள்ளது (Active)'}
-                </button>
-              </div>
+              <span className="operator-label">ஒலி / Voice:</span>
+              <button
+                type="button"
+                className="operator-pill-btn"
+                onClick={() => setVoiceMuted(!voiceMuted)}
+              >
+                {voiceMuted ? <><IconVolume size={14} /> Unmute</> : <><IconVolumeMute size={14} /> Mute</>}
+              </button>
             </div>
 
-            {/* Quick Session Actions */}
+            {/* Session Action Controls */}
             <div className="operator-setting-group">
-              <span className="operator-label">அமர்வு கட்டுப்பாடு / Session Controls:</span>
-              <div className="operator-btn-group">
+              <span className="operator-label">அமர்வு / Session:</span>
+              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                 {canResume && (
                   <button
                     type="button"
-                    className="operator-pill-btn"
-                    style={{ backgroundColor: 'var(--brand-primary)', color: '#ffffff' }}
+                    className="operator-pill-btn active"
                     onClick={onResume}
                   >
-                    ▶️ தொடரவும் / Resume
+                    <IconPlay size={14} /> Resume
                   </button>
                 )}
                 <button
@@ -157,15 +160,15 @@ export default function OperatorBar({
                   className="operator-pill-btn"
                   onClick={onRestart}
                 >
-                  🔄 மீட்டமை / Restart
+                  <IconRefresh size={14} /> Restart
                 </button>
                 <button
                   type="button"
                   className="operator-pill-btn"
-                  style={{ color: 'var(--color-no)', borderColor: 'var(--color-no-border)' }}
+                  style={{ color: 'var(--danger-red)' }}
                   onClick={onClearData}
                 >
-                  🗑️ விவரங்களை அழி / Clear Memory
+                  <IconTrash size={14} /> Clear
                 </button>
               </div>
             </div>
