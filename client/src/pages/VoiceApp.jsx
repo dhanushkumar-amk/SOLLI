@@ -40,7 +40,7 @@ import {
 import {
   generateWebFormSchema,
   setActiveCustomSchema,
-} from '../forms'
+} from '../forms/index.js'
 import { triggerHaptic } from '../utils/haptics'
 import { releaseScreenWakeLock, requestScreenWakeLock } from '../utils/wakeLock'
 

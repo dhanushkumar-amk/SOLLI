@@ -1,10 +1,10 @@
 // Client API helpers for talking to the Solli Express backend with offline fallbacks
-import { BUILTIN_SCHEMAS, getActiveCustomSchema } from './forms'
+import { BUILTIN_SCHEMAS, getActiveCustomSchema } from './forms/index.js'
 
 export const API_BASE =
   typeof window !== 'undefined' && window.chrome?.runtime?.id
-    ? import.meta.env.VITE_API_URL || 'http://localhost:5000'
-    : import.meta.env.VITE_API_URL || ''
+    ? (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || 'http://localhost:5000'
+    : (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || ''
 
 export async function getHealth() {
   const response = await fetch(`${API_BASE}/api/health`)

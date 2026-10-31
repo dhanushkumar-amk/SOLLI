@@ -1,5 +1,5 @@
-import collegeAdmissionJson from './college_admission.json'
-import pensionJson from './pension.json'
+import collegeAdmissionJson from './college_admission.json' with { type: 'json' }
+import pensionJson from './pension.json' with { type: 'json' }
 
 export const BUILTIN_SCHEMAS = {
   pension: pensionJson,
