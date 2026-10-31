@@ -149,3 +149,8 @@ npm run dev
 Open the local address Vite prints (normally http://localhost:5173). The client proxies `/api` requests to the server on port 5000.
 
 This is a prototype: use only fake sample data. Do not enter real personal information.
+
+
+## Real-World Deployment & Data Privacy Architecture
+
+For production deployment models, Chrome Extension Side Panel integration, zero-persistence privacy safeguards, and step-by-step instructions for adding custom real-world forms, see **[docs/REAL_WORLD_ARCHITECTURE.md](docs/REAL_WORLD_ARCHITECTURE.md)**.
