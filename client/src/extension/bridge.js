@@ -1,7 +1,10 @@
 /**
  * Solli Chrome Extension Bridge
- * Connects the React Voice UI in the Side Panel to the active browser tab.
+ * Connects the React Voice UI in the Side Panel to the active browser tab & embedded iframes.
  */
+
+let activeFrameId = null
+let cachedFieldsData = null
 
 /**
  * Returns true if the app is currently running inside a Chrome Extension.
@@ -11,7 +14,14 @@ export function isExtensionEnv() {
 }
 
 /**
- * Send a message to the active tab's content script.
+ * Store the frame ID that has the active form
+ */
+export function setActiveFrameId(id) {
+  activeFrameId = id
+}
+
+/**
+ * Send a message to the active tab's content script across frames.
  */
 export async function sendToActiveTab(message) {
   if (!isExtensionEnv() || !window.chrome?.tabs) {
@@ -22,30 +32,75 @@ export async function sendToActiveTab(message) {
     const [activeTab] = await window.chrome.tabs.query({ active: true, currentWindow: true })
     if (!activeTab || !activeTab.id) return null
 
-    // Do not attempt to inject into chrome:// or extension internal pages
     if (activeTab.url?.startsWith('chrome://') || activeTab.url?.startsWith('chrome-extension://')) {
       return null
     }
 
-    return await window.chrome.tabs.sendMessage(activeTab.id, message)
+    // 1. If we know the active frame with the form, try it first
+    if (activeFrameId !== null) {
+      try {
+        const res = await window.chrome.tabs.sendMessage(activeTab.id, message, { frameId: activeFrameId })
+        if (res) return res
+      } catch (_) {}
+    }
+
+    // 2. Try default main frame (frame 0)
+    try {
+      const res = await window.chrome.tabs.sendMessage(activeTab.id, message)
+      if (res && (res.count > 0 || res.success)) return res
+    } catch (_) {}
+
+    // 3. Fallback: Broadcast/execute across all frames using chrome.scripting
+    if (window.chrome?.scripting) {
+      const results = await window.chrome.scripting.executeScript({
+        target: { tabId: activeTab.id, allFrames: true },
+        func: (msg) => {
+          if (window.__solli_handle_message) {
+            return window.__solli_handle_message(msg)
+          }
+          return null
+        },
+        args: [message],
+      })
+
+      if (Array.isArray(results)) {
+        // Find whichever frame returned a successful action or found fields
+        const valid = results.find(
+          (r) => r.result && (r.result.count > 0 || r.result.success || r.result.fields?.length > 0)
+        )
+        if (valid) {
+          if (valid.frameId !== undefined) {
+            activeFrameId = valid.frameId
+          }
+          return valid.result
+        }
+      }
+    }
+
+    return null
   } catch (err) {
-    // Content script might not be injected or page doesn't allow scripting
     return null
   }
 }
 
 /**
- * Scans the active browser tab (including Google Forms) and returns all detected fields.
+ * Scans the active browser tab (including Google Forms and iframes) and returns all detected fields.
  */
 export async function scanActivePageFields() {
   const res = await sendToActiveTab({ type: 'GET_DOM_FIELDS' })
-  if (!res || !res.fields) return null
-  return {
+  if (!res || !res.fields || res.fields.length === 0) {
+    return cachedFieldsData
+  }
+
+  const result = {
     title: res.title || 'Live Webpage Form',
     url: res.url || '',
     count: res.count || res.fields.length,
     fields: res.fields,
   }
+
+  cachedFieldsData = result
+  return result
 }
 
 /**
@@ -87,5 +142,37 @@ export async function getActiveTabInfo() {
     }
   } catch {
     return null
+  }
+}
+
+/**
+ * Subscribe to realtime DOM field detection broadcasts from content scripts
+ */
+export function onPageFieldsDetected(callback) {
+  if (!isExtensionEnv() || !window.chrome?.runtime?.onMessage) {
+    return () => {}
+  }
+
+  const handler = (message, sender) => {
+    if (message.type === 'SOLLI_DOM_FIELDS_FOUND' && message.fields?.length > 0) {
+      if (sender.frameId !== undefined) {
+        activeFrameId = sender.frameId
+      }
+      const data = {
+        title: message.title || 'Live Webpage Form',
+        url: message.url || '',
+        count: message.count || message.fields.length,
+        fields: message.fields,
+      }
+      cachedFieldsData = data
+      callback(data)
+    }
+  }
+
+  window.chrome.runtime.onMessage.addListener(handler)
+  return () => {
+    try {
+      window.chrome.runtime.onMessage.removeListener(handler)
+    } catch (_) {}
   }
 }

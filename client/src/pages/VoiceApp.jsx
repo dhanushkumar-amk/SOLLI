@@ -30,10 +30,17 @@ import { STATES } from '../conversation/stateMachine'
 import { useConversation } from '../conversation/useConversation'
 import {
   autoFillWebField,
+  clickWebpageNextOrSubmit,
   getActiveTabInfo,
   highlightWebField,
   isExtensionEnv,
+  onPageFieldsDetected,
+  scanActivePageFields,
 } from '../extension/bridge'
+import {
+  generateWebFormSchema,
+  setActiveCustomSchema,
+} from '../forms'
 import { triggerHaptic } from '../utils/haptics'
 import { releaseScreenWakeLock, requestScreenWakeLock } from '../utils/wakeLock'
 
@@ -47,8 +54,11 @@ export default function VoiceApp() {
   const [selectedFormId, setSelectedFormId] = useState('pension')
   const [isOperatorSheetOpen, setIsOperatorSheetOpen] = useState(false)
 
-  // Chrome Extension Side Panel detection
+  // Chrome Extension Side Panel & Live Form detection
   const [activeTabInfo, setActiveTabInfo] = useState(null)
+  const [detectedWebForm, setDetectedWebForm] = useState(null)
+  const [isScanning, setIsScanning] = useState(false)
+  const [clickedWebSubmit, setClickedWebSubmit] = useState(false)
   const isExtension = isExtensionEnv()
 
   // Typed input for dev mode only
@@ -105,14 +115,38 @@ export default function VoiceApp() {
     formId: selectedFormId,
   })
 
-  // Detect active tab details in Chrome Extension mode
-  useEffect(() => {
-    if (isExtension) {
-      getActiveTabInfo().then((info) => {
-        if (info) setActiveTabInfo(info)
-      })
+  // Detect active tab & scan fields in Chrome Extension mode
+  const refreshScan = useCallback(async () => {
+    if (!isExtension) return
+    setIsScanning(true)
+    try {
+      const info = await getActiveTabInfo()
+      if (info) setActiveTabInfo(info)
+      const data = await scanActivePageFields()
+      if (data && data.fields?.length > 0) {
+        setDetectedWebForm(data)
+      }
+    } catch (_) {
+    } finally {
+      setIsScanning(false)
     }
   }, [isExtension])
+
+  useEffect(() => {
+    if (isExtension) {
+      refreshScan()
+      const unsubscribe = onPageFieldsDetected((data) => {
+        if (data && data.fields?.length > 0) {
+          setDetectedWebForm(data)
+        }
+      })
+      const timer = setTimeout(refreshScan, 1500)
+      return () => {
+        unsubscribe()
+        clearTimeout(timer)
+      }
+    }
+  }, [isExtension, refreshScan])
 
   // Chrome Extension Bridge: Highlight matching input on active webpage when question changes
   useEffect(() => {
@@ -273,6 +307,32 @@ export default function VoiceApp() {
     action()
   }
 
+  // Start filling the detected live web form (Google Form, etc.)
+  const handleStartLiveForm = useCallback(() => {
+    if (!detectedWebForm?.fields?.length) return
+    triggerHaptic(35)
+    registerUserActivity()
+    const schema = generateWebFormSchema(
+      detectedWebForm.fields,
+      detectedWebForm.title || activeTabInfo?.title || 'Web Form'
+    )
+    setActiveCustomSchema(schema)
+    setSelectedFormId('live_web_form')
+    start('live_web_form')
+  }, [detectedWebForm, activeTabInfo, registerUserActivity, start])
+
+  // Click Next or Submit on the target webpage form
+  const handleWebNextOrSubmit = useCallback(async () => {
+    triggerHaptic(40)
+    registerUserActivity()
+    setClickedWebSubmit(true)
+    await clickWebpageNextOrSubmit()
+    setTimeout(() => {
+      setClickedWebSubmit(false)
+      refreshScan()
+    }, 1500)
+  }, [registerUserActivity, refreshScan])
+
   // Handle typed submission (Dev Mode Only)
   const handleTypedSubmit = (e) => {
     e.preventDefault()
@@ -319,18 +379,38 @@ export default function VoiceApp() {
           <span>சொல்லி &bull; Solli</span>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            triggerHaptic(20)
-            setIsOperatorSheetOpen(true)
-          }}
-          className="ios-icon-btn"
-          aria-label="Open operator settings"
-          title="Operator Settings"
-        >
-          <IconGear size={18} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          {isExtension && (
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic(20)
+                refreshScan()
+              }}
+              className="ios-icon-btn"
+              aria-label="Scan webpage for forms"
+              title="Scan Webpage Form"
+              disabled={isScanning}
+              style={{ fontSize: '11px', fontWeight: 600, width: 'auto', padding: '0.25rem 0.5rem', display: 'inline-flex', gap: '0.25rem' }}
+            >
+              <IconRefresh size={14} className={isScanning ? 'animate-spin' : ''} />
+              <span>ஸ்கேன் / Scan</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic(20)
+              setIsOperatorSheetOpen(true)
+            }}
+            className="ios-icon-btn"
+            aria-label="Open operator settings"
+            title="Operator Settings"
+          >
+            <IconGear size={18} />
+          </button>
+        </div>
       </header>
 
       {/* Chrome Side Panel Active Indicator */}
@@ -339,6 +419,7 @@ export default function VoiceApp() {
           style={{
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             gap: '0.4rem',
             background: 'var(--success-light)',
             borderBottom: '1px solid var(--success-border)',
@@ -348,10 +429,30 @@ export default function VoiceApp() {
             fontWeight: 600,
           }}
         >
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            Auto-Fill Active &bull; {activeTabInfo?.title || 'Target Webpage Connected'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0, flex: 1 }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block', flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {detectedWebForm?.fields?.length
+                ? `படிவம் தயார் • ${detectedWebForm.fields.length} கேள்விகள் (${detectedWebForm.title})`
+                : `இணைக்கப்பட்டது • ${activeTabInfo?.title || 'Target Webpage'}`}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={refreshScan}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--success-green-dark)',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px',
+            }}
+            title="Refresh Scan"
+          >
+            <IconRefresh size={13} className={isScanning ? 'animate-spin' : ''} />
+          </button>
         </aside>
       )}
 
@@ -568,6 +669,110 @@ export default function VoiceApp() {
               {uiLang === 'both' && <br />}
               {uiLang !== 'ta' && <span lang="en">Just say it. We&apos;ll fill the form.</span>}
             </p>
+
+            {/* Live Web Form Auto-Fill Feature Card (Chrome Extension Mode) */}
+            {isExtension && (
+              <div
+                className="ios-card"
+                style={{
+                  textAlign: 'left',
+                  margin: '0.5rem 0 1rem',
+                  padding: '1rem',
+                  borderRadius: '16px',
+                  border: detectedWebForm?.fields?.length ? '2px solid var(--brand-primary)' : '1px dashed var(--border)',
+                  background: detectedWebForm?.fields?.length ? 'var(--brand-light)' : 'var(--app-card-secondary)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div
+                      style={{
+                        width: '9px',
+                        height: '9px',
+                        borderRadius: '50%',
+                        background: detectedWebForm?.fields?.length ? '#10b981' : '#f59e0b',
+                        boxShadow: detectedWebForm?.fields?.length ? '0 0 8px #10b981' : 'none',
+                      }}
+                    />
+                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-btn)', color: 'var(--brand-primary)' }}>
+                      நேரடி இணையப் படிவம் &bull; Live Web Form
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={refreshScan}
+                    className="ios-btn ios-btn-secondary"
+                    style={{ minHeight: '28px', padding: '0.1rem 0.55rem', fontSize: '11px' }}
+                    disabled={isScanning}
+                  >
+                    <IconRefresh size={12} className={isScanning ? 'animate-spin' : ''} /> {isScanning ? 'Scanning...' : 'மறுஆய்வு / Scan'}
+                  </button>
+                </div>
+
+                {detectedWebForm?.fields?.length > 0 ? (
+                  <>
+                    <p style={{ margin: '0.2rem 0 0.4rem', fontSize: 'var(--font-size-small)', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {detectedWebForm.title || activeTabInfo?.title || 'Google Form'}
+                      <span style={{ display: 'block', fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', fontWeight: 400 }}>
+                        {detectedWebForm.fields.length} கேள்விகள் கண்டறியப்பட்டன (Detected Questions):
+                      </span>
+                    </p>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.85rem' }}>
+                      {detectedWebForm.fields.map((f, idx) => (
+                        <span
+                          key={f.id || idx}
+                          style={{
+                            background: 'var(--app-card-bg)',
+                            border: '1px solid var(--border-subtle)',
+                            borderRadius: '10px',
+                            padding: '0.2rem 0.5rem',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: 'var(--text-primary)',
+                          }}
+                        >
+                          {f.order || idx + 1}. {f.label.replace(/\*$/, '').trim()}
+                        </span>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleStartLiveForm}
+                      className="ios-btn ios-btn-primary ios-btn-block"
+                      style={{
+                        minHeight: '48px',
+                        fontSize: 'var(--font-size-btn)',
+                        borderRadius: 'var(--radius-ios-pill)',
+                        boxShadow: 'var(--shadow-btn)',
+                      }}
+                    >
+                      <IconMic size={18} />
+                      <span>நேரடி படிவத்தை நிரப்பு / Fill Live Web Form</span>
+                    </button>
+                  </>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
+                    <p style={{ fontSize: 'var(--font-size-small)', color: 'var(--text-secondary)', margin: '0 0 0.5rem' }}>
+                      இணையப் படிவத்தைக் கண்டறிய &quot;மறுஆய்வு&quot; பொத்தானை அழுத்தவும்.
+                      <br />
+                      <span style={{ fontSize: 'var(--font-size-caption)' }}>
+                        Open Google Form or target form in your browser tab and tap Scan.
+                      </span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={refreshScan}
+                      className="ios-btn ios-btn-secondary"
+                      style={{ minHeight: '34px', fontSize: 'var(--font-size-caption)' }}
+                    >
+                      <IconRefresh size={14} /> பக்கத்தை ஸ்கேன் செய் / Scan Webpage
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Form Selection Segmented Control */}
             <div style={{ marginBottom: '0.85rem' }}>
@@ -806,10 +1011,22 @@ export default function VoiceApp() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {isExtension && (
+                <button
+                  type="button"
+                  onClick={handleWebNextOrSubmit}
+                  className="ios-btn ios-btn-primary ios-btn-block"
+                  style={{ minHeight: '52px', background: '#059669' }}
+                >
+                  <IconArrowRight size={18} />
+                  <span>{clickedWebSubmit ? 'சமர்ப்பிக்கப்பட்டது! / Done!' : 'படிவத்தில் "Next / சமர்ப்பி" கிளிக் செய் / Click Next/Submit'}</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => handleButtonTap(restart)}
-                className="ios-btn ios-btn-primary ios-btn-block"
+                className="ios-btn ios-btn-secondary ios-btn-block"
               >
                 <IconPlay size={16} /> புதிய விண்ணப்பம் / Start New
               </button>
@@ -982,6 +1199,18 @@ export default function VoiceApp() {
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {isExtension && (
+                  <button
+                    type="button"
+                    onClick={handleWebNextOrSubmit}
+                    className="ios-btn ios-btn-primary ios-btn-block"
+                    style={{ minHeight: '50px', background: '#059669' }}
+                  >
+                    <IconArrowRight size={18} />
+                    <span>{clickedWebSubmit ? 'சமர்ப்பிக்கப்பட்டது! / Done!' : 'படிவத்தில் "Next / சமர்ப்பி" கிளிக் செய் / Click Next/Submit'}</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => handleButtonTap(confirmFullForm)}

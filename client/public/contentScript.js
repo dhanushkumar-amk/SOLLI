@@ -33,7 +33,27 @@
   function scanPageFormFields() {
     const results = []
 
-    // 1. Google Forms Specific Parser (Container-based)
+    // 1. Check for standalone Google Forms email collection input at the top
+    const standaloneEmail = document.querySelector('input[name="emailAddress"], input[type="email"]')
+    if (standaloneEmail) {
+      const emailContainer = standaloneEmail.closest('div[role="listitem"], div.Qr7Oae, div.freebirdFormviewerViewItemsItemItem') || standaloneEmail
+      const emailHeading = emailContainer.querySelector?.('div[role="heading"], span.M7eMe, [aria-level]')
+      const labelText = emailHeading ? emailHeading.innerText.trim() : 'Email'
+      const emailId = 'gform_field_email'
+      standaloneEmail.setAttribute('data-solli-id', emailId)
+
+      results.push({
+        id: emailId,
+        order: 1,
+        label: labelText || 'Email',
+        hint: 'Your email address',
+        type: 'email',
+        required: true,
+        selector: `[data-solli-id="${emailId}"]`,
+      })
+    }
+
+    // 2. Google Forms Specific Parser (Container-based questions)
     const googleFormItems = Array.from(
       document.querySelectorAll(
         'div[role="listitem"], div.Qr7Oae, div.freebirdFormviewerViewItemsItemItem'
@@ -42,12 +62,15 @@
 
     if (googleFormItems.length > 0) {
       googleFormItems.forEach((item, index) => {
+        // Skip if this container already holds the standalone email we parsed above
+        if (standaloneEmail && item.contains(standaloneEmail)) return
+
         // Find question title
         const headingEl = item.querySelector(
           'div[role="heading"], span.M7eMe, div.freebirdFormviewerViewItemsItemItemTitle, [aria-level]'
         )
         const helpEl = item.querySelector(
-          'div.g9q0rc, div.freebirdFormviewerViewItemsItemItemHelpText'
+          'div.g9q0rc, div.freebirdFormviewerViewItemsItemItemHelpText, div[id*="desc"]'
         )
 
         const titleText = headingEl ? headingEl.innerText.trim() : ''
@@ -55,7 +78,7 @@
 
         // Find associated input
         const inputEl = item.querySelector(
-          'input[type="text"], input[type="email"], input[type="date"], input[type="number"], textarea, div[role="listbox"], div[role="radio"], div[role="checkbox"]'
+          'input[type="text"], input[type="email"], input[type="date"], input[type="number"], textarea, div[role="listbox"], div[role="radio"], div[role="checkbox"], select'
         )
         if (!inputEl) return
 
@@ -63,22 +86,25 @@
           item.querySelector('span.v3Yvs, [aria-required="true"]') || titleText.includes('*')
         )
 
-        const fieldId = `gform_q_${index}`
+        const fieldId = `gform_q_${results.length}`
         inputEl.setAttribute('data-solli-id', fieldId)
+
+        const isDropdown = inputEl.getAttribute('role') === 'listbox' || inputEl.tagName.toLowerCase() === 'select'
+        const inputType = isDropdown ? 'dropdown' : inputEl.type === 'email' ? 'email' : inputEl.tagName.toLowerCase() === 'textarea' ? 'text' : inputEl.type || 'text'
 
         results.push({
           id: fieldId,
-          order: index + 1,
+          order: results.length + 1,
           label: titleText,
           hint: helpEl ? helpEl.innerText.trim() : '',
-          type: inputEl.type === 'email' ? 'email' : inputEl.tagName.toLowerCase() === 'textarea' ? 'text' : inputEl.type || 'text',
+          type: inputType,
           required: isRequired,
           selector: `[data-solli-id="${fieldId}"]`,
         })
       })
     }
 
-    // 2. Standard HTML Web Forms Fallback (If not Google Forms or additional inputs exist)
+    // 3. Standard HTML Web Forms Fallback (If not Google Forms or additional inputs exist)
     if (results.length === 0) {
       const candidates = Array.from(
         document.querySelectorAll(
@@ -155,9 +181,51 @@
     if (!element) return false
 
     element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    element.focus()
 
-    // Handle React & Google Forms native property setters
+    // 1. If Google Forms Dropdown / Listbox
+    if (element.getAttribute('role') === 'listbox' || element.matches('div[role="listbox"], .quantumWizMenuPaperselectEl')) {
+      element.click()
+      setTimeout(() => {
+        const options = Array.from(document.querySelectorAll('div[role="option"], div[data-value], div[jsname="V67aGc"]'))
+        const valStr = String(value).toLowerCase().trim()
+        const matched = options.find((opt) => {
+          const t = (opt.getAttribute('data-value') || opt.innerText || '').toLowerCase().trim()
+          return t && (t.includes(valStr) || valStr.includes(t))
+        }) || options[1] || options[0]
+
+        if (matched) {
+          matched.click()
+          matched.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+        }
+      }, 300)
+      return true
+    }
+
+    // 2. If Native Select
+    if (element.tagName && element.tagName.toLowerCase() === 'select') {
+      const valStr = String(value).toLowerCase().trim()
+      const options = Array.from(element.options)
+      const matched = options.find((opt) => {
+        const t = (opt.text || opt.value).toLowerCase().trim()
+        return t && (t.includes(valStr) || valStr.includes(t))
+      }) || options[1] || options[0]
+      if (matched) {
+        element.value = matched.value
+        element.dispatchEvent(new Event('change', { bubbles: true }))
+        element.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+      return true
+    }
+
+    // 3. If Radio or Checkbox
+    if (element.getAttribute('role') === 'radio' || element.type === 'radio' || element.getAttribute('role') === 'checkbox' || element.type === 'checkbox') {
+      element.click()
+      element.dispatchEvent(new Event('change', { bubbles: true }))
+      return true
+    }
+
+    // 4. Standard Text / Email / Date Input or Textarea
+    element.focus()
     const isTextArea = element instanceof HTMLTextAreaElement
     const proto = isTextArea ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
     const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value')?.set
@@ -238,6 +306,51 @@
     return false
   }
 
+  /**
+   * Broadcast detected fields to the Side Panel runtime
+   */
+  function broadcastFieldsIfFound() {
+    const fields = scanPageFormFields()
+    if (fields && fields.length > 0) {
+      try {
+        chrome.runtime.sendMessage({
+          type: 'SOLLI_DOM_FIELDS_FOUND',
+          url: window.location.href,
+          title: document.title || 'Live Web Form',
+          count: fields.length,
+          fields,
+        }).catch?.(() => {})
+      } catch (_) {}
+    }
+  }
+
+  // Expose global handler for chrome.scripting.executeScript fallback
+  window.__solli_handle_message = (request) => {
+    if (request.type === 'GET_DOM_FIELDS') {
+      const fields = scanPageFormFields()
+      return {
+        url: window.location.href,
+        title: document.title || 'Live Web Form',
+        count: fields.length,
+        fields,
+      }
+    }
+    if (request.type === 'HIGHLIGHT_FIELD') {
+      highlightField(request.fieldId)
+      return { success: true }
+    }
+    if (request.type === 'FILL_FIELD') {
+      const el = findElement(request.fieldId)
+      const success = fillElement(el, request.value)
+      return { success, fieldId: request.fieldId }
+    }
+    if (request.type === 'CLICK_NEXT_OR_SUBMIT') {
+      const clicked = clickNextOrSubmit()
+      return { success: clicked }
+    }
+    return null
+  }
+
   // Chrome Extension Message Listener
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'PING') {
@@ -276,6 +389,23 @@
     }
   })
 
-  // Initial scan
-  scanPageFormFields()
+  // Trigger initial scans
+  broadcastFieldsIfFound()
+  setTimeout(broadcastFieldsIfFound, 1000)
+  setTimeout(broadcastFieldsIfFound, 2500)
+
+  // Observe DOM changes (e.g. next page on Google Forms)
+  let scanTimeout = null
+  const observer = new MutationObserver(() => {
+    if (scanTimeout) clearTimeout(scanTimeout)
+    scanTimeout = setTimeout(broadcastFieldsIfFound, 600)
+  })
+
+  if (document.body) {
+    observer.observe(document.body, { childList: true, subtree: true })
+  } else {
+    document.addEventListener('DOMContentLoaded', () => {
+      observer.observe(document.body, { childList: true, subtree: true })
+    })
+  }
 })()
