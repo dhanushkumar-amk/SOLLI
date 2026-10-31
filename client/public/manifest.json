@@ -34,6 +34,7 @@
       "js": [
         "contentScript.js"
       ],
+      "all_frames": true,
       "run_at": "document_idle"
     }
   ],
@@ -42,4 +43,3 @@
     "512": "icon-512.png"
   }
 }
-

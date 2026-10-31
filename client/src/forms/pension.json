@@ -1,0 +1,680 @@
+{
+  "id": "pension",
+  "title": "Old-Age Pension Application",
+  "titleTa": "முதியோர் உதவித்தொகை விண்ணப்பம்",
+  "language": "ta-IN",
+  "version": "1.0.0",
+  "source": "UNCLEAR - ask user (Generic draft based on Tamil Nadu Social Security Pension Scheme)",
+  "disclaimer": "PROTOTYPE ONLY: This application uses fake sample data for demonstration. It does not submit to any government portal or authority.",
+  "fields": [
+    {
+      "id": "applicant_name",
+      "order": 1,
+      "type": "name",
+      "required": true,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Applicant name (generic draft)",
+        "ta": "விண்ணப்பதாரர் பெயர்"
+      },
+      "question": {
+        "ta": "உங்கள் பெயர் என்ன?",
+        "taRoman": "Ungal peyar enna?",
+        "en": "What is your name?"
+      },
+      "helpPrompt": {
+        "ta": "மெதுவாக முழுப் பெயரை சொல்லுங்கள்.",
+        "taRoman": "Medhuvaaga muzhu peyarai sollungal.",
+        "en": "Please say your full name slowly."
+      },
+      "readback": {
+        "ta": "உங்கள் பெயர் {value}. சரியா?",
+        "en": "Your name is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "name",
+        "min": 2,
+        "max": 60
+      },
+      "errorMessage": {
+        "ta": "செல்லுபடியாகும் பெயரை சொல்லுங்கள் (2 முதல் 60 எழுத்துகள்).",
+        "en": "Please provide a valid name (2 to 60 characters, letters and initials only)."
+      },
+      "confirm": "always",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "line",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "parent_spouse_name",
+      "order": 2,
+      "type": "name",
+      "required": true,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Father/Husband name (generic draft)",
+        "ta": "தந்தை/கணவர் பெயர்"
+      },
+      "question": {
+        "ta": "தந்தை அல்லது கணவர் பெயர் என்ன?",
+        "taRoman": "Thandhai allathu kanavar peyar enna?",
+        "en": "What is your father’s or husband’s name?"
+      },
+      "helpPrompt": {
+        "ta": "பெயரை மெதுவாக சொல்லுங்கள்.",
+        "taRoman": "Peyarai medhuvaaga sollungal.",
+        "en": "Please say the name slowly."
+      },
+      "readback": {
+        "ta": "பெயர் {value}. சரியா?",
+        "en": "The name is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "name",
+        "min": 2,
+        "max": 60
+      },
+      "errorMessage": {
+        "ta": "செல்லுபடியாகும் பெயரை சொல்லுங்கள்.",
+        "en": "Please provide a valid father or spouse name."
+      },
+      "confirm": "if_uncertain",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "line",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "date_of_birth",
+      "order": 3,
+      "type": "date",
+      "required": true,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Date of birth (generic draft)",
+        "ta": "பிறந்த தேதி"
+      },
+      "question": {
+        "ta": "பிறந்த தேதி என்ன?",
+        "taRoman": "Pirandha thedhi enna?",
+        "en": "What is your date of birth?"
+      },
+      "helpPrompt": {
+        "ta": "நாள், மாதம், ஆண்டு சொல்லுங்கள்.",
+        "taRoman": "Naal, maadham, aandu sollungal.",
+        "en": "Please state the day, month, and year."
+      },
+      "readback": {
+        "ta": "பிறந்த தேதி {value}. சரியா?",
+        "en": "Your date of birth is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "date",
+        "minAge": 60,
+        "maxAge": 120
+      },
+      "errorMessage": {
+        "ta": "செல்லுபடியாகும் பிறந்த தேதியை சொல்லுங்கள் (வயது 60+).",
+        "en": "Please provide a valid date of birth (must be 60 years or older)."
+      },
+      "confirm": "always",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "boxes",
+        "boxes": 8,
+        "split": ["day", "month", "year"],
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "nominee",
+      "order": 4,
+      "type": "name",
+      "required": false,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Nominee name (generic draft)",
+        "ta": "நியமனதாரர் பெயர்"
+      },
+      "question": {
+        "ta": "நியமனதாரர் பெயர் என்ன?",
+        "taRoman": "Niyamanatharar peyar enna?",
+        "en": "What is the nominee’s name?"
+      },
+      "helpPrompt": {
+        "ta": "பெயரை மெதுவாக சொல்லுங்கள்.",
+        "taRoman": "Peyarai medhuvaaga sollungal.",
+        "en": "Please say the nominee's name slowly."
+      },
+      "readback": {
+        "ta": "நியமனதாரர் {value}. சரியா?",
+        "en": "The nominee is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "name",
+        "min": 2,
+        "max": 60
+      },
+      "errorMessage": {
+        "ta": "செல்லுபடியாகும் நியமனதாரர் பெயரை சொல்லுங்கள்.",
+        "en": "Please provide a valid nominee name."
+      },
+      "confirm": "if_uncertain",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "line",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "gender",
+      "order": 5,
+      "type": "choice",
+      "required": true,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Gender (generic draft)",
+        "ta": "பாலினம்"
+      },
+      "question": {
+        "ta": "பாலினம் என்ன?",
+        "taRoman": "Paalinam enna?",
+        "en": "What is your gender?"
+      },
+      "helpPrompt": {
+        "ta": "படிவத் தேர்வை சொல்லுங்கள்.",
+        "taRoman": "Padiva thervai sollungal.",
+        "en": "Please say Female, Male, or Other."
+      },
+      "readback": {
+        "ta": "பாலினம் {value}. சரியா?",
+        "en": "Gender is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "choice",
+        "choices": ["Female", "Male", "Other"]
+      },
+      "errorMessage": {
+        "ta": "பெண், ஆண் அல்லது மற்றவை என்று சொல்லுங்கள்.",
+        "en": "Please select Female, Male, or Other."
+      },
+      "confirm": "if_uncertain",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "tick",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "address",
+      "order": 6,
+      "type": "address",
+      "required": true,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Address (generic draft)",
+        "ta": "முகவரி"
+      },
+      "question": {
+        "ta": "முகவரியை சொல்லுங்கள்.",
+        "taRoman": "Mugavariyai sollungal.",
+        "en": "Please say your address."
+      },
+      "helpPrompt": {
+        "ta": "வீட்டு எண், இடப்பெயர் சொல்லுங்கள்.",
+        "taRoman": "Veettu enn, idappeyar sollungal.",
+        "en": "Please say your door number and street/locality name."
+      },
+      "readback": {
+        "ta": "முகவரி {value}. சரியா?",
+        "en": "Your address is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "address",
+        "min": 3,
+        "max": 200
+      },
+      "errorMessage": {
+        "ta": "செல்லுபடியாகும் முகவரியை சொல்லுங்கள்.",
+        "en": "Please provide a valid address (at least 3 characters)."
+      },
+      "confirm": "if_uncertain",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "line",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "village",
+      "order": 7,
+      "type": "text",
+      "required": true,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Village (generic draft)",
+        "ta": "கிராமம்"
+      },
+      "question": {
+        "ta": "கிராமம் என்ன?",
+        "taRoman": "Gramam enna?",
+        "en": "What is your village?"
+      },
+      "helpPrompt": {
+        "ta": "பெயரை மெதுவாக சொல்லுங்கள்.",
+        "taRoman": "Peyarai medhuvaaga sollungal.",
+        "en": "Please say the village name slowly."
+      },
+      "readback": {
+        "ta": "கிராமம் {value}. சரியா?",
+        "en": "Your village is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "text",
+        "min": 2,
+        "max": 60
+      },
+      "errorMessage": {
+        "ta": "செல்லுபடியாகும் கிராமப் பெயரை சொல்லுங்கள்.",
+        "en": "Please provide a valid village name."
+      },
+      "confirm": "if_uncertain",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "line",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "taluk",
+      "order": 8,
+      "type": "text",
+      "required": true,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Taluk (generic draft)",
+        "ta": "தாலுகா"
+      },
+      "question": {
+        "ta": "தாலுகா என்ன?",
+        "taRoman": "Taluka enna?",
+        "en": "What is your taluk?"
+      },
+      "helpPrompt": {
+        "ta": "தாலுகா பெயர் சொல்லுங்கள்.",
+        "taRoman": "Taluka peyar sollungal.",
+        "en": "Please state your taluk name."
+      },
+      "readback": {
+        "ta": "தாலுகா {value}. சரியா?",
+        "en": "Your taluk is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "text",
+        "min": 2,
+        "max": 60
+      },
+      "errorMessage": {
+        "ta": "செல்லுபடியாகும் தாலுகா பெயரை சொல்லுங்கள்.",
+        "en": "Please provide a valid taluk name."
+      },
+      "confirm": "if_uncertain",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "line",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "district",
+      "order": 9,
+      "type": "text",
+      "required": true,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "District (generic draft)",
+        "ta": "மாவட்டம்"
+      },
+      "question": {
+        "ta": "மாவட்டம் என்ன?",
+        "taRoman": "Maavattam enna?",
+        "en": "What is your district?"
+      },
+      "helpPrompt": {
+        "ta": "மாவட்டப் பெயர் சொல்லுங்கள்.",
+        "taRoman": "Maavatta peyar sollungal.",
+        "en": "Please state your district name."
+      },
+      "readback": {
+        "ta": "மாவட்டம் {value}. சரியா?",
+        "en": "Your district is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "text",
+        "min": 2,
+        "max": 60
+      },
+      "errorMessage": {
+        "ta": "செல்லுபடியாகும் மாவட்டப் பெயரை சொல்லுங்கள்.",
+        "en": "Please provide a valid district name."
+      },
+      "confirm": "if_uncertain",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "line",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "phone",
+      "order": 10,
+      "type": "phone",
+      "required": false,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Phone number (generic draft)",
+        "ta": "தொலைபேசி எண்"
+      },
+      "question": {
+        "ta": "தொலைபேசி எண் என்ன?",
+        "taRoman": "Tholaipesi enn enna?",
+        "en": "What is your phone number?"
+      },
+      "helpPrompt": {
+        "ta": "ஒவ்வொரு எண்ணாக சொல்லுங்கள்.",
+        "taRoman": "Ovvoru ennaaga sollungal.",
+        "en": "Please say the numbers digit by digit."
+      },
+      "readback": {
+        "ta": "எண் {value}. சரியா?",
+        "en": "Phone number is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "phone",
+        "length": 10
+      },
+      "errorMessage": {
+        "ta": "10 இலக்க இந்திய தொலைபேசி எண்ணை சொல்லுங்கள்.",
+        "en": "Please provide a valid 10-digit mobile number."
+      },
+      "confirm": "always",
+      "sensitive": true,
+      "pdf": {
+        "page": 1,
+        "kind": "boxes",
+        "boxes": 10,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "bank_account",
+      "order": 11,
+      "type": "bank_account",
+      "required": true,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Bank account number (generic draft)",
+        "ta": "வங்கி கணக்கு எண்"
+      },
+      "question": {
+        "ta": "வங்கி கணக்கு எண் என்ன?",
+        "taRoman": "Vangi kanakku enn enna?",
+        "en": "What is your bank account number?"
+      },
+      "helpPrompt": {
+        "ta": "சிறு பகுதிகளாக சொல்லுங்கள்.",
+        "taRoman": "Siru pagudhigalaaga sollungal.",
+        "en": "Please say your account number in small groups of digits."
+      },
+      "readback": {
+        "ta": "கணக்கு எண் {value}. சரியா?",
+        "en": "Account number is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "bank_account",
+        "min": 9,
+        "max": 18
+      },
+      "errorMessage": {
+        "ta": "செல்லுபடியாகும் வங்கி கணக்கு எண்ணை சொல்லுங்கள் (9 முதல் 18 இலக்கங்கள்).",
+        "en": "Please provide a valid bank account number (9 to 18 digits, TBD)."
+      },
+      "confirm": "always",
+      "sensitive": true,
+      "pdf": {
+        "page": 1,
+        "kind": "boxes",
+        "boxes": 16,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "aadhaar",
+      "order": 12,
+      "type": "aadhaar",
+      "required": true,
+      "spoken": true,
+      "skipReason": null,
+      "labels": {
+        "printed": "UNCLEAR - ask user",
+        "en": "Aadhaar number (generic draft)",
+        "ta": "ஆதார் எண்"
+      },
+      "question": {
+        "ta": "ஆதார் எண் என்ன?",
+        "taRoman": "Aadhaar enn enna?",
+        "en": "What is your Aadhaar number?"
+      },
+      "helpPrompt": {
+        "ta": "டெமோ எண் மட்டும் சொல்லுங்கள்.",
+        "taRoman": "Demo enn mattum sollungal.",
+        "en": "Please say your test Aadhaar number (format only; no live verification)."
+      },
+      "readback": {
+        "ta": "ஆதார் எண் {value}. சரியா?",
+        "en": "Aadhaar number is {value}. Is this correct?"
+      },
+      "validation": {
+        "rule": "aadhaar",
+        "length": 12
+      },
+      "errorMessage": {
+        "ta": "12 இலக்க ஆதார் எண்ணை சொல்லுங்கள்.",
+        "en": "Please provide a valid 12-digit Aadhaar number."
+      },
+      "confirm": "always",
+      "sensitive": true,
+      "pdf": {
+        "page": 1,
+        "kind": "boxes",
+        "boxes": 12,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "applicant_photo",
+      "order": 13,
+      "type": "text",
+      "required": false,
+      "spoken": false,
+      "skipReason": "Passport-size photograph to be affixed physically by applicant",
+      "labels": {
+        "printed": "UNCLEAR - ask user (புகைப்படம் / Photo)",
+        "en": "Applicant Photograph",
+        "ta": "விண்ணப்பதாரர் புகைப்படம்"
+      },
+      "question": null,
+      "helpPrompt": null,
+      "readback": null,
+      "validation": {
+        "rule": "unspoken"
+      },
+      "errorMessage": null,
+      "confirm": "never",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "line",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "applicant_signature_thumb",
+      "order": 14,
+      "type": "text",
+      "required": true,
+      "spoken": false,
+      "skipReason": "Physical signature or thumb impression required on paper",
+      "labels": {
+        "printed": "UNCLEAR - ask user (கையொப்பம் / கைரேகை)",
+        "en": "Applicant Signature or Thumb Impression",
+        "ta": "விண்ணப்பதாரர் கையொப்பம் / கைரேகை"
+      },
+      "question": null,
+      "helpPrompt": null,
+      "readback": null,
+      "validation": {
+        "rule": "unspoken"
+      },
+      "errorMessage": null,
+      "confirm": "never",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "line",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "declaration_statement",
+      "order": 15,
+      "type": "yes_no",
+      "required": true,
+      "spoken": false,
+      "skipReason": "Printed self-declaration and verification statement on physical form",
+      "labels": {
+        "printed": "UNCLEAR - ask user (உறுதிமொழி)",
+        "en": "Self-Declaration Statement",
+        "ta": "உறுதிமொழி"
+      },
+      "question": null,
+      "helpPrompt": null,
+      "readback": null,
+      "validation": {
+        "rule": "unspoken"
+      },
+      "errorMessage": null,
+      "confirm": "never",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "tick",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    },
+    {
+      "id": "office_use_verification",
+      "order": 16,
+      "type": "text",
+      "required": false,
+      "spoken": false,
+      "skipReason": "Office use only: Village Administrative Officer / Revenue Inspector verification",
+      "labels": {
+        "printed": "UNCLEAR - ask user (அலுவலக பயன்பாட்டிற்கு மட்டும்)",
+        "en": "Official Verification and Sanction Order",
+        "ta": "அலுவலக பயன்பாட்டிற்கு மட்டும்"
+      },
+      "question": null,
+      "helpPrompt": null,
+      "readback": null,
+      "validation": {
+        "rule": "unspoken"
+      },
+      "errorMessage": null,
+      "confirm": "never",
+      "sensitive": false,
+      "pdf": {
+        "page": 1,
+        "kind": "line",
+        "boxes": null,
+        "split": null,
+        "coords": null
+      },
+      "dependsOn": null
+    }
+  ]
+}

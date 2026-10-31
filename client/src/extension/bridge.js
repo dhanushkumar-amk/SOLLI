@@ -35,6 +35,20 @@ export async function sendToActiveTab(message) {
 }
 
 /**
+ * Scans the active browser tab (including Google Forms) and returns all detected fields.
+ */
+export async function scanActivePageFields() {
+  const res = await sendToActiveTab({ type: 'GET_DOM_FIELDS' })
+  if (!res || !res.fields) return null
+  return {
+    title: res.title || 'Live Webpage Form',
+    url: res.url || '',
+    count: res.count || res.fields.length,
+    fields: res.fields,
+  }
+}
+
+/**
  * Highlight the input element on the active webpage corresponding to the current field.
  */
 export async function highlightWebField(fieldId) {
@@ -46,6 +60,13 @@ export async function highlightWebField(fieldId) {
  */
 export async function autoFillWebField(fieldId, value) {
   return await sendToActiveTab({ type: 'FILL_FIELD', fieldId, value })
+}
+
+/**
+ * Clicks the "Next" or "Submit" button on the active webpage form.
+ */
+export async function clickWebpageNextOrSubmit() {
+  return await sendToActiveTab({ type: 'CLICK_NEXT_OR_SUBMIT' })
 }
 
 /**
@@ -68,4 +89,3 @@ export async function getActiveTabInfo() {
     return null
   }
 }
-

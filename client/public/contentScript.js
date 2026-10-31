@@ -1,7 +1,7 @@
 /**
  * Solli Injected Content Script (Chrome Extension)
- * Runs on the active webpage to discover form fields, highlight active inputs,
- * and auto-fill confirmed values directly into the target web form.
+ * Deep scanner for Google Forms and arbitrary web forms.
+ * Auto-detects questions, highlights active inputs, auto-fills answers, and advances forms.
  */
 
 (() => {
@@ -14,6 +14,7 @@
     age: [/age/i, /வயது/i],
     aadhaar: [/aadhaar/i, /aadhar/i, /uid/i, /ஆதார்/i],
     phone: [/phone/i, /mobile/i, /contact/i, /cell/i, /அலைபேசி/i, /தொலைபேசி/i],
+    email: [/email/i, /mail/i, /மின்னஞ்சல்/i],
     address_line: [/address/i, /street/i, /முகவரி/i, /door/i, /house/i],
     village: [/village/i, /town/i, /city/i, /கிராமம்/i, /ஊர்/i],
     taluk: [/taluk/i, /tehsil/i, /வட்டம்/i],
@@ -23,26 +24,123 @@
     ifsc: [/ifsc/i, /branch/i],
   }
 
+  // Registry of detected question fields on this page
+  let detectedQuestions = []
+
   /**
-   * Find an input, select, or textarea element on the active page matching a field pattern.
+   * Deep scan for Google Forms and standard web forms on the page
    */
-  function findElementForField(fieldId) {
-    const patterns = FIELD_PATTERNS[fieldId] || [new RegExp(fieldId.replace(/_/g, '.*'), 'i')]
-    const candidates = Array.from(document.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]), select, textarea'))
+  function scanPageFormFields() {
+    const results = []
 
-    for (const el of candidates) {
-      const name = el.getAttribute('name') || ''
-      const id = el.getAttribute('id') || ''
-      const placeholder = el.getAttribute('placeholder') || ''
-      const ariaLabel = el.getAttribute('aria-label') || ''
-      const labelEl = el.id ? document.querySelector(`label[for="${el.id}"]`) : el.closest('label')
-      const labelText = labelEl ? labelEl.innerText : ''
+    // 1. Google Forms Specific Parser (Container-based)
+    const googleFormItems = Array.from(
+      document.querySelectorAll(
+        'div[role="listitem"], div.Qr7Oae, div.freebirdFormviewerViewItemsItemItem'
+      )
+    )
 
-      const combinedMeta = `${name} ${id} ${placeholder} ${ariaLabel} ${labelText}`.toLowerCase()
+    if (googleFormItems.length > 0) {
+      googleFormItems.forEach((item, index) => {
+        // Find question title
+        const headingEl = item.querySelector(
+          'div[role="heading"], span.M7eMe, div.freebirdFormviewerViewItemsItemItemTitle, [aria-level]'
+        )
+        const helpEl = item.querySelector(
+          'div.g9q0rc, div.freebirdFormviewerViewItemsItemItemHelpText'
+        )
 
-      for (const pattern of patterns) {
-        if (pattern.test(combinedMeta)) {
-          return el
+        const titleText = headingEl ? headingEl.innerText.trim() : ''
+        if (!titleText) return
+
+        // Find associated input
+        const inputEl = item.querySelector(
+          'input[type="text"], input[type="email"], input[type="date"], input[type="number"], textarea, div[role="listbox"], div[role="radio"], div[role="checkbox"]'
+        )
+        if (!inputEl) return
+
+        const isRequired = Boolean(
+          item.querySelector('span.v3Yvs, [aria-required="true"]') || titleText.includes('*')
+        )
+
+        const fieldId = `gform_q_${index}`
+        inputEl.setAttribute('data-solli-id', fieldId)
+
+        results.push({
+          id: fieldId,
+          order: index + 1,
+          label: titleText,
+          hint: helpEl ? helpEl.innerText.trim() : '',
+          type: inputEl.type === 'email' ? 'email' : inputEl.tagName.toLowerCase() === 'textarea' ? 'text' : inputEl.type || 'text',
+          required: isRequired,
+          selector: `[data-solli-id="${fieldId}"]`,
+        })
+      })
+    }
+
+    // 2. Standard HTML Web Forms Fallback (If not Google Forms or additional inputs exist)
+    if (results.length === 0) {
+      const candidates = Array.from(
+        document.querySelectorAll(
+          'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]), select, textarea'
+        )
+      )
+
+      candidates.forEach((el, index) => {
+        // Skip invisible elements
+        if (el.offsetParent === null && !el.getClientRects().length) return
+
+        const labelEl = el.id ? document.querySelector(`label[for="${el.id}"]`) : el.closest('label')
+        const ariaLabel = el.getAttribute('aria-label') || ''
+        const placeholder = el.getAttribute('placeholder') || ''
+        const name = el.getAttribute('name') || ''
+
+        let labelText = labelEl ? labelEl.innerText.trim() : ariaLabel || placeholder || name || `Field ${index + 1}`
+
+        const fieldId = `web_field_${index}`
+        el.setAttribute('data-solli-id', fieldId)
+
+        results.push({
+          id: fieldId,
+          order: index + 1,
+          label: labelText,
+          hint: placeholder,
+          type: el.type || el.tagName.toLowerCase(),
+          required: Boolean(el.required || el.getAttribute('aria-required') === 'true' || labelText.includes('*')),
+          selector: `[data-solli-id="${fieldId}"]`,
+        })
+      })
+    }
+
+    detectedQuestions = results
+    return results
+  }
+
+  /**
+   * Find target DOM element by fieldId or selector
+   */
+  function findElement(fieldId) {
+    if (!fieldId) return null
+
+    // 1. Check data-solli-id
+    let el = document.querySelector(`[data-solli-id="${fieldId}"]`)
+    if (el) return el
+
+    // 2. Check direct ID or Name
+    el = document.getElementById(fieldId) || document.querySelector(`[name="${fieldId}"]`)
+    if (el) return el
+
+    // 3. Check fuzzy patterns
+    for (const [key, patterns] of Object.entries(FIELD_PATTERNS)) {
+      if (key === fieldId || patterns.some((p) => p.test(fieldId))) {
+        const candidates = Array.from(
+          document.querySelectorAll('input:not([type="hidden"]), select, textarea')
+        )
+        for (const candidate of candidates) {
+          const meta = `${candidate.name} ${candidate.id} ${candidate.placeholder} ${candidate.getAttribute('aria-label') || ''}`.toLowerCase()
+          if (patterns.some((p) => p.test(meta))) {
+            return candidate
+          }
         }
       }
     }
@@ -51,70 +149,110 @@
   }
 
   /**
-   * Inject value with proper event bubbling for React, Angular, Vue, and vanilla DOM forms.
+   * Inject value with React, Angular, Google Forms, and Vanilla DOM event bubbling
    */
   function fillElement(element, value) {
     if (!element) return false
 
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
     element.focus()
 
-    // Handle React input setter override
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      'value'
-    )?.set
+    // Handle React & Google Forms native property setters
+    const isTextArea = element instanceof HTMLTextAreaElement
+    const proto = isTextArea ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
+    const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value')?.set
 
-    if (element instanceof HTMLInputElement && nativeInputValueSetter) {
-      nativeInputValueSetter.call(element, value)
+    if (nativeSetter) {
+      nativeSetter.call(element, value)
     } else {
       element.value = value
     }
 
-    // Dispatch input & change events for form validation frameworks
+    // Google Forms specific attribute bindings
+    element.setAttribute('data-initial-value', value)
+    element.setAttribute('badinput', 'false')
+
+    // Dispatch full sequence of synthetic events
     element.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }))
     element.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }))
+    element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }))
+    element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Enter' }))
+    element.dispatchEvent(new Event('blur', { bubbles: true }))
 
-    // Visual feedback: Flash green confirmation highlight
+    // Visual feedback: Flash green confirmation ring
     const originalOutline = element.style.outline
     const originalBoxShadow = element.style.boxShadow
     const originalTransition = element.style.transition
 
     element.style.transition = 'box-shadow 0.25s ease, outline 0.25s ease'
-    element.style.outline = '2px solid #10b981'
-    element.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.45)'
+    element.style.outline = '3px solid #10b981'
+    element.style.boxShadow = '0 0 16px rgba(16, 185, 129, 0.55)'
 
     setTimeout(() => {
       element.style.outline = originalOutline
       element.style.boxShadow = originalBoxShadow
       element.style.transition = originalTransition
-    }, 1800)
+    }, 2000)
 
     return true
   }
 
   /**
-   * Highlight current field being asked
+   * Highlight current field being asked with a warm Sunset Coral ring
    */
   function highlightField(fieldId) {
-    const el = findElementForField(fieldId)
+    const el = findElement(fieldId)
     if (!el) return
 
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.style.outline = '2px solid #ff5e62'
-    el.style.boxShadow = '0 0 10px rgba(255, 94, 98, 0.4)'
+    el.style.transition = 'box-shadow 0.25s ease, outline 0.25s ease'
+    el.style.outline = '3px solid #ff5e62'
+    el.style.boxShadow = '0 0 14px rgba(255, 94, 98, 0.5)'
 
     setTimeout(() => {
-      if (el.style.outline === '2px solid rgb(255, 94, 98)') {
+      if (el.style.outline === '3px solid rgb(255, 94, 98)') {
         el.style.outline = ''
         el.style.boxShadow = ''
       }
-    }, 4000)
+    }, 5000)
   }
 
-  // Listen for messages from Solli Side Panel
+  /**
+   * Automatically clicks "Next" or "Submit" on Google Forms or standard forms
+   */
+  function clickNextOrSubmit() {
+    const candidates = Array.from(
+      document.querySelectorAll(
+        'button, input[type="submit"], div[role="button"], span'
+      )
+    )
+
+    for (const el of candidates) {
+      const text = (el.innerText || el.value || el.getAttribute('aria-label') || '').toLowerCase().trim()
+      if (text === 'next' || text === 'submit' || text === 'continue' || text === 'அடுத்து' || text === 'சமர்ப்பி') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el.click()
+        return true
+      }
+    }
+    return false
+  }
+
+  // Chrome Extension Message Listener
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'PING') {
       sendResponse({ status: 'PONG', url: window.location.href, title: document.title })
+      return true
+    }
+
+    if (request.type === 'GET_DOM_FIELDS') {
+      const fields = scanPageFormFields()
+      sendResponse({
+        url: window.location.href,
+        title: document.title || 'Live Web Form',
+        count: fields.length,
+        fields,
+      })
       return true
     }
 
@@ -125,27 +263,19 @@
     }
 
     if (request.type === 'FILL_FIELD') {
-      const el = findElementForField(request.fieldId)
-      const filled = fillElement(el, request.value)
-      sendResponse({ success: filled, fieldId: request.fieldId })
+      const el = findElement(request.fieldId)
+      const success = fillElement(el, request.value)
+      sendResponse({ success, fieldId: request.fieldId })
       return true
     }
 
-    if (request.type === 'GET_DOM_FIELDS') {
-      const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, textarea'))
-      const fields = inputs.map((el, i) => {
-        const labelEl = el.id ? document.querySelector(`label[for="${el.id}"]`) : el.closest('label')
-        return {
-          index: i,
-          name: el.name || el.id || `field_${i}`,
-          label: labelEl ? labelEl.innerText.trim() : el.placeholder || el.name || '',
-          type: el.type || el.tagName.toLowerCase(),
-          value: el.value || '',
-        }
-      })
-      sendResponse({ count: fields.length, fields: fields.slice(0, 30) })
+    if (request.type === 'CLICK_NEXT_OR_SUBMIT') {
+      const clicked = clickNextOrSubmit()
+      sendResponse({ success: clicked })
       return true
     }
   })
-})()
 
+  // Initial scan
+  scanPageFormFields()
+})()
