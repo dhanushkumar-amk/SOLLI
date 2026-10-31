@@ -22,6 +22,7 @@ import {
 export const MAX_SUMMARY_CHARS = 1200
 
 export function useConversation(initialOptions = {}) {
+  const currentFormIdRef = useRef(initialOptions.formId || currentFormIdRef.current)
   const [state, dispatch] = useReducer(
     conversationReducer,
     createInitialContext(initialOptions)
@@ -185,7 +186,10 @@ export function useConversation(initialOptions = {}) {
   )
 
   // Start the conversation loop
-  const start = useCallback(async () => {
+  const start = useCallback(async (overrideFormId) => {
+    if (typeof overrideFormId === 'string' && overrideFormId) {
+      currentFormIdRef.current = overrideFormId
+    }
     await stopAll()
     dispatch({ type: 'START' })
 
@@ -193,10 +197,10 @@ export function useConversation(initialOptions = {}) {
       abortControllerRef.current = new AbortController()
       const signal = abortControllerRef.current.signal
 
-      const form = await fetchForm('pension', { signal })
+      const form = await fetchForm(currentFormIdRef.current, { signal })
       const firstField = form.fields.find((f) => f.spoken)
       const nextRes = await fetchNextField({
-        formId: 'pension',
+        formId: currentFormIdRef.current,
         answers: {},
         currentId: null,
         signal,
@@ -285,7 +289,7 @@ export function useConversation(initialOptions = {}) {
 
         // 1. Check for voice commands first (zero-network when rules, conservative)
         const cmdRes = await detectCommandApi({
-          formId: 'pension',
+          formId: currentFormIdRef.current,
           transcript: rawText,
           state: state.state,
           fieldId: currentField.id,
@@ -295,7 +299,7 @@ export function useConversation(initialOptions = {}) {
         if (cmdRes.command) {
           if (cmdRes.command === 'skip' || cmdRes.command === 'dont_know') {
             const nextRes = await fetchNextField({
-              formId: 'pension',
+              formId: currentFormIdRef.current,
               answers: state.answers,
               currentId: currentField.id,
               signal,
@@ -304,7 +308,7 @@ export function useConversation(initialOptions = {}) {
             const isFinished = !nextRes.next
             if (isFinished || state.editingFromReview) {
               const summaryRes = await fetchSummary({
-                formId: 'pension',
+                formId: currentFormIdRef.current,
                 answers: state.answers,
                 lang: 'ta',
                 signal,
@@ -342,7 +346,7 @@ export function useConversation(initialOptions = {}) {
         const currentValue = state.answers[currentField.id]?.value
         if (currentValue) {
           const partialRes = await submitPartialCorrection({
-            formId: 'pension',
+            formId: currentFormIdRef.current,
             currentValue,
             fieldId: currentField.id,
             transcript: rawText,
@@ -351,7 +355,7 @@ export function useConversation(initialOptions = {}) {
 
           if (partialRes.handled && partialRes.value !== null) {
             const nextRes = await fetchNextField({
-              formId: 'pension',
+              formId: currentFormIdRef.current,
               answers: {
                 ...state.answers,
                 [currentField.id]: { value: partialRes.value },
@@ -379,7 +383,7 @@ export function useConversation(initialOptions = {}) {
         }
 
         const answerRes = await submitAnswer({
-          formId: 'pension',
+          formId: currentFormIdRef.current,
           fieldId: currentField.id,
           transcript: cleanText,
           context: { spellMode: Boolean(state.isSpellMode) },
@@ -422,7 +426,7 @@ export function useConversation(initialOptions = {}) {
         }
 
         const nextRes = await fetchNextField({
-          formId: 'pension',
+          formId: currentFormIdRef.current,
           answers: updatedAnswers,
           currentId: currentField.id,
           signal,
@@ -433,7 +437,7 @@ export function useConversation(initialOptions = {}) {
 
         if (isFinished || state.editingFromReview) {
           const summaryRes = await fetchSummary({
-            formId: 'pension',
+            formId: currentFormIdRef.current,
             answers: updatedAnswers,
             lang: 'ta',
             signal,
@@ -633,7 +637,7 @@ export function useConversation(initialOptions = {}) {
 
         // Check if user spoke an allowed confirmation-state command (repeat, help, operator)
         const cmdRes = await detectCommandApi({
-          formId: 'pension',
+          formId: currentFormIdRef.current,
           transcript: text,
           state: state.state,
           fieldId,
@@ -649,7 +653,7 @@ export function useConversation(initialOptions = {}) {
         }
 
         const confirmRes = await submitConfirm({
-          formId: 'pension',
+          formId: currentFormIdRef.current,
           fieldId,
           transcript: text,
           signal,
@@ -709,7 +713,7 @@ export function useConversation(initialOptions = {}) {
       // Check if command was typed in confirmation state
       try {
         const cmdRes = await detectCommandApi({
-          formId: 'pension',
+          formId: currentFormIdRef.current,
           transcript: text,
           state: state.state,
           fieldId,
@@ -724,7 +728,7 @@ export function useConversation(initialOptions = {}) {
         }
 
         const confirmRes = await submitConfirm({
-          formId: 'pension',
+          formId: currentFormIdRef.current,
           fieldId,
           transcript: text,
         })
@@ -758,7 +762,7 @@ export function useConversation(initialOptions = {}) {
       }
 
       const nextRes = await fetchNextField({
-        formId: 'pension',
+        formId: currentFormIdRef.current,
         answers: updatedAnswers,
         currentId: currentField.id,
         signal,
@@ -769,7 +773,7 @@ export function useConversation(initialOptions = {}) {
 
       if (isFinished || state.editingFromReview) {
         const summaryRes = await fetchSummary({
-          formId: 'pension',
+          formId: currentFormIdRef.current,
           answers: updatedAnswers,
           lang: 'ta',
           signal,
@@ -823,7 +827,7 @@ export function useConversation(initialOptions = {}) {
 
       if (!summaryList && state.form) {
         const res = await fetchSummary({
-          formId: 'pension',
+          formId: currentFormIdRef.current,
           answers: state.answers,
           lang: 'ta',
         })
@@ -939,7 +943,7 @@ export function useConversation(initialOptions = {}) {
             if (!text) return
 
             const cmdRes = await detectCommandApi({
-              formId: 'pension',
+              formId: currentFormIdRef.current,
               transcript: text,
               state: 'review',
               signal,
@@ -1010,7 +1014,7 @@ export function useConversation(initialOptions = {}) {
         }
 
         const nextRes = await fetchNextField({
-          formId: 'pension',
+          formId: currentFormIdRef.current,
           answers: state.answers,
           currentId: currentField.id,
         })
@@ -1018,7 +1022,7 @@ export function useConversation(initialOptions = {}) {
         const isFinished = !nextRes.next
         if (isFinished || state.editingFromReview) {
           const summaryRes = await fetchSummary({
-            formId: 'pension',
+            formId: currentFormIdRef.current,
             answers: state.answers,
             lang: 'ta',
           })

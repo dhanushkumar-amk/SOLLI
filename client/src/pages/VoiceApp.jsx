@@ -28,6 +28,12 @@ import {
 } from '../config'
 import { STATES } from '../conversation/stateMachine'
 import { useConversation } from '../conversation/useConversation'
+import {
+  autoFillWebField,
+  getActiveTabInfo,
+  highlightWebField,
+  isExtensionEnv,
+} from '../extension/bridge'
 import { triggerHaptic } from '../utils/haptics'
 import { releaseScreenWakeLock, requestScreenWakeLock } from '../utils/wakeLock'
 
@@ -38,7 +44,12 @@ export default function VoiceApp() {
   const [fontSize, setFontSize] = useState('normal') // 'normal' | 'large' | 'xlarge'
   const [contrast, setContrast] = useState('normal') // 'normal' | 'high'
   const [uiLang, setUiLang] = useState('both') // 'both' | 'ta' | 'en'
+  const [selectedFormId, setSelectedFormId] = useState('pension')
   const [isOperatorSheetOpen, setIsOperatorSheetOpen] = useState(false)
+
+  // Chrome Extension Side Panel detection
+  const [activeTabInfo, setActiveTabInfo] = useState(null)
+  const isExtension = isExtensionEnv()
 
   // Typed input for dev mode only
   const [typedInput, setTypedInput] = useState('')
@@ -91,7 +102,36 @@ export default function VoiceApp() {
   } = useConversation({
     mode: 'voice',
     voiceMuted: false,
+    formId: selectedFormId,
   })
+
+  // Detect active tab details in Chrome Extension mode
+  useEffect(() => {
+    if (isExtension) {
+      getActiveTabInfo().then((info) => {
+        if (info) setActiveTabInfo(info)
+      })
+    }
+  }, [isExtension])
+
+  // Chrome Extension Bridge: Highlight matching input on active webpage when question changes
+  useEffect(() => {
+    if (currentField?.id) {
+      highlightWebField(currentField.id)
+    }
+  }, [currentField?.id])
+
+  // Chrome Extension Bridge: Auto-fill active webpage input whenever a field is confirmed
+  const filledFieldsRef = useRef(new Set())
+  useEffect(() => {
+    const answers = context.answers || {}
+    for (const [fieldId, item] of Object.entries(answers)) {
+      if (item?.confirmed && item?.value && !filledFieldsRef.current.has(fieldId)) {
+        filledFieldsRef.current.add(fieldId)
+        autoFillWebField(fieldId, item.value)
+      }
+    }
+  }, [context.answers])
 
   const isConfirmState =
     state === STATES.SPEAKING_READBACK ||
@@ -158,6 +198,7 @@ export default function VoiceApp() {
   // Clear in-memory answers on demand
   const handleClearSession = useCallback(() => {
     triggerHaptic(40)
+    filledFieldsRef.current.clear()
     restart()
     setWasTimedOut(false)
     setInactivityCountdown(null)
@@ -202,6 +243,7 @@ export default function VoiceApp() {
               clearInterval(countdownIntervalRef.current)
               countdownIntervalRef.current = null
               triggerHaptic([50, 100, 50])
+              filledFieldsRef.current.clear()
               restart()
               setWasTimedOut(true)
               releaseScreenWakeLock()
@@ -290,6 +332,28 @@ export default function VoiceApp() {
           <IconGear size={18} />
         </button>
       </header>
+
+      {/* Chrome Side Panel Active Indicator */}
+      {isExtension && (
+        <aside
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            background: 'var(--success-light)',
+            borderBottom: '1px solid var(--success-border)',
+            color: 'var(--success-green-dark)',
+            padding: '0.35rem 0.85rem',
+            fontSize: 'var(--font-size-small)',
+            fontWeight: 600,
+          }}
+        >
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            Auto-Fill Active &bull; {activeTabInfo?.title || 'Target Webpage Connected'}
+          </span>
+        </aside>
+      )}
 
       <main className="ios-main-container">
         {/* Inactivity Warning Modal */}
@@ -505,13 +569,36 @@ export default function VoiceApp() {
               {uiLang !== 'ta' && <span lang="en">Just say it. We&apos;ll fill the form.</span>}
             </p>
 
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', backgroundColor: 'var(--brand-light)', border: '1px solid var(--brand-light-border)', borderRadius: 'var(--radius-ios-pill)', padding: '0.25rem 0.75rem', marginBottom: '1rem' }}>
-              <span style={{ fontSize: 'var(--font-size-small)', fontWeight: 600, color: 'var(--brand-primary)' }}>
-                முதியோர் உதவித்தொகை &bull; Old-Age Pension
-              </span>
+            {/* Form Selection Segmented Control */}
+            <div style={{ marginBottom: '0.85rem' }}>
+              <div
+                className="ios-segmented-control"
+                role="radiogroup"
+                aria-label="Form selection"
+                style={{ maxWidth: '420px' }}
+              >
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={selectedFormId === 'pension'}
+                  className={`ios-segment-btn ${selectedFormId === 'pension' ? 'active' : ''}`}
+                  onClick={() => handleButtonTap(() => setSelectedFormId('pension'))}
+                >
+                  முதியோர் உதவித்தொகை (Pension)
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={selectedFormId === 'college_admission'}
+                  className={`ios-segment-btn ${selectedFormId === 'college_admission' ? 'active' : ''}`}
+                  onClick={() => handleButtonTap(() => setSelectedFormId('college_admission'))}
+                >
+                  கல்லூரி சேர்க்கை (College)
+                </button>
+              </div>
             </div>
 
-            {/* Cupertino Segmented Control (Language Picker) */}
+            {/* Language Selection Segmented Control */}
             <div
               className="ios-segmented-control"
               role="radiogroup"
@@ -550,7 +637,7 @@ export default function VoiceApp() {
             <div style={{ margin: '1.25rem 0 0.85rem' }}>
               <button
                 type="button"
-                onClick={() => handleButtonTap(start)}
+                onClick={() => handleButtonTap(() => start(selectedFormId))}
                 className="ios-btn ios-btn-primary ios-btn-block"
                 style={{
                   minHeight: '54px',
@@ -748,7 +835,7 @@ export default function VoiceApp() {
               <h1 id="review-heading" style={{ fontSize: 'var(--font-size-btn-large)', fontWeight: 700, margin: '0 0 0.2rem' }}>
                 விண்ணப்ப மதிப்பாய்வு
                 <span style={{ display: 'block', fontSize: 'var(--font-size-caption)', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '2px' }}>
-                  Application Review
+                  Application Review &mdash; {context.form?.title || 'Form'}
                 </span>
               </h1>
               <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-small)', margin: 0 }}>

@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Solli • சொல்லி — Sovereign Voice Form Assistant",
+  "version": "1.0.0",
+  "description": "Voice-guided assistant for government, university, and public forms in Tamil and English.",
+  "action": {
+    "default_title": "Open Solli Side Panel",
+    "default_icon": {
+      "192": "icon-192.png",
+      "512": "icon-512.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "permissions": [
+    "sidePanel",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://localhost:5000/*",
+    "http://127.0.0.1:5000/*",
+    "https://*.gnani.ai/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "contentScript.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "192": "icon-192.png",
+    "512": "icon-512.png"
+  }
+}
+

@@ -1,0 +1,180 @@
+{
+  "id": "college_admission",
+  "title": "College Admission Application",
+  "titleTa": "கல்லூரி சேர்க்கை விண்ணப்பம்",
+  "language": "ta-IN",
+  "version": "1.0.0",
+  "source": "State University UG Admission Form",
+  "disclaimer": "PROTOTYPE: Sample application for testing voice form filling.",
+  "fields": [
+    {
+      "id": "applicant_name",
+      "order": 1,
+      "type": "name",
+      "required": true,
+      "spoken": true,
+      "labels": {
+        "en": "Student Full Name",
+        "ta": "மாணவர் முழு பெயர்"
+      },
+      "question": {
+        "ta": "மாணவரின் முழு பெயர் என்ன?",
+        "taRoman": "Maanavarin muzhu peyar enna?",
+        "en": "What is the student's full name?"
+      },
+      "helpPrompt": {
+        "ta": "மெதுவாக முழுப் பெயரை சொல்லுங்கள்.",
+        "taRoman": "Medhuvaaga muzhu peyarai sollungal.",
+        "en": "Please say the full name clearly."
+      },
+      "readback": {
+        "ta": "மாணவர் பெயர் {value}. சரியா?",
+        "en": "Student name is {value}. Is this correct?"
+      },
+      "validation": { "rule": "name", "min": 2, "max": 60 },
+      "confirm": "always",
+      "sensitive": false
+    },
+    {
+      "id": "parent_spouse_name",
+      "order": 2,
+      "type": "name",
+      "required": true,
+      "spoken": true,
+      "labels": {
+        "en": "Parent or Guardian Name",
+        "ta": "பெற்றோர் அல்லது பாதுகாவலர் பெயர்"
+      },
+      "question": {
+        "ta": "பெற்றோர் அல்லது பாதுகாவலர் பெயர் என்ன?",
+        "taRoman": "Petror allathu paadhukaavalar peyar enna?",
+        "en": "What is the parent or guardian's name?"
+      },
+      "helpPrompt": {
+        "ta": "தந்தை அல்லது தாயின் பெயரை சொல்லுங்கள்.",
+        "taRoman": "Thandhai allathu thaayin peyarai sollungal.",
+        "en": "Please say father or mother's name."
+      },
+      "readback": {
+        "ta": "பெற்றோர் பெயர் {value}. சரியா?",
+        "en": "Parent name is {value}. Is this correct?"
+      },
+      "validation": { "rule": "name", "min": 2, "max": 60 },
+      "confirm": "always",
+      "sensitive": false
+    },
+    {
+      "id": "dob",
+      "order": 3,
+      "type": "date",
+      "required": true,
+      "spoken": true,
+      "labels": {
+        "en": "Date of Birth",
+        "ta": "பிறந்த தேதி"
+      },
+      "question": {
+        "ta": "உங்கள் பிறந்த தேதி என்ன?",
+        "taRoman": "Ungal pirantha thedhi enna?",
+        "en": "What is your date of birth?"
+      },
+      "helpPrompt": {
+        "ta": "தேதி, மாதம், வருடம் ஆகியவற்றை தெளிவாக சொல்லுங்கள்.",
+        "taRoman": "Thedhi, maadham, varudam aagiyavatrai thelivaaga sollungal.",
+        "en": "Please say date, month, and year clearly."
+      },
+      "readback": {
+        "ta": "பிறந்த தேதி {value}. சரியா?",
+        "en": "Date of birth is {value}. Is this correct?"
+      },
+      "validation": { "rule": "date" },
+      "confirm": "always",
+      "sensitive": false
+    },
+    {
+      "id": "phone",
+      "order": 4,
+      "type": "phone",
+      "required": true,
+      "spoken": true,
+      "labels": {
+        "en": "Mobile Number",
+        "ta": "அலைபேசி எண்"
+      },
+      "question": {
+        "ta": "உங்கள் பத்து இலக்க அலைபேசி எண் என்ன?",
+        "taRoman": "Ungal pathu ilakka alaipesi en enna?",
+        "en": "What is your 10-digit mobile number?"
+      },
+      "helpPrompt": {
+        "ta": "பத்து இலக்கங்களையும் ஒன்றன் பின் ஒன்றாக தெளிவாக சொல்லுங்கள்.",
+        "taRoman": "Pathu ilakkangalaiyum ondran pin ondraaga thelivaaga sollungal.",
+        "en": "Please say all ten digits clearly."
+      },
+      "readback": {
+        "ta": "அலைபேசி எண் {value}. சரியா?",
+        "en": "Phone number is {value}. Is this correct?"
+      },
+      "validation": { "rule": "phone" },
+      "confirm": "always",
+      "sensitive": true
+    },
+    {
+      "id": "aadhaar",
+      "order": 5,
+      "type": "aadhaar",
+      "required": true,
+      "spoken": true,
+      "labels": {
+        "en": "Aadhaar Number",
+        "ta": "ஆதார் எண்"
+      },
+      "question": {
+        "ta": "உங்கள் பன்னிரண்டு இலக்க ஆதார் எண் என்ன?",
+        "taRoman": "Ungal pannirandu ilakka aadhaar en enna?",
+        "en": "What is your 12-digit Aadhaar number?"
+      },
+      "helpPrompt": {
+        "ta": "நான்கு நான்காக பன்னிரண்டு எண்களை சொல்லுங்கள்.",
+        "taRoman": "Naanku naangaaga pannirandu engalai sollungal.",
+        "en": "Please say your 12-digit Aadhaar in groups of four."
+      },
+      "readback": {
+        "ta": "ஆதார் எண் {value}. சரியா?",
+        "en": "Aadhaar number is {value}. Is this correct?"
+      },
+      "validation": { "rule": "aadhaar" },
+      "confirm": "always",
+      "sensitive": true
+    },
+    {
+      "id": "district",
+      "order": 6,
+      "type": "text",
+      "required": true,
+      "spoken": true,
+      "labels": {
+        "en": "District",
+        "ta": "மாவட்டம்"
+      },
+      "question": {
+        "ta": "நீங்கள் வசிக்கும் மாவட்டம் எது?",
+        "taRoman": "Neengal vasikkum maavattam ethu?",
+        "en": "Which district do you reside in?"
+      },
+      "helpPrompt": {
+        "ta": "உங்கள் மாவட்டத்தின் பெயரை சொல்லுங்கள்.",
+        "taRoman": "Ungal maavattathin peyarai sollungal.",
+        "en": "Please say the name of your district."
+      },
+      "readback": {
+        "ta": "மாவட்டம் {value}. சரியா?",
+        "en": "District is {value}. Is this correct?"
+      },
+      "validation": { "rule": "text", "min": 2, "max": 40 },
+      "confirm": "always",
+      "sensitive": false
+    }
+  ]
+}
+
