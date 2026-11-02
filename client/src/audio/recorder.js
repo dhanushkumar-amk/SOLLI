@@ -11,6 +11,14 @@ let recordedChunks = []
 let recordingStartTime = 0
 let autoStopTimer = null
 
+const SpeechRec = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null
+let activeRec = null
+let lastRecognizedTranscript = ''
+
+export function getLastRecognizedText() {
+  return lastRecognizedTranscript
+}
+
 /**
  * Resamples float audio buffer to target sample rate using averaging
  */
@@ -97,6 +105,26 @@ export async function startRecording({ onAutoStop, onVolume } = {}) {
 
   recordedChunks = []
 
+  // Start parallel browser speech recognition fallback
+  lastRecognizedTranscript = ''
+  if (SpeechRec) {
+    try {
+      activeRec = new SpeechRec()
+      activeRec.continuous = true
+      activeRec.interimResults = true
+      activeRec.lang = 'ta-IN'
+      activeRec.onresult = (event) => {
+        let transcript = ''
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript + ' '
+        }
+        lastRecognizedTranscript = transcript.trim()
+      }
+      activeRec.onerror = () => {}
+      activeRec.start()
+    } catch (_) {}
+  }
+
   // Check getUserMedia availability
   if (!navigator?.mediaDevices?.getUserMedia) {
     throw new Error('Microphone access is not supported by your browser')
@@ -168,6 +196,13 @@ export async function startRecording({ onAutoStop, onVolume } = {}) {
  * @returns {Promise<Blob>}
  */
 export async function stopRecording() {
+  if (activeRec) {
+    try {
+      activeRec.stop()
+    } catch (_) {}
+    activeRec = null
+  }
+
   if (autoStopTimer) {
     clearTimeout(autoStopTimer)
     autoStopTimer = null

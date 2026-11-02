@@ -1,0 +1,17 @@
+{
+  "name": "solli",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm --prefix client run dev",
+    "start": "node server/index.js",
+    "server": "node server/index.js",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "test": "npm --prefix client test && npm --prefix server test",
+    "test:client": "npm --prefix client test",
+    "test:server": "npm --prefix server test"
+  }
+}

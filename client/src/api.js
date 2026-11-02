@@ -1,4 +1,5 @@
 // Client API helpers for talking to the Solli Express backend with offline fallbacks
+import { getLastRecognizedText } from './audio/recorder.js'
 import { BUILTIN_SCHEMAS, getActiveCustomSchema } from './forms/index.js'
 
 export const API_BASE =
@@ -49,9 +50,10 @@ export async function transcribeAudio(audioBlob, language = 'ta-IN', { signal } 
     return await response.json()
   } catch (err) {
     if (err.name === 'AbortError') throw err
-    // If backend is offline, return fallback message so session continues
+    // If backend is offline, use browser speech recognition transcript
+    const browserText = typeof getLastRecognizedText === 'function' ? getLastRecognizedText() : ''
     return {
-      text: '',
+      text: browserText || '',
       latencyMs: 10,
       offline: true,
     }
