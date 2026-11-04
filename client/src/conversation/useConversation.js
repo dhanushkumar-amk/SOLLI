@@ -487,59 +487,6 @@ export function useConversation(initialOptions = {}) {
     [state.currentField, state.answers, state.isSpellMode, state.partialDigits, state.editingFromReview]
   )
 
-  // Start recording audio for standard question
-  const startListening = useCallback(async () => {
-    if (state.state !== STATES.LISTENING || isRecordingRef.current) return
-    stopAudio()
-
-    try {
-      isRecordingRef.current = true
-      setIsRecording(true)
-      dispatch({ type: 'START_RECORDING' })
-
-      await startRecording({
-        onVolume: (lvl) => setAudioLevel(lvl),
-        onAutoStop: async (wavBlob) => {
-          isRecordingRef.current = false
-          setIsRecording(false)
-          setAudioLevel(0)
-          dispatch({ type: 'RECORDING_STOPPED' })
-          await handleAudioTranscription(wavBlob)
-        },
-      })
-    } catch (err) {
-      isRecordingRef.current = false
-      setIsRecording(false)
-      setAudioLevel(0)
-      dispatch({
-        type: 'FAIL',
-        payload: {
-          message: 'Microphone access was denied or is unavailable. Please check permissions.',
-          messageTa: 'மைக்ரோஃபோன் அணுகல் மறுக்கப்பட்டது. அனுமதியை சரிபார்க்கவும்.',
-          code: 'MIC_DENIED',
-          status: 400,
-        },
-      })
-    }
-  }, [state.state, stopAudio])
-
-  // Stop recording for standard question
-  const stopListening = useCallback(async () => {
-    if (!isRecordingRef.current) return
-    isRecordingRef.current = false
-    setIsRecording(false)
-    setAudioLevel(0)
-    dispatch({ type: 'RECORDING_STOPPED' })
-
-    try {
-      const wavBlob = await stopRecording()
-      await handleAudioTranscription(wavBlob)
-    } catch (err) {
-      console.warn('Error stopping recording:', err)
-      dispatch({ type: 'ANSWER_SILENCE' })
-    }
-  }, [])
-
   // Send WAV blob to /api/transcribe
   const handleAudioTranscription = useCallback(
     async (wavBlob) => {
@@ -576,59 +523,71 @@ export function useConversation(initialOptions = {}) {
     [processTranscript]
   )
 
-  // Start recording audio for confirmation (short 6s auto-stop)
-  const startListeningConfirm = useCallback(async () => {
-    if (state.state !== STATES.LISTENING_CONFIRM || isRecordingRef.current) return
+  // Start recording audio for standard question (supports barge-in during speech)
+  const startListening = useCallback(async () => {
+    const isListeningState = state.state === STATES.LISTENING
+    const isSpeakingState =
+      state.state === STATES.SPEAKING_QUESTION ||
+      state.state === STATES.SPEAKING_HELP ||
+      state.state === STATES.SPEAKING_ERROR
+
+    if ((!isListeningState && !isSpeakingState) || isRecordingRef.current) return
     stopAudio()
+    if (isSpeakingState) {
+      dispatch({ type: 'SKIP_AUDIO' })
+    }
 
     try {
       isRecordingRef.current = true
       setIsRecording(true)
-      dispatch({ type: 'START_CONFIRM_RECORDING' })
-
-      // Auto-stop at 6 seconds for confirmation yes/no
-      const autoStopTimer = setTimeout(async () => {
-        if (isRecordingRef.current) {
-          await stopListeningConfirm()
-        }
-      }, 6000)
+      dispatch({ type: 'START_RECORDING' })
 
       await startRecording({
         onVolume: (lvl) => setAudioLevel(lvl),
         onAutoStop: async (wavBlob) => {
-          clearTimeout(autoStopTimer)
           isRecordingRef.current = false
           setIsRecording(false)
           setAudioLevel(0)
-          dispatch({ type: 'RECORDING_CONFIRM_STOPPED' })
-          await handleConfirmTranscription(wavBlob)
+          dispatch({ type: 'RECORDING_STOPPED' })
+          await handleAudioTranscription(wavBlob)
         },
       })
     } catch (err) {
       isRecordingRef.current = false
       setIsRecording(false)
       setAudioLevel(0)
-      // Mic error in confirm fallback to unclear
-      dispatch({ type: 'CONFIRM_ANSWER', payload: { answer: 'unclear' } })
+      dispatch({
+        type: 'FAIL',
+        payload: {
+          message: 'Microphone access was denied or is unavailable. Please check permissions.',
+          messageTa: 'மைக்ரோஃபோன் அணுகல் மறுக்கப்பட்டது. அனுமதியை சரிபார்க்கவும்.',
+          code: 'MIC_DENIED',
+          status: 400,
+        },
+      })
     }
-  }, [state.state, stopAudio])
+  }, [state.state, stopAudio, handleAudioTranscription])
 
-  // Stop recording for confirmation
-  const stopListeningConfirm = useCallback(async () => {
+  // Stop recording for standard question
+  const stopListening = useCallback(async () => {
     if (!isRecordingRef.current) return
     isRecordingRef.current = false
     setIsRecording(false)
     setAudioLevel(0)
-    dispatch({ type: 'RECORDING_CONFIRM_STOPPED' })
+    dispatch({ type: 'RECORDING_STOPPED' })
 
     try {
       const wavBlob = await stopRecording()
-      await handleConfirmTranscription(wavBlob)
+      if (!wavBlob || wavBlob.size <= 44) {
+        dispatch({ type: 'ANSWER_SILENCE' })
+        return
+      }
+      await handleAudioTranscription(wavBlob)
     } catch (err) {
-      console.warn('Error stopping confirm recording:', err)
-      dispatch({ type: 'CONFIRM_ANSWER', payload: { answer: 'unclear' } })
+      console.warn('Error stopping recording:', err)
+      dispatch({ type: 'ANSWER_SILENCE' })
     }
-  }, [])
+  }, [handleAudioTranscription])
 
   // Send WAV blob for confirmation to transcribe & confirm-input route
   const handleConfirmTranscription = useCallback(
@@ -685,6 +644,70 @@ export function useConversation(initialOptions = {}) {
     [state.pendingConfirmation, state.currentFieldId, state.state]
   )
 
+  // Start recording audio for confirmation (short 6s auto-stop, supports barge-in)
+  const startListeningConfirm = useCallback(async () => {
+    const isConfirmState = state.state === STATES.LISTENING_CONFIRM
+    const isSpeakingReadback = state.state === STATES.SPEAKING_READBACK
+
+    if ((!isConfirmState && !isSpeakingReadback) || isRecordingRef.current) return
+    stopAudio()
+    if (isSpeakingReadback) {
+      dispatch({ type: 'SKIP_AUDIO' })
+    }
+
+    try {
+      isRecordingRef.current = true
+      setIsRecording(true)
+      dispatch({ type: 'START_CONFIRM_RECORDING' })
+
+      // Auto-stop at 6 seconds for confirmation yes/no
+      const autoStopTimer = setTimeout(async () => {
+        if (isRecordingRef.current) {
+          await stopListeningConfirm()
+        }
+      }, 6000)
+
+      await startRecording({
+        onVolume: (lvl) => setAudioLevel(lvl),
+        onAutoStop: async (wavBlob) => {
+          clearTimeout(autoStopTimer)
+          isRecordingRef.current = false
+          setIsRecording(false)
+          setAudioLevel(0)
+          dispatch({ type: 'RECORDING_CONFIRM_STOPPED' })
+          await handleConfirmTranscription(wavBlob)
+        },
+      })
+    } catch (err) {
+      isRecordingRef.current = false
+      setIsRecording(false)
+      setAudioLevel(0)
+      // Mic error in confirm fallback to unclear
+      dispatch({ type: 'CONFIRM_ANSWER', payload: { answer: 'unclear' } })
+    }
+  }, [state.state, stopAudio, handleConfirmTranscription])
+
+  // Stop recording for confirmation
+  const stopListeningConfirm = useCallback(async () => {
+    if (!isRecordingRef.current) return
+    isRecordingRef.current = false
+    setIsRecording(false)
+    setAudioLevel(0)
+    dispatch({ type: 'RECORDING_CONFIRM_STOPPED' })
+
+    try {
+      const wavBlob = await stopRecording()
+      if (!wavBlob || wavBlob.size <= 44) {
+        dispatch({ type: 'CONFIRM_ANSWER', payload: { answer: 'unclear' } })
+        return
+      }
+      await handleConfirmTranscription(wavBlob)
+    } catch (err) {
+      console.warn('Error stopping confirm recording:', err)
+      dispatch({ type: 'CONFIRM_ANSWER', payload: { answer: 'unclear' } })
+    }
+  }, [handleConfirmTranscription])
+
   // Accessibility & Fast Tap: On-screen Yes / No button tap
   const handleConfirmTap = useCallback(
     (answer) => {
@@ -714,11 +737,19 @@ export function useConversation(initialOptions = {}) {
       dispatch({ type: 'TYPED_CONFIRM_SUBMIT' })
 
       const raw = (text || '').trim().toLowerCase()
-      if (raw === 'yes' || raw === 'ஆம்' || raw === 'aama') {
+      const isYesDirect =
+        /^(yes|yeah|yep|correct|right|ok|okay|true|ஆம்|ஆமா|ஆமாம்|சரி|aama|aamam|sari)$/i.test(raw)
+      const isNoDirect =
+        /^(no|nope|wrong|wring|rong|roung|not|incorrect|false|thappu|tappu|thavaru|இல்லை|இல்ல|தவறு|தப்பு|கிடையாது|illa|illai|ille|kidaiyathu)$/i.test(raw) ||
+        /^wrin\s*g$/i.test(raw) ||
+        /^(that'?s|it'?s|this\s+is|that\s+is)\s+wrong$/i.test(raw) ||
+        /^not\s+(correct|right|ok|okay|true)$/i.test(raw)
+
+      if (isYesDirect) {
         dispatch({ type: 'CONFIRM_ANSWER', payload: { answer: 'yes' } })
         return
       }
-      if (raw === 'no' || raw === 'இல்லை' || raw === 'illa') {
+      if (isNoDirect) {
         dispatch({ type: 'CONFIRM_ANSWER', payload: { answer: 'no' } })
         return
       }

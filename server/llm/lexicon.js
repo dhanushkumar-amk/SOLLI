@@ -53,6 +53,16 @@ export const SCRIPT_VARIANTS = {
   ille: 'no',
   kidaiyathu: 'no',
   கிடையாது: 'no',
+  தவறு: 'no',
+  தப்பு: 'no',
+  no: 'no',
+  nope: 'no',
+  wrong: 'no',
+  wring: 'no',
+  rong: 'no',
+  thappu: 'no',
+  tappu: 'no',
+  thavaru: 'no',
 
   // Gender choices
   ஆண்: 'Male',

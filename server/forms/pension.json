@@ -88,7 +88,7 @@
         "ta": "செல்லுபடியாகும் பெயரை சொல்லுங்கள்.",
         "en": "Please provide a valid father or spouse name."
       },
-      "confirm": "if_uncertain",
+      "confirm": "always",
       "sensitive": false,
       "pdf": {
         "page": 1,
@@ -180,7 +180,7 @@
         "ta": "செல்லுபடியாகும் நியமனதாரர் பெயரை சொல்லுங்கள்.",
         "en": "Please provide a valid nominee name."
       },
-      "confirm": "if_uncertain",
+      "confirm": "always",
       "sensitive": false,
       "pdf": {
         "page": 1,
@@ -225,7 +225,7 @@
         "ta": "பெண், ஆண் அல்லது மற்றவை என்று சொல்லுங்கள்.",
         "en": "Please select Female, Male, or Other."
       },
-      "confirm": "if_uncertain",
+      "confirm": "always",
       "sensitive": false,
       "pdf": {
         "page": 1,
@@ -271,7 +271,7 @@
         "ta": "செல்லுபடியாகும் முகவரியை சொல்லுங்கள்.",
         "en": "Please provide a valid address (at least 3 characters)."
       },
-      "confirm": "if_uncertain",
+      "confirm": "always",
       "sensitive": false,
       "pdf": {
         "page": 1,
@@ -317,7 +317,7 @@
         "ta": "செல்லுபடியாகும் கிராமப் பெயரை சொல்லுங்கள்.",
         "en": "Please provide a valid village name."
       },
-      "confirm": "if_uncertain",
+      "confirm": "always",
       "sensitive": false,
       "pdf": {
         "page": 1,
@@ -363,7 +363,7 @@
         "ta": "செல்லுபடியாகும் தாலுகா பெயரை சொல்லுங்கள்.",
         "en": "Please provide a valid taluk name."
       },
-      "confirm": "if_uncertain",
+      "confirm": "always",
       "sensitive": false,
       "pdf": {
         "page": 1,
@@ -409,7 +409,7 @@
         "ta": "செல்லுபடியாகும் மாவட்டப் பெயரை சொல்லுங்கள்.",
         "en": "Please provide a valid district name."
       },
-      "confirm": "if_uncertain",
+      "confirm": "always",
       "sensitive": false,
       "pdf": {
         "page": 1,

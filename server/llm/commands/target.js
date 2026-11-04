@@ -12,9 +12,9 @@ export function isolateTargetPhrase(text) {
 
   // Remove common carrier prefixes / suffixes
   cleaned = cleaned
-    .replace(/\b(?:change|edit|modify|correct|update|switch|alter)\b/gi, '')
+    .replace(/\b(?:change|edit|modify|correct|update|switch|alter|wrong|wring|rong|is wrong|thappu|tappu|thavaru)\b/gi, '')
     .replace(/\b(?:maathunga|maathanum|maathu|thiruthunga|thiruthanum|thiruthu)\b/gi, '')
-    .replace(/(?:மாத்துங்க|மாத்தணும்|மாற்று|மாற்றவும்|திருத்தவும்|திருத்து|சேஞ்ச் த|சேஞ்ச்)/u, '')
+    .replace(/(?:மாத்துங்க|மாத்தணும்|மாற்று|மாற்றவும்|திருத்தவும்|திருத்து|சேஞ்ச் த|சேஞ்ச்|தவறு|தப்பு)/u, '')
     .replace(/\b(?:i want to|want to|please|sir|the|my|and|kullu|la|oda)\b/gi, '')
     .trim()
 

@@ -237,8 +237,14 @@ export async function submitConfirm({ formId = 'pension', fieldId, transcript, s
 
   // Local fallback confirmation
   const lower = (transcript || '').toLowerCase().trim()
-  const isYes = /^(ஆம்|சரி|ஆமா|ஒகே|yes|yeah|yep|correct|right|ok|okay)/i.test(lower)
-  const isNo = /^(இல்லை|தவறு|வேண்டாம்|no|nope|wrong|not)/i.test(lower)
+  const isYes =
+    /\b(ஆம்|சரி|ஆமா|ஒகே|கரெக்ட்|yes|yeah|yep|correct|right|ok|okay|true)\b/i.test(lower) ||
+    /(?:ஆமா|ஆமாம்|ஆம்|சரி)/u.test(lower)
+  const isNo =
+    /\b(இல்லை|தவறு|தப்பு|வேண்டாம்|no|nope|wrong|wring|rong|roung|not|incorrect|false|thappu|tappu|thavaru|illa|illai|ille|kidaiyathu)\b/i.test(lower) ||
+    /(?:இல்லை|இல்ல|தவறு|தப்பு|கிடையாது)/u.test(lower) ||
+    /\bwrin\s*g\b/i.test(lower) ||
+    /\bnot\s+(?:correct|right|true|ok)\b/i.test(lower)
 
   return {
     answer: isYes ? 'yes' : isNo ? 'no' : 'unclear',

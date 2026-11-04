@@ -173,6 +173,13 @@ export default function VoiceApp() {
     return () => releaseScreenWakeLock()
   }, [state])
 
+  const isConfirmState = (
+    state === STATES.SPEAKING_READBACK ||
+    state === STATES.LISTENING_CONFIRM ||
+    state === STATES.PROCESSING_CONFIRM
+  )
+  const isFinished = state === STATES.FINISHED || state === STATES.READY_FOR_PDF
+
   const handleTypedSubmit = useCallback((e) => {
     e?.preventDefault()
     if (!typedInput.trim()) return
@@ -185,13 +192,6 @@ export default function VoiceApp() {
     }
     setTypedInput('')
   }, [typedInput, submitTyped, submitTypedConfirm, isConfirmState])
-
-  const isConfirmState = (
-    state === STATES.SPEAKING_READBACK ||
-    state === STATES.LISTENING_CONFIRM ||
-    state === STATES.PROCESSING_CONFIRM
-  )
-  const isFinished = state === STATES.FINISHED || state === STATES.READY_FOR_PDF
 
   const activeFields = useMemo(() => {
     if (context.form?.fields && Array.isArray(context.form.fields)) return context.form.fields

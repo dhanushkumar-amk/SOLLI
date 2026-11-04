@@ -115,7 +115,7 @@ export function detectCommand(rawTranscript, context = {}) {
 
   // 4. "change <X>" phrase patterns (e.g. "change the village", "ooru maathunga", "change phone")
   const hasChangeVerb =
-    /\b(?:change|edit|modify|correct|update|maathunga|maathanum|maathu|thiruthunga|thiruthanum)\b/i.test(cleaned) ||
+    /\b(?:change|edit|modify|correct|update|maathunga|maathanum|maathu|thiruthunga|thiruthanum|wrong|wring|rong|thappu|tappu|thavaru)\b/i.test(cleaned) ||
     /(?:மாத்துங்க|மாத்தணும்|மாற்று|மாற்றவும்|திருத்தவும்|சேஞ்ச்)/u.test(cleaned)
 
   if (hasChangeVerb && !isConfirmState) {

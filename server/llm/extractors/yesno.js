@@ -17,6 +17,11 @@ export function extractYesNo(rawText) {
     }
   }
 
+  // Normalize common STT phonetic variations / misrecognitions for "wrong"
+  cleaned = cleaned
+    .replace(/\bwrin\s*g\b/gi, 'wrong')
+    .replace(/\b(wring|rong|roung)\b/gi, 'wrong')
+
   // Normalize negated affirmative phrases (e.g., "not correct", "not right")
   const hasNegatedAffirmative = /\bnot\s+(?:correct|right|true|ok)\b/i.test(cleaned)
   if (hasNegatedAffirmative) {
@@ -25,12 +30,12 @@ export function extractYesNo(rawText) {
 
   // Detect affirmative cues (Tamil, Roman, English)
   const hasAffirmative =
-    /\b(?:yes|yeah|yep|aama|aamam|aam|aamaa|sari|correct|ok|haan|ha|right)\b/i.test(cleaned) ||
+    /\b(?:yes|yeah|yep|aama|aamam|aam|aamaa|sari|correct|ok|okay|haan|ha|right|true)\b/i.test(cleaned) ||
     /(?:ஆமா|ஆமாம்|ஆம்|சரி|ஹான்|கரெக்ட்|சரிதான்)/u.test(cleaned)
 
   // Detect negative cues (Tamil, Roman, English)
   const hasNegative =
-    /\b(?:no|nope|illai|illa|ille|kidaiyathu|wrong|thappu|tappu|illaye)\b/i.test(cleaned) ||
+    /\b(?:no|nope|illai|illa|ille|kidaiyathu|wrong|wring|rong|roung|incorrect|false|thappu|tappu|thavaru|illaye)\b/i.test(cleaned) ||
     /(?:இல்லை|இல்ல|கிடையாது|தவறு|தப்பு|இல்லையே)/u.test(cleaned)
 
   // Ambiguous case (e.g. "sari, aana illai" or "yes but no" or "aama illa")
