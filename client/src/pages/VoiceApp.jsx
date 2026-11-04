@@ -72,6 +72,9 @@ export default function VoiceApp() {
     start,
     startListening,
     stopListening,
+    startListeningConfirm,
+    stopListeningConfirm,
+    startEditField,
     handleConfirmTap,
     submitTyped,
     submitTypedConfirm,
@@ -454,7 +457,7 @@ export default function VoiceApp() {
                         <td className="solli-th-action">
                           <button
                             type="button"
-                            onClick={() => { triggerHaptic(15); handleStartSession(selectedFormId) }}
+                            onClick={() => { triggerHaptic(15); startEditField(field.id) }}
                             className="solli-row-action"
                             title="Record via voice"
                             aria-label={`Record ${field.labels?.en || field.id}`}
@@ -607,8 +610,14 @@ export default function VoiceApp() {
                         type="button"
                         onClick={() => {
                           triggerHaptic(20)
-                          if (isRecording) stopListening()
-                          else startListening()
+                          registerUserActivity()
+                          if (isRecording) {
+                            if (isConfirmState) stopListeningConfirm()
+                            else stopListening()
+                          } else {
+                            if (isConfirmState) startListeningConfirm()
+                            else startListening()
+                          }
                         }}
                         className={`solli-mic-btn ${isRecording ? 'solli-mic-btn-recording' : 'solli-mic-btn-idle'}`}
                         aria-label={isRecording ? 'Stop recording' : 'Start speaking'}
