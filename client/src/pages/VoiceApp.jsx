@@ -74,6 +74,7 @@ export default function VoiceApp() {
     stopListening,
     handleConfirmTap,
     submitTyped,
+    submitTypedConfirm,
     skipCurrentField,
     repeatQuestion,
     confirmFullForm,
@@ -173,11 +174,20 @@ export default function VoiceApp() {
     e?.preventDefault()
     if (!typedInput.trim()) return
     triggerHaptic(20)
-    submitTyped(typedInput.trim())
+    // Route to confirm path when in confirmation states
+    if (isConfirmState) {
+      submitTypedConfirm(typedInput.trim())
+    } else {
+      submitTyped(typedInput.trim())
+    }
     setTypedInput('')
-  }, [typedInput, submitTyped])
+  }, [typedInput, submitTyped, submitTypedConfirm, isConfirmState])
 
-  const isConfirmState = state === STATES.SPEAKING_READBACK || state === STATES.AWAITING_CONFIRMATION
+  const isConfirmState = (
+    state === STATES.SPEAKING_READBACK ||
+    state === STATES.LISTENING_CONFIRM ||
+    state === STATES.PROCESSING_CONFIRM
+  )
   const isFinished = state === STATES.FINISHED || state === STATES.READY_FOR_PDF
 
   const activeFields = useMemo(() => {

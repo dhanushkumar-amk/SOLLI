@@ -62,6 +62,7 @@ export function useConversation(initialOptions = {}) {
         await stopRecording()
       } catch (_) {}
       isRecordingRef.current = false
+      setIsRecording(false)
       setAudioLevel(0)
     }
   }, [])
@@ -88,7 +89,7 @@ export function useConversation(initialOptions = {}) {
   // Play a single audio clip via synthesizeSpeech
   const playClip = useCallback(
     async (text, { sensitive = false, noCache = false, isReadback = false } = {}) => {
-      if (!text || state.voiceMuted) return true
+      if (!text || voiceMutedRef.current) return true
 
       return new Promise(async (resolve) => {
         try {
@@ -129,13 +130,13 @@ export function useConversation(initialOptions = {}) {
         }
       })
     },
-    [state.voiceMuted]
+    [] // voiceMutedRef handles reactivity without closure staleness
   )
 
   // Play prompt audio (supports split audio clips for read-backs)
   const playPromptAudio = useCallback(
     async (text, options = {}) => {
-      if (!text || state.voiceMuted) {
+      if (!text || voiceMutedRef.current) {
         dispatch({ type: 'SKIP_AUDIO' })
         return
       }
@@ -152,7 +153,7 @@ export function useConversation(initialOptions = {}) {
   // Play read-back audio split into dynamic value (no-cache) + static prompt (cached)
   const playReadbackAudio = useCallback(
     async (parts) => {
-      if (state.voiceMuted) {
+      if (voiceMutedRef.current) {
         dispatch({ type: 'SKIP_AUDIO' })
         return
       }
@@ -493,12 +494,14 @@ export function useConversation(initialOptions = {}) {
 
     try {
       isRecordingRef.current = true
+      setIsRecording(true)
       dispatch({ type: 'START_RECORDING' })
 
       await startRecording({
         onVolume: (lvl) => setAudioLevel(lvl),
         onAutoStop: async (wavBlob) => {
           isRecordingRef.current = false
+          setIsRecording(false)
           setAudioLevel(0)
           dispatch({ type: 'RECORDING_STOPPED' })
           await handleAudioTranscription(wavBlob)
@@ -506,6 +509,7 @@ export function useConversation(initialOptions = {}) {
       })
     } catch (err) {
       isRecordingRef.current = false
+      setIsRecording(false)
       setAudioLevel(0)
       dispatch({
         type: 'FAIL',
@@ -523,6 +527,7 @@ export function useConversation(initialOptions = {}) {
   const stopListening = useCallback(async () => {
     if (!isRecordingRef.current) return
     isRecordingRef.current = false
+    setIsRecording(false)
     setAudioLevel(0)
     dispatch({ type: 'RECORDING_STOPPED' })
 
@@ -578,6 +583,7 @@ export function useConversation(initialOptions = {}) {
 
     try {
       isRecordingRef.current = true
+      setIsRecording(true)
       dispatch({ type: 'START_CONFIRM_RECORDING' })
 
       // Auto-stop at 6 seconds for confirmation yes/no
@@ -592,6 +598,7 @@ export function useConversation(initialOptions = {}) {
         onAutoStop: async (wavBlob) => {
           clearTimeout(autoStopTimer)
           isRecordingRef.current = false
+          setIsRecording(false)
           setAudioLevel(0)
           dispatch({ type: 'RECORDING_CONFIRM_STOPPED' })
           await handleConfirmTranscription(wavBlob)
@@ -599,6 +606,7 @@ export function useConversation(initialOptions = {}) {
       })
     } catch (err) {
       isRecordingRef.current = false
+      setIsRecording(false)
       setAudioLevel(0)
       // Mic error in confirm fallback to unclear
       dispatch({ type: 'CONFIRM_ANSWER', payload: { answer: 'unclear' } })
@@ -609,6 +617,7 @@ export function useConversation(initialOptions = {}) {
   const stopListeningConfirm = useCallback(async () => {
     if (!isRecordingRef.current) return
     isRecordingRef.current = false
+    setIsRecording(false)
     setAudioLevel(0)
     dispatch({ type: 'RECORDING_CONFIRM_STOPPED' })
 
@@ -681,7 +690,8 @@ export function useConversation(initialOptions = {}) {
     (answer) => {
       stopAudio()
       cancelRecording()
-      const normalized = answer === 'yes' ? 'yes' : 'no'
+      // accept boolean true/false OR string 'yes'/'no'
+      const normalized = (answer === true || answer === 'yes') ? 'yes' : 'no'
       dispatch({ type: 'CONFIRM_ANSWER', payload: { answer: normalized } })
     },
     [stopAudio, cancelRecording]
@@ -1064,7 +1074,7 @@ export function useConversation(initialOptions = {}) {
     answers: state.answers,
     summary: state.summary,
     error: state.error,
-    isRecording: isRecordingRef.current,
+    isRecording,
     isPlayingAudio: isPlayingRef.current,
     pendingConfirmation: state.pendingConfirmation,
     showConfirmButtons: state.showConfirmButtons,
