@@ -1,63 +1,72 @@
-/* hallmark: v2.0.0 · theme: sunset-coral · genre: modern-minimal · floor: verified */
+/* hallmark: v2.0.0 · theme: slate-light · genre: modern-minimal · floor: verified */
 /**
- * Solli Design System Tokens (Flutter Mobile Aesthetic - Sunset Coral Palette)
- * Compact typography, tactile gradients, and smooth rounded squircles.
+ * Solli Design System Tokens (Slate / DM Sans — Clean Light Theme)
+ * Pure white surfaces, slate accent, DM Sans type, no colour noise.
  */
 
 :root {
   /* ==========================================================================
-     Sunset Coral Theme Palette
+     Core Surfaces — bright, airy light theme
      ========================================================================== */
+  --app-bg: #f8f9fa;
+  --app-card: #ffffff;
+  --app-card-secondary: #f8f9fa;
+  --app-sheet-bg: #ffffff;
+  --app-backdrop: rgba(15, 23, 42, 0.28);
 
-  /* Surfaces & Backgrounds */
-  --app-bg: #fbfaf9;                   /* Silky warm porcelain background */
-  --app-card: #ffffff;                 /* Pure crisp white card surface */
-  --app-card-secondary: #fff8f6;       /* Soft coral-tinted secondary tile */
-  --app-sheet-bg: #ffffff;             /* Flutter modal bottom sheet background */
-  --app-backdrop: rgba(24, 24, 27, 0.45); /* Backdrop dim overlay */
+  /* ==========================================================================
+     Typography — high contrast slate
+     ========================================================================== */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --text-inverse: #ffffff;
+  --text-muted: #64748b;
 
-  /* Text & Typography Colors */
-  --text-primary: #18181b;             /* Zinc 900 - High contrast text (15:1+) */
-  --text-secondary: #52525b;           /* Zinc 600 - Readable subtext */
-  --text-tertiary: #71717a;            /* Zinc 500 - Captions and hints */
-  --text-inverse: #ffffff;             /* Crisp white text for buttons & badges */
+  /* ==========================================================================
+     Brand — slate/dark neutral accent (#0f172a family)
+     ========================================================================== */
+  --brand-primary: #0f172a;
+  --brand-primary-hover: #1e293b;
+  --brand-light: #f1f5f9;
+  --brand-light-border: #cbd5e1;
+  --brand-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  --brand-secondary: #334155;
+  --brand-glow: rgba(15, 23, 42, 0.08);
 
-  /* Brand Sunset Coral & Gradients */
-  --brand-primary: #ff5e62;            /* Vibrant Sunset Coral */
-  --brand-primary-hover: #e84c50;      /* Deepened Coral for active state */
-  --brand-secondary: #ff9966;          /* Warm Peach Glow */
-  --brand-gradient: linear-gradient(135deg, #ff5e62 0%, #ff9966 100%);
-  --brand-gradient-hover: linear-gradient(135deg, #f04e52 0%, #f48b57 100%);
-  --brand-light: #fff5f3;              /* Soft Coral tint */
-  --brand-light-border: #fed7cf;
+  /* ==========================================================================
+     Semantic
+     ========================================================================== */
+  --success-green: #16a34a;
+  --success-green-dark: #15803d;
+  --success-gradient: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  --success-light: #f0fdf4;
+  --success-border: #bbf7d0;
 
-  /* Semantic Feedback Colors */
-  --success-green: #10b981;            /* Emerald Green */
-  --success-green-dark: #059669;
-  --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --success-light: #edfbf3;
-  --success-border: #bbf0c8;
-
-  --danger-red: #ef4444;               /* Clear Coral-Red */
+  --danger-red: #ef4444;
   --danger-red-dark: #dc2626;
   --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   --danger-light: #fef2f2;
   --danger-border: #fecaca;
 
-  --amber-warning: #d97706;            /* Warm Amber */
+  --amber-warning: #d97706;
   --amber-light: #fffbeb;
   --amber-border: #fde68a;
 
-  --sky-accent: #0284c7;               /* Sky Blue for focus/info */
+  --sky-accent: #0ea5e9;
   --sky-light: #f0f9ff;
   --sky-border: #bae6fd;
 
-  --track-fill: rgba(24, 24, 27, 0.06); /* Pill segmented track */
-  --separator: rgba(24, 24, 27, 0.08);  /* Micro divider */
-  --border: rgba(24, 24, 27, 0.1);     /* 1px crisp outline */
-  --border-subtle: rgba(255, 94, 98, 0.14);
+  /* ==========================================================================
+     Structural
+     ========================================================================== */
+  --track-fill: rgba(0, 0, 0, 0.05);
+  --separator: rgba(0, 0, 0, 0.07);
+  --border: rgba(0, 0, 0, 0.09);
+  --border-subtle: rgba(91, 91, 214, 0.15);
 
-  /* Backward Compatibility Aliases for --ios-* tokens */
+  /* Legacy aliases */
   --ios-bg: var(--app-bg);
   --ios-card: var(--app-card);
   --ios-card-secondary: var(--app-card-secondary);
@@ -75,19 +84,21 @@
   --ios-red-light: var(--danger-light);
   --ios-amber: var(--amber-warning);
   --ios-amber-light: var(--amber-light);
-  --ios-indigo: #6366f1;
+  --ios-indigo: var(--brand-primary);
   --ios-gray-fill: var(--track-fill);
   --ios-separator: var(--separator);
   --ios-border: var(--border);
 
-  /* Shadows (Flutter Elevation Levels) */
-  --shadow-card: 0 2px 10px rgba(24, 24, 27, 0.04), 0 1px 3px rgba(24, 24, 27, 0.02);
-  --shadow-card-elevated: 0 10px 25px -4px rgba(255, 94, 98, 0.09), 0 4px 10px -2px rgba(24, 24, 27, 0.04);
-  --shadow-btn: 0 4px 14px -1px rgba(255, 94, 98, 0.35);
-  --shadow-btn-green: 0 4px 14px -1px rgba(16, 185, 129, 0.32);
-  --shadow-mic: 0 8px 24px -2px rgba(255, 94, 98, 0.38);
-  --shadow-mic-active: 0 0 32px rgba(239, 68, 68, 0.5);
-  --shadow-sheet: 0 -8px 30px rgba(0, 0, 0, 0.12);
+  /* ==========================================================================
+     Shadows — restrained, like Notion/Linear
+     ========================================================================== */
+  --shadow-card: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-card-elevated: 0 4px 16px rgba(15,23,42,0.08), 0 1px 4px rgba(15,23,42,0.04);
+  --shadow-btn: 0 1px 2px rgba(15,23,42,0.18), 0 0 0 1px rgba(15,23,42,0.08);
+  --shadow-btn-green: 0 1px 3px rgba(22, 163, 74, 0.25);
+  --shadow-mic: 0 4px 20px rgba(15,23,42,0.22);
+  --shadow-mic-active: 0 0 0 8px rgba(239, 68, 68, 0.1);
+  --shadow-sheet: 0 -2px 24px rgba(15,23,42,0.08);
 
   --ios-shadow-card: var(--shadow-card);
   --ios-shadow-card-elevated: var(--shadow-card-elevated);
@@ -96,37 +107,41 @@
   --ios-shadow-mic-active: var(--shadow-mic-active);
   --ios-shadow-sheet: var(--shadow-sheet);
 
-  /* Flutter Radii (Squircles & Pills) */
-  --radius-ios-card: 20px;
-  --radius-ios-btn: 12px;
+  /* ==========================================================================
+     Radii — tighter, Stripe-ish
+     ========================================================================== */
+  --radius-ios-card: 12px;
+  --radius-ios-btn: 8px;
   --radius-ios-pill: 9999px;
-  --radius-ios-sm: 8px;
+  --radius-ios-sm: 6px;
 
-  /* Typography Scale: Compact & Mobile Optimized (Clean Flutter Font Hierarchy) */
-  --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Noto Sans Tamil", system-ui, sans-serif;
-  --line-height-base: 1.45;
+  /* ==========================================================================
+     Typography
+     ========================================================================== */
+  --font-stack: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Tamil", system-ui, sans-serif;
+  --line-height-base: 1.5;
   --line-height-heading: 1.25;
 
-  /* Compact Scale: Default */
   --font-size-base: 14px;
-  --font-size-body: 0.9375rem;       /* 15px */
-  --font-size-question: 1.25rem;     /* 20px - crisp, bold, readable */
-  --font-size-question-en: 0.9375rem;/* 15px */
-  --font-size-btn: 0.9375rem;        /* 15px */
-  --font-size-btn-large: 1.0625rem;  /* 17px */
-  --font-size-heard: 1.35rem;        /* 21.6px */
-  --font-size-tagline: 0.9375rem;    /* 15px */
-  --font-size-caption: 0.8125rem;    /* 13px */
-  --font-size-small: 0.75rem;        /* 12px */
+  --font-size-body: 0.9375rem;
+  --font-size-question: 1.1875rem;
+  --font-size-question-en: 0.9375rem;
+  --font-size-btn: 0.875rem;
+  --font-size-btn-large: 1rem;
+  --font-size-heard: 1.5rem;
+  --font-size-tagline: 0.9375rem;
+  --font-size-caption: 0.75rem;
+  --font-size-small: 0.6875rem;
 
-  /* Touch Targets (Mobile-first, minimum 44px) */
+  /* ==========================================================================
+     Touch & Interaction
+     ========================================================================== */
   --touch-target-min: 44px;
   --touch-target-preferred: 48px;
-  --mic-btn-size: 88px;
+  --mic-btn-size: 80px;
 
-  /* Focus Ring */
-  --focus-ring-color: #ff5e62;
-  --focus-ring-width: 3px;
+  --focus-ring-color: #0f172a;
+  --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
 
   /* Spacing */

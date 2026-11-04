@@ -1,24 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import AudioMeter from '../components/AudioMeter'
-import {
-  IconAlert,
-  IconArrowRight,
-  IconCheck,
-  IconClose,
-  IconCloud,
-  IconDoc,
-  IconGear,
-  IconHelp,
-  IconMic,
-  IconPause,
-  IconPlay,
-  IconRefresh,
-  IconShield,
-  IconStop,
-  IconTrash,
-  IconVolume,
-  IconVolumeMute,
-} from '../components/Icons'
 import InactivityModal from '../components/InactivityModal'
 import OperatorSheet from '../components/OperatorSheet'
 import {
@@ -31,15 +12,49 @@ import { triggerHaptic } from '../utils/haptics'
 import { downloadReceipt } from '../utils/receiptGenerator'
 import { releaseScreenWakeLock, requestScreenWakeLock } from '../utils/wakeLock'
 
+// Shadcn UI Primitives
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+
+// Lucide Icons
+import {
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  RefreshCw,
+  Check,
+  X,
+  FileText,
+  AlertTriangle,
+  RotateCcw,
+  SkipForward,
+  Play,
+  Settings,
+  CheckCircle2,
+  Send,
+  ArrowRight,
+  Zap,
+} from 'lucide-react'
+
+function getFieldTypeBadge(fieldId) {
+  if (fieldId === 'applicant_name' || fieldId === 'parent_spouse_name') return 'Name'
+  if (fieldId === 'mobile') return 'Phone'
+  if (fieldId === 'aadhaar') return 'ID'
+  if (fieldId === 'district' || fieldId === 'pincode') return 'Location'
+  if (fieldId === 'bank_account' || fieldId === 'ifsc') return 'Bank'
+  if (fieldId === 'age' || fieldId === 'gender') return 'Profile'
+  return 'Text'
+}
+
 export default function VoiceApp() {
   const [fontSize, setFontSize] = useState('normal')
   const [contrast, setContrast] = useState('normal')
-  const [uiLang, setUiLang] = useState('both') // 'both' | 'ta' | 'en'
   const [selectedFormId, setSelectedFormId] = useState('pension')
   const [isOperatorSheetOpen, setIsOperatorSheetOpen] = useState(false)
   const [typedInput, setTypedInput] = useState('')
+  const [filterQuery, setFilterQuery] = useState('')
 
-  // Inactivity safety
   const [inactivityCountdown, setInactivityCountdown] = useState(null)
   const lastActivityRef = useRef(Date.now())
   const inactivityCheckTimerRef = useRef(null)
@@ -59,39 +74,31 @@ export default function VoiceApp() {
     stopListening,
     handleConfirmTap,
     submitTyped,
-    submitTypedConfirm,
     skipCurrentField,
     repeatQuestion,
-    startEditField,
     confirmFullForm,
     setVoiceMuted,
     restart,
     resumeFromPause,
-    confirmStartOver,
   } = useConversation({
     mode: 'voice',
     voiceMuted: false,
     formId: selectedFormId,
   })
 
-  // Start the conversation automatically when user clicks Start
   const handleStartSession = useCallback((formId) => {
     triggerHaptic(30)
     setSelectedFormId(formId)
     start(formId)
   }, [start])
 
-  // Scroll active field in left form pane into view
   useEffect(() => {
     if (currentField?.id) {
-      const el = document.getElementById(`portal_field_${currentField.id}`)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
+      const el = document.getElementById(`row_${currentField.id}`)
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }, [currentField?.id])
 
-  // Inactivity timeout loop
   const registerUserActivity = useCallback(() => {
     lastActivityRef.current = Date.now()
     if (inactivityCountdown !== null) {
@@ -126,10 +133,7 @@ export default function VoiceApp() {
 
     const activityEvents = ['pointerdown', 'keydown', 'touchstart']
     const handleActivity = () => registerUserActivity()
-
-    activityEvents.forEach((ev) =>
-      window.addEventListener(ev, handleActivity, { passive: true })
-    )
+    activityEvents.forEach((ev) => window.addEventListener(ev, handleActivity, { passive: true }))
 
     inactivityCheckTimerRef.current = setInterval(() => {
       const idleTime = Date.now() - lastActivityRef.current
@@ -150,157 +154,141 @@ export default function VoiceApp() {
           })
         }, 1000)
       }
-    }, 2500)
+    }, 5000)
 
     return () => {
       activityEvents.forEach((ev) => window.removeEventListener(ev, handleActivity))
-      if (inactivityCheckTimerRef.current) clearInterval(inactivityCheckTimerRef.current)
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
+      if (inactivityCheckTimerRef.current) { clearInterval(inactivityCheckTimerRef.current); inactivityCheckTimerRef.current = null }
+      if (countdownIntervalRef.current) { clearInterval(countdownIntervalRef.current); countdownIntervalRef.current = null }
     }
-  }, [state, registerUserActivity, restart, inactivityCountdown])
+  }, [state, inactivityCountdown, registerUserActivity, restart])
 
-  // Wake lock
   useEffect(() => {
-    if (state !== STATES.IDLE && state !== STATES.FINISHED && state !== STATES.READY_FOR_PDF) {
-      requestScreenWakeLock()
-    } else {
-      releaseScreenWakeLock()
-    }
+    if (state !== STATES.IDLE && state !== STATES.FINISHED) requestScreenWakeLock()
+    else releaseScreenWakeLock()
     return () => releaseScreenWakeLock()
   }, [state])
 
-  const handleButtonTap = (action) => {
-    triggerHaptic(20)
-    registerUserActivity()
-    action()
-  }
-
-  const handleTypedSubmit = (e) => {
-    e.preventDefault()
+  const handleTypedSubmit = useCallback((e) => {
+    e?.preventDefault()
     if (!typedInput.trim()) return
-    const text = typedInput.trim()
+    triggerHaptic(20)
+    submitTyped(typedInput.trim())
     setTypedInput('')
-    registerUserActivity()
+  }, [typedInput, submitTyped])
 
-    if (state === STATES.LISTENING_CONFIRM) {
-      submitTypedConfirm(text)
-    } else {
-      submitTyped(text)
-    }
-  }
+  const isConfirmState = state === STATES.SPEAKING_READBACK || state === STATES.AWAITING_CONFIRMATION
+  const isFinished = state === STATES.FINISHED || state === STATES.READY_FOR_PDF
 
-  const isConfirmState =
-    state === STATES.SPEAKING_READBACK ||
-    state === STATES.LISTENING_CONFIRM ||
-    state === STATES.PROCESSING_CONFIRM
+  const activeFields = useMemo(() => {
+    if (context.form?.fields && Array.isArray(context.form.fields)) return context.form.fields
+    return [
+      { id: 'applicant_name', labels: { ta: 'விண்ணப்பதாரர் பெயர்', en: 'Applicant Full Name' }, required: true },
+      { id: 'parent_spouse_name', labels: { ta: 'தந்தை / கணவர் பெயர்', en: 'Parent / Spouse Name' }, required: true },
+      { id: 'aadhaar', labels: { ta: 'ஆதார் எண்', en: 'Aadhaar Number' }, required: true },
+      { id: 'mobile', labels: { ta: 'அலைபேசி எண்', en: 'Mobile Number' }, required: true },
+      { id: 'age', labels: { ta: 'வயது', en: 'Age' }, required: true },
+      { id: 'gender', labels: { ta: 'பாலினம்', en: 'Gender' }, required: true },
+      { id: 'district', labels: { ta: 'மாவட்டம்', en: 'District' }, required: true },
+      { id: 'pincode', labels: { ta: 'அஞ்சல் குறியீடு', en: 'Pincode' }, required: true },
+      { id: 'bank_account', labels: { ta: 'வங்கி கணக்கு எண்', en: 'Bank Account Number' }, required: true },
+      { id: 'ifsc', labels: { ta: 'IFSC குறியீடு', en: 'IFSC Code' }, required: true },
+    ]
+  }, [context.form?.fields])
 
-  const isFinished = state === STATES.READY_FOR_PDF || state === STATES.FINISHED || state === STATES.REVIEW
+  const visibleFields = useMemo(() => {
+    if (!filterQuery.trim()) return activeFields
+    const q = filterQuery.toLowerCase()
+    return activeFields.filter(
+      (f) =>
+        f.id.toLowerCase().includes(q) ||
+        f.labels?.ta?.toLowerCase().includes(q) ||
+        f.labels?.en?.toLowerCase().includes(q)
+    )
+  }, [activeFields, filterQuery])
 
-  // Form fields list for the left portal
-  const activeFields = context.form?.fields || [
-    { id: 'applicant_name', labels: { ta: 'விண்ணப்பதாரர் பெயர்', en: 'Applicant Name' }, type: 'text' },
-    { id: 'parent_spouse_name', labels: { ta: 'தந்தை / கணவர் பெயர்', en: 'Parent / Spouse Name' }, type: 'text' },
-    { id: 'aadhaar', labels: { ta: 'ஆதார் எண்', en: 'Aadhaar Number' }, type: 'text', sensitive: true },
-    { id: 'phone', labels: { ta: 'அலைபேசி எண்', en: 'Mobile Number' }, type: 'text' },
-    { id: 'age', labels: { ta: 'வயது', en: 'Age' }, type: 'text' },
-    { id: 'gender', labels: { ta: 'பாலினம்', en: 'Gender' }, type: 'text' },
-    { id: 'district', labels: { ta: 'மாவட்டம்', en: 'District' }, type: 'text' },
-    { id: 'pincode', labels: { ta: 'அஞ்சல் குறியீடு', en: 'Pincode' }, type: 'text' },
-    { id: 'bank_account', labels: { ta: 'வங்கி கணக்கு எண்', en: 'Bank Account' }, type: 'text', sensitive: true },
-    { id: 'ifsc', labels: { ta: 'IFSC குறியீடு', en: 'IFSC Code' }, type: 'text' },
-  ]
+  const answeredCount = Object.keys(context.answers || {}).filter((k) => context.answers[k]?.confirmed).length
+  const totalFields = activeFields.length
+  const progressPercent = Math.min(100, Math.round((answeredCount / totalFields) * 100))
 
   return (
-    <div className="app-root" data-font-size={fontSize} data-contrast={contrast}>
-      {/* Cloudflare Tech Console Header */}
-      <header className="ios-navbar">
-        <div className="ios-brand-badge">
-          <div className="cf-cloud-icon" aria-hidden="true">
-            <IconCloud size={20} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <span style={{ fontWeight: 800, fontSize: '15px', letterSpacing: '-0.2px', color: '#ffffff' }}>
-                CLOUDFLARE <span style={{ color: 'var(--brand-primary)' }}>&bull;</span> SOLLI
-              </span>
-              <span className="cf-pill-tag">EDGE</span>
+    <div
+      className="solli-root"
+      data-font-size={fontSize}
+      data-contrast={contrast}
+    >
+
+      {/* ── HEADER ─────────────────────────────────────────────────────── */}
+      <header className="solli-header">
+        <div className="solli-header-inner">
+          {/* Brand */}
+          <div className="solli-brand">
+            <div className="solli-brand-icon" aria-hidden="true">
+              <Mic size={14} />
             </div>
-            <span style={{ fontSize: '10px', color: '#94a3b8', fontFamily: 'var(--font-mono)' }}>
-              ARTHA SOVEREIGN AI &bull; BHARAT
-            </span>
+            <span className="solli-brand-name">Solli</span>
           </div>
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-          {/* Mute button */}
-          <button
-            type="button"
-            onClick={() => setVoiceMuted(!context.voiceMuted)}
-            className="ios-icon-btn"
-            title={context.voiceMuted ? 'Unmute Audio' : 'Mute Audio'}
-            aria-label="Toggle voice mute"
-          >
-            {context.voiceMuted ? <IconVolumeMute size={16} /> : <IconVolume size={16} />}
-          </button>
-
-          {/* Reset button */}
-          {state !== STATES.IDLE && (
+          {/* Centre: form switcher */}
+          <div className="solli-form-switch">
             <button
               type="button"
-              onClick={() => handleButtonTap(restart)}
-              className="ios-icon-btn"
-              title="Reset Application"
-              aria-label="Reset Application"
+              onClick={() => setSelectedFormId('pension')}
+              className={`solli-switch-btn ${selectedFormId === 'pension' ? 'active' : ''}`}
             >
-              <IconRefresh size={16} />
+              முதியோர் உதவி
             </button>
-          )}
+            <button
+              type="button"
+              onClick={() => setSelectedFormId('college_admission')}
+              className={`solli-switch-btn ${selectedFormId === 'college_admission' ? 'active' : ''}`}
+            >
+              கல்லூரி சேர்க்கை
+            </button>
+          </div>
 
-          {/* Settings */}
-          <button
-            type="button"
-            onClick={() => {
-              triggerHaptic(20)
-              setIsOperatorSheetOpen(true)
-            }}
-            className="ios-icon-btn"
-            aria-label="Open operator settings"
-            title="Operator Settings"
-          >
-            <IconGear size={16} />
-          </button>
+          {/* Right actions */}
+          <div className="solli-header-actions">
+            <button
+              type="button"
+              onClick={() => setVoiceMuted(!context.voiceMuted)}
+              className="solli-icon-btn"
+              title={context.voiceMuted ? 'Unmute audio' : 'Mute audio'}
+              aria-label={context.voiceMuted ? 'Unmute audio' : 'Mute audio'}
+            >
+              {context.voiceMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            </button>
+            {state !== STATES.IDLE && (
+              <button
+                type="button"
+                onClick={() => { triggerHaptic(20); restart() }}
+                className="solli-icon-btn"
+                title="Reset session"
+                aria-label="Reset session"
+              >
+                <RefreshCw size={16} />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => { triggerHaptic(20); setIsOperatorSheetOpen(true) }}
+              className="solli-icon-btn"
+              title="Settings"
+              aria-label="Settings"
+            >
+              <Settings size={16} />
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Cloudflare Live Telemetry Status Bar */}
-      <div className="cf-telemetry-bar">
-        <div className="cf-telemetry-item">
-          <span className="cf-status-dot cf-status-live" />
-          <span>STATUS: <strong style={{ color: '#f8fafc' }}>OPERATIONAL</strong></span>
-        </div>
-        <div className="cf-telemetry-divider" />
-        <div className="cf-telemetry-item">
-          <span>LATENCY: <strong style={{ color: '#f8fafc' }}>&lt; 15ms</strong></span>
-        </div>
-        <div className="cf-telemetry-divider" />
-        <div className="cf-telemetry-item">
-          <IconShield size={12} className="text-emerald-400" />
-          <span>PRIVACY: <strong style={{ color: '#f8fafc' }}>ZERO RETENTION</strong></span>
-        </div>
-      </div>
-
-      {/* Inactivity Warning Modal */}
+      {/* Modals */}
       {inactivityCountdown !== null && (
         <InactivityModal
           countdown={inactivityCountdown}
-          onStayActive={() => {
-            triggerHaptic(30)
-            registerUserActivity()
-          }}
+          onStayActive={() => { triggerHaptic(30); registerUserActivity() }}
         />
       )}
-
-      {/* Operator Sheet */}
       <OperatorSheet
         isOpen={isOperatorSheetOpen}
         onClose={() => setIsOperatorSheetOpen(false)}
@@ -311,425 +299,416 @@ export default function VoiceApp() {
         voiceMuted={context.voiceMuted}
         setVoiceMuted={setVoiceMuted}
         canResume={state === STATES.PAUSED || state === STATES.OPERATOR_PAUSED}
-        onResume={() => handleButtonTap(resumeFromPause)}
-        onRestart={() => handleButtonTap(restart)}
+        onResume={() => { triggerHaptic(20); resumeFromPause() }}
+        onRestart={() => { triggerHaptic(20); restart() }}
         onClearData={handleClearSession}
       />
 
-      {/* Main Dual-Pane Split Layout */}
-      <main className="cf-split-layout">
-        {/* ==========================================================================
-            LEFT COLUMN: The Web Form Portal ("The Simple Page")
-            ========================================================================== */}
-        <section className="cf-form-pane" aria-labelledby="form-portal-title">
-          <div className="cf-form-portal">
-            <div className="cf-portal-header">
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.5px', fontFamily: 'var(--font-mono)' }}>
-                  தமிழ்நாடு அரசு &bull; SOCIAL WELFARE DEPARTMENT
-                </div>
-                <h1 id="form-portal-title" style={{ fontSize: '18px', fontWeight: 800, margin: '2px 0 0', color: 'var(--text-primary)' }}>
-                  {selectedFormId === 'pension' ? 'முதியோர் உதவித்தொகை திட்டம் (IGNOAPS)' : 'கல்லூரி சேர்க்கை விண்ணப்பம் (College Admission)'}
-                </h1>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <span className="cf-pill-tag">OFFICIAL FORM</span>
-              </div>
+      {/* ── MAIN WORKSPACE ─────────────────────────────────────────────── */}
+      <main className="solli-workspace">
+
+        {/* ── LEFT: Fields table ───────────────────────────────────────── */}
+        <section className="solli-left" aria-label="Form fields">
+
+          {/* Page heading */}
+          <div className="solli-page-head">
+            <div className="solli-page-head-text">
+              <h1 className="solli-page-title">
+                {selectedFormId === 'pension'
+                  ? 'Indira Gandhi Old Age Pension'
+                  : 'State University Admission'}
+              </h1>
+              <p className="solli-page-sub">
+                {selectedFormId === 'pension'
+                  ? 'Tamil Nadu Social Welfare — IGNOAPS'
+                  : 'State University UG Application'}
+              </p>
             </div>
 
-            <div className="cf-portal-body">
-              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                வலதுபுறத்தில் உள்ள <strong>Solli Voice Assistant</strong> மூலம் பேசவும்; படிவம் தானாகவே நிரப்பப்படும்.
-                <br />
-                <span style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-                  Speak on the right side companion to auto-fill this form in real-time.
-                </span>
-              </p>
+            <div className="solli-page-actions">
+              <button
+                type="button"
+                onClick={() => { triggerHaptic(20); downloadReceipt({ form: context.form, answers: context.answers, summary }) }}
+                className="solli-btn solli-btn-ghost"
+              >
+                <FileText size={14} />
+                Export PDF
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStartSession(selectedFormId)}
+                className="solli-btn solli-btn-primary"
+              >
+                <Mic size={14} />
+                {state === STATES.IDLE ? 'Start session' : 'Session active'}
+              </button>
+            </div>
+          </div>
 
-              <div className="cf-form-grid cf-form-grid-2col">
-                {activeFields.map((field) => {
-                  const isCurrent = currentField?.id === field.id
-                  const answerObj = context.answers?.[field.id]
-                  const isConfirmed = Boolean(answerObj?.confirmed)
-                  const displayVal = answerObj?.display || answerObj?.value || ''
+          {/* Progress strip */}
+          <div className="solli-progress-wrap" aria-label={`${answeredCount} of ${totalFields} fields complete`}>
+            <div className="solli-progress-meta">
+              <span className="solli-progress-label">{answeredCount} / {totalFields} confirmed</span>
+              <span className="solli-progress-pct">{progressPercent}%</span>
+            </div>
+            <div className="solli-progress-track" role="progressbar" aria-valuenow={progressPercent} aria-valuemin={0} aria-valuemax={100}>
+              <div className="solli-progress-fill" style={{ width: `${progressPercent}%` }} />
+            </div>
+          </div>
 
-                  return (
-                    <div
-                      key={field.id}
-                      id={`portal_field_${field.id}`}
-                      className={`cf-form-field ${isCurrent ? 'cf-field-active' : ''} ${isConfirmed ? 'cf-field-confirmed' : ''}`}
-                    >
-                      <label className="cf-field-label" htmlFor={`input_${field.id}`}>
-                        <span>
-                          {field.labels?.ta || field.id}
-                          <span style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: 'var(--text-tertiary)' }}>
-                            {field.labels?.en || field.id}
-                          </span>
-                        </span>
+          {/* Fields table card */}
+          <div className="solli-table-card">
+            {/* Toolbar */}
+            <div className="solli-table-toolbar">
+              <span className="solli-table-title">Form fields</span>
+              <input
+                type="search"
+                value={filterQuery}
+                onChange={(e) => setFilterQuery(e.target.value)}
+                placeholder="Filter…"
+                className="solli-search"
+                aria-label="Filter fields"
+              />
+            </div>
 
-                        {isCurrent && (
-                          <span className="cf-active-badge">● பேசி நிரப்பவும் / SPEAKING</span>
-                        )}
-                        {isConfirmed && !isCurrent && (
-                          <span className="cf-confirmed-badge">✓ உறுதி செய்யப்பட்டது</span>
-                        )}
-                      </label>
+            {/* Table */}
+            <div className="solli-table-scroll">
+              <table className="solli-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Type</th>
+                    <th scope="col">Field</th>
+                    <th scope="col">Value</th>
+                    <th scope="col" className="solli-th-status">Status</th>
+                    <th scope="col" className="solli-th-action"><span className="sr-only">Edit</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleFields.map((field) => {
+                    const isCurrent = currentField?.id === field.id
+                    const answerObj = context.answers?.[field.id]
+                    const isConfirmed = Boolean(answerObj?.confirmed)
+                    const displayVal = answerObj?.display || answerObj?.value || ''
+                    const fieldType = getFieldTypeBadge(field.id)
 
-                      <input
-                        id={`input_${field.id}`}
-                        type="text"
-                        className="cf-field-input"
-                        value={displayVal}
-                        readOnly
-                        placeholder={isCurrent ? 'குரல் உள்ளீட்டிற்காக காத்திருக்கிறது...' : 'காலியாக உள்ளது / Empty'}
-                      />
-                    </div>
-                  )
-                })}
-              </div>
+                    return (
+                      <tr
+                        key={field.id}
+                        id={`row_${field.id}`}
+                        className={`solli-tr${isCurrent ? ' solli-tr-active' : ''}${isConfirmed ? ' solli-tr-confirmed' : ''}`}
+                      >
+                        {/* Type */}
+                        <td>
+                          <span className="solli-type-badge">{fieldType}</span>
+                        </td>
 
-              {/* Form Bottom Submission Bar */}
-              <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-                  RECORDS: {Object.keys(context.answers || {}).length} / {activeFields.length} FILLED
-                </span>
+                        {/* Field name */}
+                        <td>
+                          <div className="solli-field-name">{field.labels?.en || field.id}</div>
+                          <div className="solli-field-name-ta" lang="ta">{field.labels?.ta}</div>
+                        </td>
 
-                <button
-                  type="button"
-                  disabled={!isFinished}
-                  onClick={() => handleButtonTap(confirmFullForm)}
-                  className="ios-btn ios-btn-primary"
-                  style={{ minHeight: '44px', padding: '0.5rem 1.25rem' }}
-                >
-                  <IconCheck size={16} />
-                  <span>விண்ணப்பத்தை சமர்ப்பிக்கவும் / Submit</span>
-                </button>
-              </div>
+                        {/* Value */}
+                        <td>
+                          {isConfirmed ? (
+                            <span className="solli-value-confirmed">{displayVal}</span>
+                          ) : isCurrent ? (
+                            <span className="solli-value-listening">
+                              <span className="solli-listening-dot" aria-hidden="true" />
+                              Listening…
+                            </span>
+                          ) : (
+                            <span className="solli-value-empty">—</span>
+                          )}
+                        </td>
+
+                        {/* Status */}
+                        <td className="solli-th-status">
+                          {isConfirmed ? (
+                            <span className="solli-status solli-status-done">
+                              <Check size={11} aria-hidden="true" />
+                              Done
+                            </span>
+                          ) : isCurrent ? (
+                            <span className="solli-status solli-status-active">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="solli-status solli-status-pending">
+                              Pending
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Action */}
+                        <td className="solli-th-action">
+                          <button
+                            type="button"
+                            onClick={() => { triggerHaptic(15); handleStartSession(selectedFormId) }}
+                            className="solli-row-action"
+                            title="Record via voice"
+                            aria-label={`Record ${field.labels?.en || field.id}`}
+                          >
+                            <ArrowRight size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div className="solli-table-footer">
+              <span className="solli-table-count">{visibleFields.length} of {activeFields.length} fields</span>
+              <button
+                type="button"
+                disabled={!isFinished}
+                onClick={() => { triggerHaptic(30); confirmFullForm() }}
+                className={`solli-btn ${isFinished ? 'solli-btn-primary' : 'solli-btn-ghost solli-btn-disabled'}`}
+              >
+                <CheckCircle2 size={14} />
+                Submit application
+              </button>
             </div>
           </div>
         </section>
 
-        {/* ==========================================================================
-            RIGHT COLUMN: Solli Voice Side Companion ("The Side Application")
-            ========================================================================== */}
-        <aside className="cf-side-app" aria-label="Solli Voice Assistant">
-          <div className="ios-card" style={{ borderTop: '3px solid var(--brand-primary)', padding: '1.25rem' }}>
-            {/* Assistant Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--brand-primary)' }} />
-                <span style={{ fontWeight: 800, fontSize: '14px', letterSpacing: '0.3px', color: 'var(--text-primary)' }}>
-                  SOLLI ASSISTANT &bull; சொல்லி
-                </span>
+        {/* ── RIGHT: Voice companion ───────────────────────────────────── */}
+        <aside className="solli-right" aria-label="Voice assistant">
+          <div className="solli-companion">
+
+            {/* Companion header */}
+            <div className="solli-companion-head">
+              <div className="solli-companion-title">
+                <span className="solli-live-dot" aria-hidden="true" />
+                Voice assistant
               </div>
-              <span className="ios-pill-tag ios-pill-verified">VOICE ENGINE</span>
+              <span className="solli-companion-node">Tamil Nadu</span>
             </div>
 
-            {/* Scheme Switcher Tabs (Only when idle) */}
-            {state === STATES.IDLE && (
-              <div style={{ marginBottom: '1rem' }}>
-                <div className="ios-segmented-control" role="tablist">
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={selectedFormId === 'pension'}
-                    className={`ios-segment-btn ${selectedFormId === 'pension' ? 'active' : ''}`}
-                    onClick={() => setSelectedFormId('pension')}
-                  >
-                    முதியோர் உதவித்தொகை (Pension)
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={selectedFormId === 'college_admission'}
-                    className={`ios-segment-btn ${selectedFormId === 'college_admission' ? 'active' : ''}`}
-                    onClick={() => setSelectedFormId('college_admission')}
-                  >
-                    கல்லூரி சேர்க்கை (College)
-                  </button>
-                </div>
-              </div>
-            )}
+            <div className="solli-companion-body">
 
-            {/* SCREEN A: Welcome Screen */}
-            {state === STATES.IDLE && (
-              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-                <div
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '16px',
-                    background: 'var(--brand-gradient)',
-                    color: '#ffffff',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 0.85rem',
-                    boxShadow: '0 4px 18px rgba(243, 128, 32, 0.4)',
-                  }}
-                  aria-hidden="true"
-                >
-                  <IconCloud size={36} />
-                </div>
-
-                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 0.35rem' }}>
-                  சொல்லுங்கள். நாங்கள் நிரப்புகிறோம்.
-                </h2>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                  Speak in Tamil or Tanglish. Solli will automatically enter your details into the form.
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => handleStartSession(selectedFormId)}
-                  className="ios-btn ios-btn-primary ios-btn-block"
-                  style={{ minHeight: '48px', fontSize: '16px' }}
-                >
-                  <IconPlay size={18} />
-                  <span>விண்ணப்பத்தைத் தொடங்கு / Start Voice Form</span>
-                </button>
-              </div>
-            )}
-
-            {/* SCREEN B: Error Screen */}
-            {state === STATES.ERROR && (
-              <div style={{ textAlign: 'center', padding: '0.85rem 0' }}>
-                <div
-                  style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '50%',
-                    background: 'var(--danger-light)',
-                    color: 'var(--danger-red)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 0.5rem',
-                  }}
-                >
-                  <IconAlert size={22} />
-                </div>
-                <h3 style={{ color: 'var(--danger-red)', fontSize: '15px', fontWeight: 700, margin: '0 0 0.25rem' }}>
-                  {error?.messageTa || 'பிழை ஏற்பட்டது'}
-                </h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '0.85rem' }}>
-                  {error?.messageEn || 'An error occurred. Please restart.'}
-                </p>
-
-                {error?.code === 'MIC_DENIED' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (window.chrome?.tabs) {
-                        window.chrome.tabs.create({ url: window.chrome.runtime.getURL('index.html') })
-                      } else {
-                        navigator.mediaDevices?.getUserMedia({ audio: true }).catch(() => {})
-                      }
-                    }}
-                    className="ios-btn ios-btn-primary ios-btn-block"
-                    style={{ marginBottom: '0.5rem' }}
-                  >
-                    <IconMic size={16} /> மைக்ரோஃபோன் அனுமதி கோரு / Enable Mic
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => handleButtonTap(restart)}
-                  className="ios-btn ios-btn-secondary ios-btn-block"
-                >
-                  <IconRefresh size={14} /> மீண்டும் தொடங்கு / Restart
-                </button>
-              </div>
-            )}
-
-            {/* SCREEN C: Active Question & Voice Loop */}
-            {state !== STATES.IDLE && state !== STATES.ERROR && !isFinished && currentField && (
-              <div>
-                {/* Progress Bar */}
-                <div style={{ marginBottom: '0.85rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
-                    <span>கேள்வி {progress.done + 1} / {progress.total || activeFields.length}</span>
-                    <span>{Math.round(((progress.done + 1) / (progress.total || activeFields.length)) * 100)}%</span>
+              {/* ── STATE: IDLE ──────────────────────────────────────── */}
+              {state === STATES.IDLE && (
+                <div className="solli-state-idle">
+                  <div className="solli-mic-ring-wrap">
+                    <div className="solli-mic-ring" aria-hidden="true" />
+                    <button
+                      type="button"
+                      onClick={() => handleStartSession(selectedFormId)}
+                      className="solli-mic-btn solli-mic-btn-idle"
+                      aria-label="Start voice session"
+                    >
+                      <Mic size={28} />
+                    </button>
                   </div>
-                  <div className="ios-progress-track">
-                    <div
-                      className="ios-progress-fill"
-                      style={{ width: `${Math.round(((progress.done + 1) / (progress.total || activeFields.length)) * 100)}%` }}
-                    />
+                  <h2 className="solli-idle-title">சொல்லுங்கள்</h2>
+                  <p className="solli-idle-sub">Speak in Tamil, Tanglish, or English and Solli fills the form for you.</p>
+                  <button
+                    type="button"
+                    onClick={() => handleStartSession(selectedFormId)}
+                    className="solli-btn solli-btn-primary solli-btn-block"
+                  >
+                    <Play size={14} />
+                    Start voice session
+                  </button>
+                </div>
+              )}
+
+              {/* ── STATE: ERROR ─────────────────────────────────────── */}
+              {state === STATES.ERROR && (
+                <div className="solli-state-error">
+                  <div className="solli-error-icon">
+                    <AlertTriangle size={20} />
                   </div>
+                  <h3 className="solli-error-title">{error?.messageTa || 'பிழை ஏற்பட்டது'}</h3>
+                  <p className="solli-error-sub">{error?.messageEn || 'Something went wrong. Please restart.'}</p>
+                  <button
+                    type="button"
+                    onClick={() => { triggerHaptic(20); restart() }}
+                    className="solli-btn solli-btn-ghost solli-btn-block"
+                  >
+                    <RefreshCw size={14} />
+                    Restart
+                  </button>
                 </div>
+              )}
 
-                {/* Question Display Card */}
-                <div style={{ background: '#f8fafc', border: '1px solid var(--border)', borderRadius: '10px', padding: '1rem', textAlign: 'center', marginBottom: '0.85rem' }}>
-                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 0.25rem' }}>
-                    {currentField.question?.ta || currentField.labels?.ta}
-                  </h2>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-                    {currentField.question?.en || currentField.labels?.en}
-                  </p>
-                </div>
+              {/* ── STATE: ACTIVE ────────────────────────────────────── */}
+              {state !== STATES.IDLE && state !== STATES.ERROR && !isFinished && currentField && (
+                <div className="solli-state-active">
 
-                {/* Confirmation Box (When waiting for Yes/No) */}
-                {isConfirmState && (
-                  <div className="ios-heard-card">
-                    <div className="ios-heard-title">கேட்கப்பட்ட விவரம் &bull; HEARD VALUE:</div>
-                    <div className="ios-heard-value">
-                      {context.answers?.[currentField.id]?.display || context.answers?.[currentField.id]?.value || '...'}
+                  {/* Step counter */}
+                  <div className="solli-step-counter">
+                    <span>Field {progress.done + 1} of {progress.total || totalFields}</span>
+                    <span className="solli-step-pct">{Math.round(((progress.done + 1) / (progress.total || totalFields)) * 100)}%</span>
+                  </div>
+
+                  {/* Current field card */}
+                  <div className="solli-field-card">
+                    <span className="solli-field-card-label">{currentField.id.replace(/_/g, ' ')}</span>
+                    <h2 className="solli-field-card-question" lang="ta">
+                      {currentField.question?.ta || currentField.labels?.ta}
+                    </h2>
+                    <p className="solli-field-card-en">
+                      {currentField.question?.en || currentField.labels?.en}
+                    </p>
+                  </div>
+
+                  {/* Readback confirmation */}
+                  {isConfirmState && (
+                    <div className="solli-readback">
+                      <p className="solli-readback-label">Heard:</p>
+                      <div className="solli-readback-value">
+                        {context.answers?.[currentField.id]?.display ||
+                          context.answers?.[currentField.id]?.value || '…'}
+                      </div>
+                      <p className="solli-readback-hint" lang="ta">
+                        சரியாக இருந்தால் "ஆம்" எனவும், தவறெனில் "இல்லை" எனவும் சொல்லுங்கள்.
+                      </p>
+                      <div className="solli-confirm-grid">
+                        <button
+                          type="button"
+                          onClick={() => { triggerHaptic(25); handleConfirmTap(true) }}
+                          className="solli-btn solli-btn-confirm-yes"
+                        >
+                          <Check size={15} />
+                          Confirm
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { triggerHaptic(25); handleConfirmTap(false) }}
+                          className="solli-btn solli-btn-confirm-no"
+                        >
+                          <X size={15} />
+                          Re-take
+                        </button>
+                      </div>
                     </div>
-                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '0.45rem', marginBottom: '0.75rem' }}>
-                      சரியாக இருந்தால் &quot;ஆம்&quot; எனவும், தவறெனில் &quot;இல்லை&quot; எனவும் சொல்லுங்கள்.
+                  )}
+
+                  {/* Microphone */}
+                  <div className="solli-mic-wrap">
+                    <div className="solli-mic-ring-wrap">
+                      {isRecording && <div className="solli-mic-ring solli-mic-ring-recording" aria-hidden="true" />}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHaptic(20)
+                          if (isRecording) stopListening()
+                          else startListening()
+                        }}
+                        className={`solli-mic-btn ${isRecording ? 'solli-mic-btn-recording' : 'solli-mic-btn-idle'}`}
+                        aria-label={isRecording ? 'Stop recording' : 'Start speaking'}
+                      >
+                        <Mic size={22} />
+                      </button>
+                    </div>
+
+                    <p className="solli-mic-label">
+                      {isRecording ? (
+                        <span className="solli-mic-label-recording">
+                          <span className="solli-rec-dot" aria-hidden="true" />
+                          Recording — speak now
+                        </span>
+                      ) : 'Tap to speak'}
                     </p>
 
-                    <div className="ios-confirm-grid" style={{ margin: 0 }}>
-                      <button
-                        type="button"
-                        onClick={() => handleButtonTap(() => handleConfirmTap(true))}
-                        className="ios-btn ios-btn-yes"
-                      >
-                        <IconCheck size={18} /> ஆம் / சரி (Yes)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleButtonTap(() => handleConfirmTap(false))}
-                        className="ios-btn ios-btn-no"
-                      >
-                        <IconClose size={18} /> இல்லை (No)
-                      </button>
+                    {/* Audio meter */}
+                    <div className="solli-audio-meter-wrap">
+                      <AudioMeter level={audioLevel} isRecording={isRecording} />
                     </div>
                   </div>
-                )}
 
-                {/* Cloudflare Radar Acoustic Mic Button */}
-                <div className="ios-mic-wrap">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isRecording) {
-                        stopListening()
-                      } else {
-                        startListening()
-                      }
-                    }}
-                    className={`ios-mic-btn ${isRecording ? 'ios-mic-btn-recording' : ''}`}
-                    aria-label={isRecording ? 'Stop recording' : 'Start speaking'}
-                  >
-                    <IconMic size={38} />
-                  </button>
-
-                  <div className="ios-mic-label" style={{ fontSize: '13px' }}>
-                    {isRecording ? (
-                      <span style={{ color: 'var(--danger-red)', fontWeight: 700 }}>
-                        ● கேட்கிறது... பேசுங்கள் / Listening...
-                      </span>
-                    ) : (
-                      <span>தட்டிப் பேசவும் / Tap to Speak</span>
-                    )}
-                  </div>
-
-                  {/* Audio Level Meter */}
-                  <AudioMeter level={audioLevel} />
-                </div>
-
-                {/* Fallback Keyboard Input Form */}
-                <form onSubmit={handleTypedSubmit} style={{ marginTop: '0.65rem' }}>
-                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  {/* Keyboard fallback */}
+                  <form onSubmit={handleTypedSubmit} className="solli-type-form">
                     <input
                       type="text"
                       value={typedInput}
                       onChange={(e) => setTypedInput(e.target.value)}
-                      placeholder={isConfirmState ? 'ஆம் / இல்லை / Yes / No...' : 'அல்லது பதில் தட்டச்சு செய்யவும்...'}
-                      className="cf-field-input"
-                      style={{ fontSize: '13px', padding: '0.5rem 0.75rem' }}
+                      placeholder={isConfirmState ? 'ஆம் / இல்லை / Yes / No' : 'Or type the value…'}
+                      className="solli-type-input"
+                      aria-label="Type answer"
                     />
+                    <button type="submit" className="solli-type-submit" aria-label="Submit typed answer">
+                      <Send size={14} />
+                    </button>
+                  </form>
+
+                  {/* Quick controls */}
+                  <div className="solli-quick-controls">
                     <button
-                      type="submit"
-                      className="ios-btn ios-btn-primary"
-                      style={{ minHeight: '38px', padding: '0.4rem 0.85rem' }}
-                      title="Submit Answer"
+                      type="button"
+                      onClick={() => { triggerHaptic(15); repeatQuestion() }}
+                      className="solli-quick-btn"
                     >
-                      <IconCheck size={16} />
+                      <RotateCcw size={13} />
+                      Repeat
+                    </button>
+                    <div className="solli-quick-sep" aria-hidden="true" />
+                    <button
+                      type="button"
+                      onClick={() => { triggerHaptic(15); skipCurrentField() }}
+                      className="solli-quick-btn"
+                    >
+                      <SkipForward size={13} />
+                      Skip
                     </button>
                   </div>
-                </form>
+                </div>
+              )}
 
-                {/* Action Shortcuts */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px solid var(--border)' }}>
+              {/* ── STATE: FINISHED ──────────────────────────────────── */}
+              {isFinished && (
+                <div className="solli-state-done">
+                  <div className="solli-done-icon">
+                    <CheckCircle2 size={28} />
+                  </div>
+                  <h3 className="solli-done-title">All done</h3>
+                  <p className="solli-done-sub">All {totalFields} fields verified and ready to submit.</p>
+                  <div className="solli-done-cert">CERT-ID: TN-OAP-2026-849201</div>
                   <button
                     type="button"
-                    onClick={() => handleButtonTap(repeatQuestion)}
-                    className="ios-btn ios-btn-secondary"
-                    style={{ minHeight: '32px', fontSize: '11px', padding: '0.2rem 0.65rem' }}
+                    onClick={() => { triggerHaptic(30); downloadReceipt({ form: context.form, answers: context.answers, summary }) }}
+                    className="solli-btn solli-btn-primary solli-btn-block"
                   >
-                    <IconRefresh size={12} /> மீண்டும் கேள் / Repeat
+                    <FileText size={14} />
+                    Download acknowledgment
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleButtonTap(skipCurrentField)}
-                    className="ios-btn ios-btn-secondary"
-                    style={{ minHeight: '32px', fontSize: '11px', padding: '0.2rem 0.65rem' }}
+                    onClick={() => { triggerHaptic(20); restart() }}
+                    className="solli-btn solli-btn-ghost solli-btn-block"
                   >
-                    தவிர் / Skip
+                    <RefreshCw size={14} />
+                    New session
                   </button>
+                </div>
+              )}
+
+              {/* Meta tiles */}
+              <div className="solli-meta-tiles">
+                <div className="solli-meta-tile">
+                  <span className="solli-meta-label">Model</span>
+                  <span className="solli-meta-value">Prisma v2.5</span>
+                </div>
+                <div className="solli-meta-tile">
+                  <span className="solli-meta-label">Extractor</span>
+                  <span className="solli-meta-value">Evon v3.3</span>
+                </div>
+                <div className="solli-meta-tile">
+                  <span className="solli-meta-label">Region</span>
+                  <span className="solli-meta-value">Chennai</span>
+                </div>
+                <div className="solli-meta-tile">
+                  <span className="solli-meta-label">Privacy</span>
+                  <span className="solli-meta-value solli-meta-green">0-persist</span>
                 </div>
               </div>
-            )}
 
-            {/* SCREEN D: Application Finished & Official PDF Download */}
-            {isFinished && (
-              <div style={{ textAlign: 'center', padding: '0.75rem 0' }}>
-                <div
-                  style={{
-                    width: '54px',
-                    height: '54px',
-                    borderRadius: '50%',
-                    background: 'var(--success-light)',
-                    color: 'var(--success-green)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 0.65rem',
-                    border: '1.5px solid var(--success-border)',
-                  }}
-                >
-                  <IconCheck size={28} />
-                </div>
-
-                <h3 style={{ color: 'var(--success-green-dark)', fontSize: '17px', fontWeight: 800, margin: '0 0 0.25rem' }}>
-                  விண்ணப்பம் முடிந்தது!
-                </h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '1.15rem' }}>
-                  அனைத்து விவரங்களும் வெற்றிகரமாக பதிவு செய்யப்பட்டன.
-                </p>
-
-                {/* PDF Receipt Button */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHaptic(30)
-                      downloadReceipt({ form: context.form, answers: context.answers, summary })
-                    }}
-                    className="ios-btn ios-btn-primary ios-btn-block"
-                    style={{ minHeight: '48px', fontSize: '14px', boxShadow: 'var(--shadow-btn)' }}
-                  >
-                    <IconDoc size={18} /> படிவ ரசீதைப் பதிவிறக்கு (PDF)
-                  </button>
-                  <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '0.35rem' }}>
-                    Download Official Sovereign PDF Receipt
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleButtonTap(restart)}
-                  className="ios-btn ios-btn-secondary ios-btn-block"
-                  style={{ minHeight: '38px', fontSize: '13px' }}
-                >
-                  <IconRefresh size={14} /> புதிய விண்ணப்பம் / Start New
-                </button>
-              </div>
-            )}
+            </div>
           </div>
         </aside>
       </main>

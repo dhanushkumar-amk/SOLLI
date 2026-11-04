@@ -1,214 +1,1258 @@
-/* hallmark: v2.0.0 · theme: cloudflare-orange · genre: high-tech-enterprise · floor: verified */
+/* hallmark: v2.0.0 · theme: notion-linear · genre: modern-minimal · floor: verified */
 /**
- * Solli Layout Styles (Cloudflare Enterprise Dual-Pane Experience)
- * Left: The Web Form Portal | Right: Solli Voice Side Companion
+ * Solli Layout + Component Styles (Notion / Linear / Stripe Aesthetic)
+ * Single flat token namespace, restrained shadows, no surface gradients.
  */
 
-.app-root {
+/* ============================================================
+   APP ROOT
+   ============================================================ */
+.solli-root {
   min-height: 100vh;
   background-color: var(--app-bg);
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
   overflow-x: clip;
-  width: 100%;
+  font-family: var(--font-stack);
 }
 
-/* ==========================================================================
-   Cloudflare Split-Screen Dual-Pane Layout
-   ========================================================================== */
-.cf-split-layout {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 1.5rem;
-  width: 100%;
-  max-width: 1240px;
+/* ============================================================
+   HEADER
+   ============================================================ */
+.solli-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--separator);
+}
+
+.solli-header-inner {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 1.25rem 1rem 3rem;
-  box-sizing: border-box;
+  padding: 0 1.25rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
-@media (min-width: 960px) {
-  .cf-split-layout {
+/* Brand */
+.solli-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.solli-brand-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.solli-brand-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* Form switcher */
+.solli-form-switch {
+  display: flex;
+  align-items: center;
+  background-color: var(--track-fill);
+  border-radius: var(--radius-ios-pill);
+  padding: 3px;
+  gap: 2px;
+}
+
+.solli-switch-btn {
+  padding: 0.3rem 0.85rem;
+  border-radius: var(--radius-ios-pill);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.solli-switch-btn.active {
+  background-color: var(--app-card);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.solli-switch-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Header icon buttons */
+.solli-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.solli-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-ios-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.12s, color 0.12s;
+}
+
+.solli-icon-btn:hover {
+  background-color: var(--track-fill);
+  color: var(--text-primary);
+}
+
+.solli-icon-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ============================================================
+   WORKSPACE LAYOUT (two-column split)
+   ============================================================ */
+.solli-workspace {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .solli-workspace {
     flex-direction: row;
     align-items: flex-start;
-    padding: 1.5rem 1.5rem 4rem;
-    gap: 1.75rem;
-  }
-  .cf-form-pane {
-    flex: 1.25;
-    min-width: 0;
-  }
-  .cf-side-app {
-    flex: 1;
-    min-width: 360px;
-    max-width: 440px;
-    position: sticky;
-    top: 5rem;
+    gap: 1.5rem;
   }
 }
 
-/* Left Form Portal Card */
-.cf-form-portal {
-  background-color: var(--app-card);
+.solli-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.solli-right {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .solli-right {
+    width: 320px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 68px;
+  }
+}
+
+/* ============================================================
+   PAGE HEADING
+   ============================================================ */
+.solli-page-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 600px) {
+  .solli-page-head {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
+.solli-page-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.solli-page-sub {
+  font-size: var(--font-size-small);
+  color: var(--text-tertiary);
+  margin-top: 0.2rem;
+}
+
+.solli-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+.solli-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.solli-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.solli-progress-label {
+  font-size: var(--font-size-small);
+  color: var(--text-tertiary);
+}
+
+.solli-progress-pct {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--brand-primary);
+}
+
+.solli-progress-track {
+  height: 3px;
+  background-color: var(--track-fill);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.solli-progress-fill {
+  height: 100%;
+  background-color: var(--brand-primary);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.solli-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-ios-btn);
+  font-size: var(--font-size-btn);
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.12s, opacity 0.12s, transform 0.1s;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.solli-btn:active {
+  transform: scale(0.98);
+}
+
+.solli-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.solli-btn-primary {
+  background-color: var(--brand-primary);
+  color: #ffffff;
+}
+
+.solli-btn-primary:hover {
+  background-color: var(--brand-primary-hover);
+}
+
+.solli-btn-ghost {
+  background-color: transparent;
+  color: var(--text-secondary);
   border: 1px solid var(--border);
+}
+
+.solli-btn-ghost:hover {
+  background-color: var(--track-fill);
+  color: var(--text-primary);
+}
+
+.solli-btn-block {
+  width: 100%;
+}
+
+.solli-btn-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.solli-btn-confirm-yes {
+  flex: 1;
+  background-color: var(--success-light);
+  color: var(--success-green);
+  border: 1px solid var(--success-border);
+  font-weight: 600;
+  min-height: 42px;
+}
+
+.solli-btn-confirm-yes:hover {
+  background-color: #dcfce7;
+}
+
+.solli-btn-confirm-no {
+  flex: 1;
+  background-color: var(--danger-light);
+  color: var(--danger-red);
+  border: 1px solid var(--danger-border);
+  font-weight: 600;
+  min-height: 42px;
+}
+
+.solli-btn-confirm-no:hover {
+  background-color: #fee2e2;
+}
+
+/* ============================================================
+   TABLE CARD
+   ============================================================ */
+.solli-table-card {
+  background-color: var(--app-card);
+  border: 1px solid var(--separator);
   border-radius: var(--radius-ios-card);
   box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
-.cf-portal-header {
-  background: #f8fafc;
-  border-bottom: 1px solid var(--border);
-  padding: 1rem 1.25rem;
+.solli-table-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--separator);
+  gap: 0.75rem;
 }
 
-.cf-portal-body {
-  padding: 1.25rem;
-}
-
-.cf-form-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media (min-width: 600px) {
-  .cf-form-grid-2col {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.cf-form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  position: relative;
-}
-
-.cf-field-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
+.solli-table-title {
+  font-size: var(--font-size-btn);
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.cf-field-input {
-  width: 100%;
-  padding: 0.65rem 0.85rem;
-  font-size: 14px;
+.solli-search {
+  width: 180px;
+  padding: 0.3rem 0.7rem;
+  font-size: var(--font-size-small);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background-color: #ffffff;
+  border-radius: var(--radius-ios-sm);
+  background-color: var(--app-bg);
   color: var(--text-primary);
   font-family: inherit;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.cf-field-input:focus {
   outline: none;
-  border-color: var(--brand-primary);
-  box-shadow: 0 0 0 3px var(--brand-glow);
+  transition: border-color 0.12s;
 }
 
-/* Active Highlight Ring (When Solli is asking this field) */
-.cf-field-active .cf-field-input {
+.solli-search:focus {
   border-color: var(--brand-primary);
-  box-shadow: 0 0 0 3px rgba(243, 128, 32, 0.35);
+}
+
+.solli-table-scroll {
+  overflow-x: auto;
+}
+
+.solli-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-btn);
+}
+
+.solli-table th {
+  padding: 0.6rem 1rem;
+  text-align: left;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--separator);
+  background-color: var(--app-bg);
+  white-space: nowrap;
+}
+
+.solli-th-status,
+.solli-th-action {
+  text-align: right;
+}
+
+.solli-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--separator);
+  vertical-align: middle;
+}
+
+.solli-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.solli-tr {
+  transition: background-color 0.1s;
+}
+
+.solli-tr:hover td {
+  background-color: var(--app-bg);
+}
+
+.solli-tr-active td {
   background-color: var(--brand-light);
 }
 
-.cf-field-active .cf-field-label {
+.solli-tr-active:hover td {
+  background-color: var(--brand-light);
+}
+
+.solli-tr-confirmed:hover td {
+  background-color: var(--success-light);
+}
+
+/* Type badge */
+.solli-type-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  background-color: var(--track-fill);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Field name */
+.solli-field-name {
+  font-size: var(--font-size-btn);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.solli-field-name-ta {
+  font-size: var(--font-size-small);
+  color: var(--text-tertiary);
+  margin-top: 0.1rem;
+}
+
+/* Values */
+.solli-value-confirmed {
+  font-size: var(--font-size-btn);
+  font-weight: 500;
+  color: var(--success-green);
+}
+
+.solli-value-listening {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--font-size-btn);
+  font-weight: 500;
   color: var(--brand-primary);
 }
 
-.cf-field-confirmed .cf-field-input {
-  border-color: #10b981;
-  background-color: #f0fdf4;
+.solli-listening-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--brand-primary);
+  animation: solli-pulse 1.4s ease-in-out infinite;
 }
 
-.cf-active-badge {
+.solli-value-empty {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-btn);
+}
+
+/* Status pills */
+.solli-status {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 10px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(243, 128, 32, 0.15);
+  gap: 0.3rem;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-ios-pill);
+  white-space: nowrap;
+}
+
+.solli-status-done {
+  background-color: var(--success-light);
+  color: var(--success-green);
+}
+
+.solli-status-active {
+  background-color: var(--brand-light);
   color: var(--brand-primary);
-  border: 1px solid rgba(243, 128, 32, 0.3);
-  animation: cf-pulse 2s infinite ease-in-out;
+  font-weight: 600;
 }
 
-.cf-confirmed-badge {
-  display: inline-flex;
+.solli-status-pending {
+  background-color: var(--track-fill);
+  color: var(--text-tertiary);
+}
+
+/* Row action */
+.solli-row-action {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-ios-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 10px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  justify-content: center;
+  cursor: pointer;
+  margin-left: auto;
+  transition: background-color 0.12s, color 0.12s;
 }
 
-/* Secondary Actions 2x2 or 4x1 Grid */
-.ios-actions-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+.solli-row-action:hover {
+  background-color: var(--track-fill);
+  color: var(--text-primary);
+}
+
+.solli-row-action:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Table footer */
+.solli-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.1rem;
+  border-top: 1px solid var(--separator);
+  gap: 0.75rem;
+}
+
+.solli-table-count {
+  font-size: var(--font-size-small);
+  color: var(--text-tertiary);
+}
+
+/* ============================================================
+   VOICE COMPANION PANEL
+   ============================================================ */
+.solli-companion {
+  background-color: var(--app-card);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-ios-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.solli-companion-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--separator);
+}
+
+.solli-companion-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-btn);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.solli-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--success-green);
+  animation: solli-pulse 2s ease-in-out infinite;
+}
+
+.solli-companion-node {
+  font-size: var(--font-size-small);
+  color: var(--text-tertiary);
+  background-color: var(--track-fill);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.solli-companion-body {
+  padding: 1.25rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── IDLE STATE ─────────────────────────────────────────────── */
+.solli-state-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.solli-idle-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.solli-idle-sub {
+  font-size: var(--font-size-small);
+  color: var(--text-secondary);
+  max-width: 240px;
+  line-height: 1.55;
+}
+
+/* ── ERROR STATE ─────────────────────────────────────────────── */
+.solli-state-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 0.65rem;
-  margin-top: 0.85rem;
-  padding-top: 0.85rem;
+  text-align: center;
+}
+
+.solli-error-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--danger-light);
+  color: var(--danger-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--danger-border);
+}
+
+.solli-error-title {
+  font-size: var(--font-size-btn);
+  font-weight: 600;
+  color: var(--danger-red);
+}
+
+.solli-error-sub {
+  font-size: var(--font-size-small);
+  color: var(--text-secondary);
+}
+
+/* ── ACTIVE STATE ────────────────────────────────────────────── */
+.solli-state-active {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.solli-step-counter {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-small);
+  color: var(--text-tertiary);
+}
+
+.solli-step-pct {
+  font-weight: 600;
+  color: var(--brand-primary);
+}
+
+/* Current field card */
+.solli-field-card {
+  background-color: var(--app-bg);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-ios-btn);
+  padding: 0.9rem 1rem;
+}
+
+.solli-field-card-label {
+  display: block;
+  font-size: var(--font-size-small);
+  color: var(--brand-primary);
+  font-weight: 500;
+  text-transform: capitalize;
+  margin-bottom: 0.3rem;
+}
+
+.solli-field-card-question {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.solli-field-card-en {
+  font-size: var(--font-size-small);
+  color: var(--text-secondary);
+  margin-top: 0.2rem;
+}
+
+/* Readback */
+.solli-readback {
+  background-color: var(--sky-light);
+  border: 1px solid var(--sky-border);
+  border-radius: var(--radius-ios-btn);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.solli-readback-label {
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--sky-accent);
+}
+
+.solli-readback-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  padding: 0.5rem;
+  background-color: var(--app-card);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-ios-sm);
+}
+
+.solli-readback-hint {
+  font-size: var(--font-size-small);
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.solli-confirm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+/* Mic */
+.solli-mic-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.solli-mic-ring-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.solli-mic-ring {
+  position: absolute;
+  width: calc(var(--mic-btn-size) + 24px);
+  height: calc(var(--mic-btn-size) + 24px);
+  border-radius: 50%;
+  background-color: var(--brand-light);
+  animation: solli-ring-pulse 2s ease-in-out infinite;
+}
+
+.solli-mic-ring-recording {
+  background-color: rgba(239, 68, 68, 0.1);
+  animation: solli-ring-pulse 1.2s ease-in-out infinite;
+}
+
+.solli-mic-btn {
+  width: var(--mic-btn-size);
+  height: var(--mic-btn-size);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s;
+  color: #ffffff;
+}
+
+.solli-mic-btn:hover {
+  transform: scale(1.05);
+}
+
+.solli-mic-btn:active {
+  transform: scale(0.95);
+}
+
+.solli-mic-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.solli-mic-btn-idle {
+  background-color: var(--brand-primary);
+  box-shadow: var(--shadow-mic);
+}
+
+.solli-mic-btn-recording {
+  background-color: var(--danger-red);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.35);
+  animation: solli-mic-pulse 1.6s ease-in-out infinite;
+}
+
+.solli-mic-label {
+  font-size: var(--font-size-small);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.solli-mic-label-recording {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--danger-red);
+  font-weight: 500;
+}
+
+.solli-rec-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--danger-red);
+  animation: solli-pulse 1s ease-in-out infinite;
+}
+
+.solli-audio-meter-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Type form */
+.solli-type-form {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.solli-type-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: var(--font-size-btn);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-ios-btn);
+  background-color: var(--app-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s;
+}
+
+.solli-type-input:focus {
+  border-color: var(--brand-primary);
+  background-color: var(--app-card);
+}
+
+.solli-type-submit {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-ios-btn);
+  background-color: var(--text-primary);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.12s;
+}
+
+.solli-type-submit:hover {
+  opacity: 0.85;
+}
+
+.solli-type-submit:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Quick controls */
+.solli-quick-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--separator);
 }
 
-@media (min-width: 440px) {
-  .ios-actions-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+.solli-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-ios-sm);
+  transition: background-color 0.12s, color 0.12s;
 }
 
-/* Confirmation Yes / No Grid */
-.ios-confirm-grid {
+.solli-quick-btn:hover {
+  background-color: var(--track-fill);
+  color: var(--text-primary);
+}
+
+.solli-quick-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.solli-quick-sep {
+  width: 1px;
+  height: 14px;
+  background-color: var(--separator);
+}
+
+/* ── DONE STATE ──────────────────────────────────────────────── */
+.solli-state-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.solli-done-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: var(--success-light);
+  color: var(--success-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--success-border);
+}
+
+.solli-done-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.solli-done-sub {
+  font-size: var(--font-size-small);
+  color: var(--text-secondary);
+}
+
+.solli-done-cert {
+  font-size: var(--font-size-small);
+  color: var(--text-tertiary);
+  background-color: var(--track-fill);
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  font-family: ui-monospace, monospace;
+}
+
+/* ── META TILES ──────────────────────────────────────────────── */
+.solli-meta-tiles {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--separator);
+}
+
+.solli-meta-tile {
+  background-color: var(--app-bg);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-ios-sm);
+  padding: 0.55rem 0.65rem;
+}
+
+.solli-meta-label {
+  display: block;
+  font-size: var(--font-size-small);
+  color: var(--text-tertiary);
+}
+
+.solli-meta-value {
+  display: block;
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 0.1rem;
+}
+
+.solli-meta-green {
+  color: var(--success-green);
+}
+
+/* ============================================================
+   MODALS / SHEETS (keep existing ios-sheet-* working)
+   ============================================================ */
+.ios-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--app-backdrop);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.ios-sheet-panel {
+  background-color: var(--app-sheet-bg);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
   width: 100%;
-  margin: 0.75rem auto;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-sheet);
+  padding: 0.75rem 1.1rem 2.5rem;
+  animation: solli-slide-up 0.2s ease-out;
 }
 
-/* Status Cards for Error, Paused, Operator Needed */
-.ios-status-card {
-  background-color: var(--app-card);
-  border-radius: var(--radius-ios-card);
-  padding: 1.25rem;
-  box-shadow: var(--shadow-card);
+.ios-sheet-handle {
+  width: 32px;
+  height: 3px;
+  border-radius: 2px;
+  background-color: var(--border);
+  margin: 0 auto 0.75rem;
+}
+
+.ios-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.ios-sheet-cell {
+  background-color: var(--app-bg);
+  border-radius: var(--radius-ios-btn);
+  padding: 0.85rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--separator);
+}
+
+.ios-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--track-fill);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 0.12s;
+}
+
+.ios-icon-btn:hover {
+  background-color: rgba(0,0,0,0.08);
+  color: var(--text-primary);
+}
+
+.ios-icon-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Segmented control in sheet */
+.ios-segmented-control {
+  display: flex;
+  background-color: var(--track-fill);
+  border-radius: var(--radius-ios-pill);
+  padding: 3px;
+  gap: 2px;
+}
+
+.ios-segment-btn {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: var(--radius-ios-pill);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+}
+
+.ios-segment-btn.active {
+  background-color: var(--app-card);
+  color: var(--brand-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.ios-segment-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Sheet buttons (used by OperatorSheet) */
+.ios-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  font-size: var(--font-size-btn);
+  font-weight: 500;
+  border-radius: var(--radius-ios-btn);
+  min-height: var(--touch-target-min);
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.12s, opacity 0.12s, transform 0.1s;
+}
+
+.ios-btn:active {
+  transform: scale(0.98);
+}
+
+.ios-btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.ios-btn-primary {
+  background-color: var(--brand-primary);
+  color: #ffffff;
+}
+
+.ios-btn-primary:hover {
+  background-color: var(--brand-primary-hover);
+}
+
+.ios-btn-secondary {
+  background-color: var(--app-card);
+  color: var(--text-primary);
   border: 1px solid var(--border);
-  margin-bottom: 0.85rem;
 }
 
-.ios-status-card-error {
+.ios-btn-secondary:hover {
+  background-color: var(--app-bg);
+}
+
+.ios-btn-no {
   background-color: var(--danger-light);
-  border-color: var(--danger-border);
+  color: var(--danger-red);
+  border: 1px solid var(--danger-border);
 }
 
-.ios-status-card-warning {
+.ios-btn-no:hover {
+  background-color: #fee2e2;
+}
+
+.ios-btn-block {
+  width: 100%;
+}
+
+/* Demo banner */
+.demo-banner {
   background-color: var(--amber-light);
-  border-color: var(--amber-border);
+  color: var(--amber-warning);
+  border-bottom: 1px solid var(--amber-border);
+  padding: 0.4rem 1rem;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
 }
 
-.ios-status-card-success {
-  background-color: var(--success-light);
-  border-color: var(--success-border);
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes solli-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes solli-ring-pulse {
+  0%, 100% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.08); opacity: 0.3; }
+}
+
+@keyframes solli-mic-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 16px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+@keyframes solli-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* ============================================================
+   HIGH CONTRAST OVERRIDES
+   ============================================================ */
+[data-contrast="high"] .solli-header {
+  background: #000000;
+  border-bottom: 1px solid #ffffff;
+}
+
+[data-contrast="high"] .solli-table-card,
+[data-contrast="high"] .solli-companion {
+  border: 2px solid #ffffff;
+}
+
+/* ============================================================
+   SCREEN READER UTILITY
+   ============================================================ */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }

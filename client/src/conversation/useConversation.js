@@ -29,6 +29,8 @@ export function useConversation(initialOptions = {}) {
   )
 
   const [audioLevel, setAudioLevel] = useState(0)
+  const [isRecording, setIsRecording] = useState(false)
+  const voiceMutedRef = useRef(false)
 
   const abortControllerRef = useRef(null)
   const currentAudioRef = useRef(null)
@@ -36,6 +38,9 @@ export function useConversation(initialOptions = {}) {
   const isRecordingRef = useRef(false)
   const inFlightRef = useRef(false)
   const summaryStopRef = useRef(false)
+
+  // Keep voiceMutedRef in sync so playClip closures always read the latest value
+  useEffect(() => { voiceMutedRef.current = state.voiceMuted }, [state.voiceMuted])
 
   // Stop active audio playback
   const stopAudio = useCallback(() => {
