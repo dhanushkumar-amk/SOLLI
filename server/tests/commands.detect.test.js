@@ -46,6 +46,12 @@ describe('Voice Command Detector (commands.detect.test.js)', () => {
       { input: 'munnadi ponga', expected: 'back' },
       { input: 'pinnadi ponga', expected: 'back' },
       { input: 'முந்தைய கேள்வி', expected: 'back' },
+      { input: 'wrong', expected: 'back' },
+      { input: 'wring', expected: 'back' },
+      { input: 'wrin g', expected: 'back' },
+      { input: "that's wrong", expected: 'back' },
+      { input: 'thappu', expected: 'back' },
+      { input: 'தவறு', expected: 'back' },
       // Change Field
       { input: 'change the village', expected: 'change_field', target: 'village' },
       { input: 'ooru maathunga', expected: 'change_field', target: 'village' },

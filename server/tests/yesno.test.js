@@ -43,6 +43,11 @@ describe('Yes/No Confirmation Extractor (yesno.test.js)', () => {
       { text: 'thappu', label: 'Roman Tamil "thappu"' },
       { text: 'தவறு', label: 'Tamil script "தவறு"' },
       { text: 'not correct', label: 'English "not correct"' },
+      { text: 'wring', label: 'Phonetic variant "wring"' },
+      { text: 'wrin g', label: 'STT split variant "wrin g"' },
+      { text: "that's wrong", label: 'Conversational "that\'s wrong"' },
+      { text: "it's wrong", label: 'Conversational "it\'s wrong"' },
+      { text: 'thavaru', label: 'Roman Tamil "thavaru"' },
     ]
 
     for (const { text, label } of negativeSamples) {
