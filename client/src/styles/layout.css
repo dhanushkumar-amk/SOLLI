@@ -66,39 +66,41 @@
   letter-spacing: -0.02em;
 }
 
-/* Form switcher */
-.solli-form-switch {
+/* Scheme Identity Badge (Replaces generic multi-form switcher) */
+.solli-header-scheme {
   display: flex;
   align-items: center;
-  background-color: var(--track-fill);
+  gap: 0.5rem;
+  background-color: var(--app-bg);
+  border: 1px solid var(--separator);
   border-radius: var(--radius-ios-pill);
-  padding: 3px;
-  gap: 2px;
+  padding: 0.25rem 0.75rem;
 }
 
-.solli-switch-btn {
-  padding: 0.3rem 0.85rem;
-  border-radius: var(--radius-ios-pill);
+.solli-scheme-dept {
   font-size: var(--font-size-small);
+  color: var(--text-tertiary);
   font-weight: 500;
-  color: var(--text-secondary);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-  white-space: nowrap;
 }
 
-.solli-switch-btn.active {
-  background-color: var(--app-card);
+.solli-scheme-sep {
+  width: 1px;
+  height: 12px;
+  background-color: var(--separator);
+}
+
+.solli-scheme-name {
+  font-family: var(--font-display);
+  font-size: var(--font-size-small);
+  font-weight: 700;
   color: var(--text-primary);
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  letter-spacing: -0.01em;
 }
 
-.solli-switch-btn:focus-visible {
-  outline: var(--focus-ring-width) solid var(--focus-ring-color);
-  outline-offset: var(--focus-ring-offset);
+@media (max-width: 640px) {
+  .solli-header-scheme {
+    display: none;
+  }
 }
 
 /* Header icon buttons */
@@ -169,7 +171,7 @@
 
 @media (min-width: 1024px) {
   .solli-right {
-    width: 320px;
+    width: 360px;
     flex-shrink: 0;
     position: sticky;
     top: 68px;
@@ -182,7 +184,7 @@
 .solli-page-head {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 @media (min-width: 600px) {
@@ -195,7 +197,7 @@
 
 .solli-page-title {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.025em;
@@ -205,7 +207,7 @@
 .solli-page-sub {
   font-size: var(--font-size-small);
   color: var(--text-tertiary);
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
 }
 
 .solli-page-actions {
@@ -216,43 +218,54 @@
 }
 
 /* ============================================================
-   PROGRESS
+   PROGRESS  — hero stat treatment
    ============================================================ */
 .solli-progress-wrap {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .solli-progress-meta {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  gap: 0.5rem;
 }
 
 .solli-progress-label {
-  font-size: var(--font-size-small);
-  color: var(--text-tertiary);
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: -0.01em;
+}
+
+.solli-progress-label strong {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
 }
 
 .solli-progress-pct {
   font-size: var(--font-size-small);
   font-weight: 600;
-  color: var(--brand-primary);
+  color: var(--text-tertiary);
 }
 
 .solli-progress-track {
-  height: 3px;
-  background-color: var(--track-fill);
+  height: 2px;
+  background-color: var(--separator);
   border-radius: 2px;
   overflow: hidden;
 }
 
 .solli-progress-fill {
   height: 100%;
-  background-color: var(--brand-primary);
+  background-color: var(--text-primary);
   border-radius: 2px;
-  transition: width 0.3s ease;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ============================================================
@@ -353,22 +366,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.85rem 1.1rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--separator);
   gap: 0.75rem;
 }
 
 .solli-table-title {
-  font-size: var(--font-size-btn);
-  font-weight: 600;
-  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .solli-search {
-  width: 180px;
-  padding: 0.3rem 0.7rem;
+  width: 160px;
+  padding: 0.3rem 0.65rem;
   font-size: var(--font-size-small);
-  border: 1px solid var(--border);
+  border: 1px solid var(--separator);
   border-radius: var(--radius-ios-sm);
   background-color: var(--app-bg);
   color: var(--text-primary);
@@ -378,7 +394,7 @@
 }
 
 .solli-search:focus {
-  border-color: var(--brand-primary);
+  border-color: var(--text-primary);
 }
 
 .solli-table-scroll {
@@ -392,23 +408,24 @@
 }
 
 .solli-table th {
-  padding: 0.6rem 1rem;
+  padding: 0.5rem 1rem;
   text-align: left;
-  font-size: var(--font-size-small);
-  font-weight: 500;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--text-tertiary);
   border-bottom: 1px solid var(--separator);
   background-color: var(--app-bg);
   white-space: nowrap;
 }
 
-.solli-th-status,
-.solli-th-action {
+.solli-th-status {
   text-align: right;
 }
 
 .solli-table td {
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 1rem;
   border-bottom: 1px solid var(--separator);
   vertical-align: middle;
 }
@@ -418,7 +435,7 @@
 }
 
 .solli-tr {
-  transition: background-color 0.12s ease;
+  transition: background-color 0.1s ease;
   cursor: pointer;
 }
 
@@ -427,32 +444,47 @@
 }
 
 .solli-tr:focus-visible {
-  outline: 2px solid var(--brand-primary);
+  outline: 2px solid var(--text-primary);
   outline-offset: -2px;
 }
 
+/* Active row — the Linear sidebar treatment */
 .solli-tr-active td {
-  background-color: var(--brand-light);
+  background-color: #f0f9ff;
+}
+
+.solli-tr-active td:first-child {
+  box-shadow: inset 3px 0 0 #0ea5e9;
 }
 
 .solli-tr-active:hover td {
-  background-color: var(--brand-light);
+  background-color: #e0f2fe;
 }
 
 .solli-tr-confirmed:hover td {
-  background-color: var(--success-light);
+  background-color: #f0fdf4;
 }
 
-/* Type badge */
-.solli-type-badge {
-  display: inline-block;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  font-size: var(--font-size-small);
-  font-weight: 500;
-  background-color: var(--track-fill);
-  color: var(--text-secondary);
-  white-space: nowrap;
+/* Row number (replaces type badge) */
+.solli-row-num {
+  font-family: ui-monospace, monospace;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  min-width: 20px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: 1;
+  display: block;
+}
+
+.solli-tr-active .solli-row-num {
+  color: #0ea5e9;
+  font-weight: 700;
+}
+
+.solli-tr-confirmed .solli-row-num {
+  color: var(--success-green);
 }
 
 /* Field name */
@@ -460,19 +492,26 @@
   font-size: var(--font-size-btn);
   font-weight: 500;
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
 .solli-field-name-ta {
   font-size: var(--font-size-small);
   color: var(--text-tertiary);
   margin-top: 0.1rem;
+  line-height: 1.4;
+}
+
+.solli-tr-active .solli-field-name {
+  font-weight: 600;
 }
 
 /* Values */
 .solli-value-confirmed {
   font-size: var(--font-size-btn);
-  font-weight: 500;
-  color: var(--success-green);
+  font-weight: 600;
+  color: #15803d;
+  font-variant-numeric: tabular-nums;
 }
 
 .solli-value-listening {
@@ -481,14 +520,14 @@
   gap: 0.4rem;
   font-size: var(--font-size-btn);
   font-weight: 500;
-  color: var(--brand-primary);
+  color: #0ea5e9;
 }
 
 .solli-listening-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background-color: var(--brand-primary);
+  background-color: #0ea5e9;
   animation: solli-pulse 1.4s ease-in-out infinite;
 }
 
@@ -502,59 +541,35 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: var(--font-size-small);
-  font-weight: 500;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--radius-ios-pill);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
   white-space: nowrap;
 }
 
 .solli-status-done {
-  background-color: var(--success-light);
-  color: var(--success-green);
+  background-color: #f0fdf4;
+  color: #15803d;
 }
 
 .solli-status-active {
-  background-color: var(--brand-light);
-  color: var(--brand-primary);
-  font-weight: 600;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 700;
 }
 
 .solli-status-pending {
-  background-color: var(--track-fill);
+  background-color: var(--app-bg);
   color: var(--text-tertiary);
+  border: 1px solid var(--separator);
 }
 
 .solli-status-later {
   background-color: #fef3c7;
   color: #b45309;
-  font-weight: 500;
-}
-
-/* Row action */
-.solli-row-action {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-ios-sm);
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-left: auto;
-  transition: background-color 0.12s, color 0.12s;
-}
-
-.solli-row-action:hover {
-  background-color: var(--track-fill);
-  color: var(--text-primary);
-}
-
-.solli-row-action:focus-visible {
-  outline: var(--focus-ring-width) solid var(--focus-ring-color);
-  outline-offset: var(--focus-ring-offset);
 }
 
 /* Table footer */
@@ -562,7 +577,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1.1rem;
+  padding: 0.65rem 1rem;
   border-top: 1px solid var(--separator);
   gap: 0.75rem;
 }
@@ -586,8 +601,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.85rem 1.1rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--separator);
+  background-color: var(--app-bg);
 }
 
 .solli-companion-title {
@@ -595,33 +611,42 @@
   align-items: center;
   gap: 0.5rem;
   font-family: var(--font-display);
-  font-size: var(--font-size-btn);
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: -0.015em;
-  color: var(--text-primary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
 }
 
 .solli-live-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background-color: var(--success-green);
+  flex-shrink: 0;
+}
+
+/* only pulse when session is active — controlled via JS class .solli-live-dot--active */
+.solli-live-dot--active {
   animation: solli-pulse 2s ease-in-out infinite;
 }
 
 .solli-companion-node {
-  font-size: var(--font-size-small);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--text-tertiary);
-  background-color: var(--track-fill);
+  background-color: var(--separator);
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
 }
 
 .solli-companion-body {
-  padding: 1.25rem 1.1rem;
+  padding: 1.25rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.1rem;
 }
 
 /* ── IDLE STATE ─────────────────────────────────────────────── */
@@ -631,22 +656,81 @@
   align-items: center;
   gap: 1rem;
   text-align: center;
-  padding: 0.5rem 0;
+  padding: 1rem 0 0.5rem;
 }
 
 .solli-idle-title {
   font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
 }
 
 .solli-idle-sub {
-  font-size: var(--font-size-small);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
-  max-width: 240px;
-  line-height: 1.55;
+  max-width: 220px;
+  line-height: 1.6;
+}
+
+/* Demo voice guidance */
+.solli-demo-box {
+  width: 100%;
+  background-color: var(--app-bg);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-ios-btn);
+  padding: 0.75rem 0.85rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.25rem;
+}
+
+.solli-demo-title {
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.solli-demo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.solli-demo-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: var(--font-size-small);
+}
+
+.solli-demo-tag {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  min-width: 48px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.solli-demo-item code {
+  font-family: var(--font-stack);
+  font-size: 0.6875rem;
+  background-color: var(--app-card);
+  border: 1px solid var(--separator);
+  border-radius: 4px;
+  padding: 0.15rem 0.35rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  line-height: 1.3;
 }
 
 /* ── ERROR STATE ─────────────────────────────────────────────── */
@@ -689,42 +773,44 @@
 }
 
 .solli-review-card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-ios-card);
-  padding: 1.25rem;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-ios-btn);
+  padding: 1.1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  box-shadow: var(--shadow-sm);
+  gap: 0.75rem;
 }
 
 .solli-review-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: var(--font-size-small);
-  font-weight: 600;
-  color: var(--brand-primary);
-  background-color: var(--brand-light);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background-color: var(--app-bg);
   padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-ios-pill);
+  border-radius: 4px;
+  border: 1px solid var(--separator);
   width: fit-content;
 }
 
 .solli-review-title {
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.0625rem;
+  font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   margin: 0;
+  line-height: 1.25;
 }
 
 .solli-review-sub {
-  font-size: var(--font-size-body);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
-  line-height: 1.45;
+  line-height: 1.5;
   margin: 0;
 }
 
@@ -735,54 +821,63 @@
   gap: 1rem;
 }
 
+/* Step counter — tiny and understated */
 .solli-step-counter {
   display: flex;
   justify-content: space-between;
-  font-size: var(--font-size-small);
+  align-items: center;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--text-tertiary);
 }
 
 .solli-step-pct {
-  font-weight: 600;
-  color: var(--brand-primary);
+  color: var(--text-tertiary);
 }
 
-/* Current field card */
+/* Current field card — the focal point */
 .solli-field-card {
   background-color: var(--app-bg);
   border: 1px solid var(--separator);
   border-radius: var(--radius-ios-btn);
-  padding: 0.9rem 1rem;
+  padding: 1rem 1.1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
 .solli-field-card-label {
   display: block;
-  font-size: var(--font-size-small);
-  color: var(--brand-primary);
-  font-weight: 500;
-  text-transform: capitalize;
-  margin-bottom: 0.3rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0ea5e9;
+  margin-bottom: 0.15rem;
 }
 
 .solli-field-card-question {
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: var(--font-size-question);
+  font-weight: 800;
   color: var(--text-primary);
-  line-height: 1.3;
-  letter-spacing: -0.02em;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
 }
 
 .solli-field-card-en {
-  font-size: var(--font-size-small);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
+  line-height: 1.4;
 }
 
 /* Readback */
 .solli-readback {
-  background-color: var(--sky-light);
-  border: 1px solid var(--sky-border);
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
   border-radius: var(--radius-ios-btn);
   padding: 0.85rem;
   display: flex;
@@ -791,20 +886,22 @@
 }
 
 .solli-readback-label {
-  font-size: var(--font-size-small);
-  font-weight: 500;
-  color: var(--sky-accent);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0ea5e9;
 }
 
 .solli-readback-value {
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 800;
   color: var(--text-primary);
   text-align: center;
   padding: 0.5rem;
-  background-color: var(--app-card);
-  border: 1px solid var(--separator);
-  border-radius: var(--radius-ios-sm);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
 }
 
 .solli-readback-hint {
@@ -837,16 +934,18 @@
 
 .solli-mic-ring {
   position: absolute;
-  width: calc(var(--mic-btn-size) + 24px);
-  height: calc(var(--mic-btn-size) + 24px);
+  width: calc(var(--mic-btn-size) + 20px);
+  height: calc(var(--mic-btn-size) + 20px);
   border-radius: 50%;
-  background-color: var(--brand-light);
-  animation: solli-ring-pulse 2s ease-in-out infinite;
+  background-color: rgba(14, 165, 233, 0.08);
+  border: 1px solid rgba(14, 165, 233, 0.15);
+  animation: solli-ring-pulse 2.2s ease-in-out infinite;
 }
 
 .solli-mic-ring-recording {
-  background-color: rgba(239, 68, 68, 0.1);
-  animation: solli-ring-pulse 1.2s ease-in-out infinite;
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  animation: solli-ring-pulse 1.1s ease-in-out infinite;
 }
 
 .solli-mic-btn {
@@ -859,16 +958,16 @@
   border: none;
   cursor: pointer;
   position: relative;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
   color: #ffffff;
 }
 
 .solli-mic-btn:hover {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 .solli-mic-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.94);
 }
 
 .solli-mic-btn:focus-visible {
@@ -878,12 +977,12 @@
 
 .solli-mic-btn-idle {
   background-color: var(--brand-primary);
-  box-shadow: var(--shadow-mic);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.25);
 }
 
 .solli-mic-btn-recording {
   background-color: var(--danger-red);
-  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
   animation: solli-mic-pulse 1.6s ease-in-out infinite;
 }
 
@@ -898,15 +997,16 @@
   align-items: center;
   gap: 0.4rem;
   color: var(--danger-red);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: var(--font-size-small);
 }
 
 .solli-rec-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background-color: var(--danger-red);
-  animation: solli-pulse 1s ease-in-out infinite;
+  animation: solli-pulse 0.9s ease-in-out infinite;
 }
 
 .solli-audio-meter-wrap {
@@ -925,7 +1025,7 @@
   flex: 1;
   padding: 0.5rem 0.75rem;
   font-size: var(--font-size-btn);
-  border: 1px solid var(--border);
+  border: 1px solid var(--separator);
   border-radius: var(--radius-ios-btn);
   background-color: var(--app-bg);
   color: var(--text-primary);
@@ -935,7 +1035,7 @@
 }
 
 .solli-type-input:focus {
-  border-color: var(--brand-primary);
+  border-color: var(--text-primary);
   background-color: var(--app-card);
 }
 
@@ -955,7 +1055,7 @@
 }
 
 .solli-type-submit:hover {
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
 .solli-type-submit:focus-visible {
@@ -983,7 +1083,7 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0.3rem 0.5rem;
+  padding: 0.3rem 0.6rem;
   border-radius: var(--radius-ios-sm);
   transition: background-color 0.12s, color 0.12s;
 }
@@ -1011,59 +1111,88 @@
   align-items: center;
   gap: 0.75rem;
   text-align: center;
+  padding: 0.5rem 0;
 }
 
 .solli-done-icon {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background-color: var(--success-light);
-  color: var(--success-green);
+  background-color: #f0fdf4;
+  color: #15803d;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--success-border);
+  border: 1px solid #bbf7d0;
 }
 
 .solli-done-title {
-  font-size: 1rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
   color: var(--text-primary);
+  letter-spacing: -0.03em;
 }
 
 .solli-done-sub {
-  font-size: var(--font-size-small);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 .solli-done-cert {
   font-size: var(--font-size-small);
   color: var(--text-tertiary);
-  background-color: var(--track-fill);
+  background-color: var(--app-bg);
   padding: 0.3rem 0.7rem;
   border-radius: 4px;
+  border: 1px solid var(--separator);
   font-family: ui-monospace, monospace;
+  letter-spacing: 0.03em;
 }
 
-/* ── META TILES ──────────────────────────────────────────────── */
+/* ── META TILES — collapsed by default ───────────────────────── */
+.solli-meta-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  width: 100%;
+  border-top: 1px solid var(--separator);
+  transition: color 0.12s;
+}
+
+.solli-meta-toggle:hover {
+  color: var(--text-secondary);
+}
+
 .solli-meta-tiles {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--separator);
+  gap: 0.4rem;
 }
 
 .solli-meta-tile {
   background-color: var(--app-bg);
   border: 1px solid var(--separator);
   border-radius: var(--radius-ios-sm);
-  padding: 0.55rem 0.65rem;
+  padding: 0.45rem 0.6rem;
 }
 
 .solli-meta-label {
   display: block;
-  font-size: var(--font-size-small);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--text-tertiary);
 }
 

@@ -11,10 +11,19 @@ import { useConversation } from '../conversation/useConversation'
 import { triggerHaptic } from '../utils/haptics'
 import { downloadReceipt } from '../utils/receiptGenerator'
 import { releaseScreenWakeLock, requestScreenWakeLock } from '../utils/wakeLock'
+import { BUILTIN_SCHEMAS } from '../forms/index'
 
 // Shadcn UI Primitives
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
 
 // Lucide Icons
 import {
@@ -35,25 +44,18 @@ import {
   Send,
   ArrowRight,
   Zap,
+  ChevronDown,
+  ChevronUp,
+  Clock,
 } from 'lucide-react'
-
-function getFieldTypeBadge(fieldId) {
-  if (fieldId === 'applicant_name' || fieldId === 'parent_spouse_name') return 'Name'
-  if (fieldId === 'mobile') return 'Phone'
-  if (fieldId === 'aadhaar') return 'ID'
-  if (fieldId === 'district' || fieldId === 'pincode') return 'Location'
-  if (fieldId === 'bank_account' || fieldId === 'ifsc') return 'Bank'
-  if (fieldId === 'age' || fieldId === 'gender') return 'Profile'
-  return 'Text'
-}
 
 export default function VoiceApp() {
   const [fontSize, setFontSize] = useState('normal')
   const [contrast, setContrast] = useState('normal')
-  const [selectedFormId, setSelectedFormId] = useState('pension')
   const [isOperatorSheetOpen, setIsOperatorSheetOpen] = useState(false)
   const [typedInput, setTypedInput] = useState('')
   const [filterQuery, setFilterQuery] = useState('')
+  const [showMeta, setShowMeta] = useState(false)
 
   const [inactivityCountdown, setInactivityCountdown] = useState(null)
   const lastActivityRef = useRef(Date.now())
@@ -86,16 +88,16 @@ export default function VoiceApp() {
     setVoiceMuted,
     restart,
     resumeFromPause,
+    executeCommand,
   } = useConversation({
     mode: 'voice',
     voiceMuted: false,
-    formId: selectedFormId,
+    formId: 'pension',
   })
 
-  const handleStartSession = useCallback((formId) => {
+  const handleStartSession = useCallback(() => {
     triggerHaptic(30)
-    setSelectedFormId(formId)
-    start(formId)
+    start('pension')
   }, [start])
 
   useEffect(() => {
@@ -197,18 +199,7 @@ export default function VoiceApp() {
 
   const activeFields = useMemo(() => {
     if (context.form?.fields && Array.isArray(context.form.fields)) return context.form.fields
-    return [
-      { id: 'applicant_name', labels: { ta: 'விண்ணப்பதாரர் பெயர்', en: 'Applicant Full Name' }, required: true },
-      { id: 'parent_spouse_name', labels: { ta: 'தந்தை / கணவர் பெயர்', en: 'Parent / Spouse Name' }, required: true },
-      { id: 'aadhaar', labels: { ta: 'ஆதார் எண்', en: 'Aadhaar Number' }, required: true },
-      { id: 'mobile', labels: { ta: 'அலைபேசி எண்', en: 'Mobile Number' }, required: true },
-      { id: 'age', labels: { ta: 'வயது', en: 'Age' }, required: true },
-      { id: 'gender', labels: { ta: 'பாலினம்', en: 'Gender' }, required: true },
-      { id: 'district', labels: { ta: 'மாவட்டம்', en: 'District' }, required: true },
-      { id: 'pincode', labels: { ta: 'அஞ்சல் குறியீடு', en: 'Pincode' }, required: true },
-      { id: 'bank_account', labels: { ta: 'வங்கி கணக்கு எண்', en: 'Bank Account Number' }, required: true },
-      { id: 'ifsc', labels: { ta: 'IFSC குறியீடு', en: 'IFSC Code' }, required: true },
-    ]
+    return BUILTIN_SCHEMAS.pension.fields
   }, [context.form?.fields])
 
   const visibleFields = useMemo(() => {
@@ -244,55 +235,47 @@ export default function VoiceApp() {
             <span className="solli-brand-name">Solli</span>
           </div>
 
-          {/* Centre: form switcher */}
-          <div className="solli-form-switch">
-            <button
-              type="button"
-              onClick={() => setSelectedFormId('pension')}
-              className={`solli-switch-btn ${selectedFormId === 'pension' ? 'active' : ''}`}
-            >
-              முதியோர் உதவி
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedFormId('college_admission')}
-              className={`solli-switch-btn ${selectedFormId === 'college_admission' ? 'active' : ''}`}
-            >
-              கல்லூரி சேர்க்கை
-            </button>
-          </div>
+          {/* Centre: Scheme Identity Badge */}
+          <Badge variant="outline" className="hidden sm:inline-flex items-center gap-2 px-3 py-1 bg-muted/30 border-border text-foreground font-normal rounded-full">
+            <span className="text-muted-foreground text-xs font-medium">தமிழ்நாடு அரசு · சமூக நலத்துறை</span>
+            <Separator orientation="vertical" className="h-3 bg-border" />
+            <span className="font-semibold text-xs font-display">முதியோர் ஓய்வூதியத் திட்டம் (IGNOAPS)</span>
+          </Badge>
 
           {/* Right actions */}
-          <div className="solli-header-actions">
-            <button
-              type="button"
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setVoiceMuted(!context.voiceMuted)}
-              className="solli-icon-btn"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
               title={context.voiceMuted ? 'Unmute audio' : 'Mute audio'}
               aria-label={context.voiceMuted ? 'Unmute audio' : 'Mute audio'}
             >
               {context.voiceMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
+            </Button>
             {state !== STATES.IDLE && (
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => { triggerHaptic(20); restart() }}
-                className="solli-icon-btn"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 title="Reset session"
                 aria-label="Reset session"
               >
                 <RefreshCw size={16} />
-              </button>
+              </Button>
             )}
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => { triggerHaptic(20); setIsOperatorSheetOpen(true) }}
-              className="solli-icon-btn"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
               title="Settings"
               aria-label="Settings"
             >
               <Settings size={16} />
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -329,21 +312,17 @@ export default function VoiceApp() {
           <div className="solli-page-head">
             <div className="solli-page-head-text">
               <h1 className="solli-page-title">
-                {selectedFormId === 'pension'
-                  ? 'Indira Gandhi Old Age Pension'
-                  : 'State University Admission'}
+                Indira Gandhi National Old Age Pension Scheme
               </h1>
               <p className="solli-page-sub">
-                {selectedFormId === 'pension'
-                  ? 'Tamil Nadu Social Welfare — IGNOAPS'
-                  : 'State University UG Application'}
+                தமிழ்நாடு அரசு சமூக நலத்துறை — IGNOAPS Kiosk Voice Application
               </p>
             </div>
 
             <div className="solli-page-actions">
               <button
                 type="button"
-                onClick={() => { triggerHaptic(20); downloadReceipt({ form: context.form, answers: context.answers, summary }) }}
+                onClick={() => { triggerHaptic(20); downloadReceipt({ form: context.form || BUILTIN_SCHEMAS.pension, answers: context.answers, summary }) }}
                 className="solli-btn solli-btn-ghost"
               >
                 <FileText size={14} />
@@ -351,11 +330,11 @@ export default function VoiceApp() {
               </button>
               <button
                 type="button"
-                onClick={() => handleStartSession(selectedFormId)}
+                onClick={handleStartSession}
                 className="solli-btn solli-btn-primary"
               >
                 <Mic size={14} />
-                {state === STATES.IDLE ? 'Start session' : 'Session active'}
+                {state === STATES.IDLE ? 'Start voice session' : 'Session active'}
               </button>
             </div>
           </div>
@@ -363,7 +342,9 @@ export default function VoiceApp() {
           {/* Progress strip */}
           <div className="solli-progress-wrap" aria-label={`${answeredCount} of ${totalFields} fields complete`}>
             <div className="solli-progress-meta">
-              <span className="solli-progress-label">{answeredCount} / {totalFields} confirmed</span>
+              <span className="solli-progress-label">
+                <strong>{answeredCount}</strong> / {totalFields} confirmed
+              </span>
               <span className="solli-progress-pct">{progressPercent}%</span>
             </div>
             <div className="solli-progress-track" role="progressbar" aria-valuenow={progressPercent} aria-valuemin={0} aria-valuemax={100}>
@@ -391,20 +372,19 @@ export default function VoiceApp() {
               <table className="solli-table">
                 <thead>
                   <tr>
-                    <th scope="col">Type</th>
+                    <th scope="col" style={{ width: 36 }}>#</th>
                     <th scope="col">Field</th>
                     <th scope="col">Value</th>
                     <th scope="col" className="solli-th-status">Status</th>
-                    <th scope="col" className="solli-th-action"><span className="sr-only">Edit</span></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {visibleFields.map((field) => {
+                  {visibleFields.map((field, idx) => {
                     const isCurrent = currentField?.id === field.id
                     const answerObj = context.answers?.[field.id]
                     const isConfirmed = Boolean(answerObj?.confirmed)
                     const displayVal = answerObj?.display || answerObj?.value || ''
-                    const fieldType = getFieldTypeBadge(field.id)
+                    const rowNum = (activeFields.indexOf(field) + 1).toString().padStart(2, '0')
 
                     return (
                       <tr
@@ -423,9 +403,9 @@ export default function VoiceApp() {
                         title={`Click to talk or edit ${field.labels?.en || field.id}`}
                         className={`solli-tr${isCurrent ? ' solli-tr-active' : ''}${isConfirmed ? ' solli-tr-confirmed' : ''}`}
                       >
-                        {/* Type */}
+                        {/* Row number */}
                         <td>
-                          <span className="solli-type-badge">{fieldType}</span>
+                          <span className="solli-row-num">{rowNum}</span>
                         </td>
 
                         {/* Field name */}
@@ -452,7 +432,7 @@ export default function VoiceApp() {
                         <td className="solli-th-status">
                           {isConfirmed ? (
                             <span className="solli-status solli-status-done">
-                              <Check size={11} aria-hidden="true" />
+                              <Check size={10} aria-hidden="true" />
                               Done
                             </span>
                           ) : isCurrent ? (
@@ -468,19 +448,6 @@ export default function VoiceApp() {
                               Pending
                             </span>
                           )}
-                        </td>
-
-                        {/* Action */}
-                        <td className="solli-th-action">
-                          <button
-                            type="button"
-                            onClick={() => { triggerHaptic(15); startEditField(field.id) }}
-                            className="solli-row-action"
-                            title="Record via voice"
-                            aria-label={`Record ${field.labels?.en || field.id}`}
-                          >
-                            <ArrowRight size={13} />
-                          </button>
                         </td>
                       </tr>
                     )
@@ -512,7 +479,7 @@ export default function VoiceApp() {
             {/* Companion header */}
             <div className="solli-companion-head">
               <div className="solli-companion-title">
-                <span className="solli-live-dot" aria-hidden="true" />
+                <span className={`solli-live-dot ${state !== STATES.IDLE && !isFinished ? 'solli-live-dot--active' : ''}`} aria-hidden="true" />
                 Voice assistant
               </div>
               <span className="solli-companion-node">Tamil Nadu</span>
@@ -527,7 +494,7 @@ export default function VoiceApp() {
                     <div className="solli-mic-ring" aria-hidden="true" />
                     <button
                       type="button"
-                      onClick={() => handleStartSession(selectedFormId)}
+                      onClick={handleStartSession}
                       className="solli-mic-btn solli-mic-btn-idle"
                       aria-label="Start voice session"
                     >
@@ -535,15 +502,38 @@ export default function VoiceApp() {
                     </button>
                   </div>
                   <h2 className="solli-idle-title">சொல்லுங்கள்</h2>
-                  <p className="solli-idle-sub">Speak in Tamil, Tanglish, or English and Solli fills the form for you.</p>
+                  <p className="solli-idle-sub">Speak in Tamil, Tanglish, or English and Solli fills the pension form for you.</p>
                   <button
                     type="button"
-                    onClick={() => handleStartSession(selectedFormId)}
+                    onClick={handleStartSession}
                     className="solli-btn solli-btn-primary solli-btn-block"
                   >
                     <Play size={14} />
                     Start voice session
                   </button>
+
+                  {/* Demo voice guidance */}
+                  <div className="solli-demo-box">
+                    <span className="solli-demo-title">Voice Demo Phrases (பேசக்கூடிய உதாரணங்கள்):</span>
+                    <div className="solli-demo-list">
+                      <div className="solli-demo-item">
+                        <span className="solli-demo-tag">Answer:</span>
+                        <code>"என் பெயர் தனுஷ்குமார்"</code>
+                      </div>
+                      <div className="solli-demo-item">
+                        <span className="solli-demo-tag">Confirm:</span>
+                        <code>"சரி / ஆம்" அல்லது "இல்லை"</code>
+                      </div>
+                      <div className="solli-demo-item">
+                        <span className="solli-demo-tag">Later:</span>
+                        <code>"இந்த கேள்வியை பிறகு பார்க்கலாம்"</code>
+                      </div>
+                      <div className="solli-demo-item">
+                        <span className="solli-demo-tag">Next:</span>
+                        <code>"அடுத்த கேள்விக்கு போகலாம்"</code>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -713,6 +703,7 @@ export default function VoiceApp() {
                       type="button"
                       onClick={() => { triggerHaptic(15); repeatQuestion() }}
                       className="solli-quick-btn"
+                      title="Repeat / மீண்டும் கேள்"
                     >
                       <RotateCcw size={13} />
                       Repeat
@@ -720,8 +711,19 @@ export default function VoiceApp() {
                     <div className="solli-quick-sep" aria-hidden="true" />
                     <button
                       type="button"
+                      onClick={() => { triggerHaptic(15); executeCommand('later') }}
+                      className="solli-quick-btn"
+                      title="See later / பிறகு பார்க்கலாம்"
+                    >
+                      <Clock size={13} />
+                      Later (பிறகு)
+                    </button>
+                    <div className="solli-quick-sep" aria-hidden="true" />
+                    <button
+                      type="button"
                       onClick={() => { triggerHaptic(15); skipCurrentField() }}
                       className="solli-quick-btn"
+                      title="Skip / தவிர்"
                     >
                       <SkipForward size={13} />
                       Skip
@@ -741,7 +743,7 @@ export default function VoiceApp() {
                   <div className="solli-done-cert">CERT-ID: TN-OAP-2026-849201</div>
                   <button
                     type="button"
-                    onClick={() => { triggerHaptic(30); downloadReceipt({ form: context.form, answers: context.answers, summary }) }}
+                    onClick={() => { triggerHaptic(30); downloadReceipt({ form: context.form || BUILTIN_SCHEMAS.pension, answers: context.answers, summary }) }}
                     className="solli-btn solli-btn-primary solli-btn-block"
                   >
                     <FileText size={14} />
@@ -758,25 +760,37 @@ export default function VoiceApp() {
                 </div>
               )}
 
-              {/* Meta tiles */}
-              <div className="solli-meta-tiles">
-                <div className="solli-meta-tile">
-                  <span className="solli-meta-label">Model</span>
-                  <span className="solli-meta-value">Prisma v2.5</span>
+              {/* Meta toggle & tiles */}
+              <button
+                type="button"
+                onClick={() => setShowMeta((prev) => !prev)}
+                className="solli-meta-toggle"
+                aria-expanded={showMeta}
+              >
+                {showMeta ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                <span>System specs & telemetry</span>
+              </button>
+
+              {showMeta && (
+                <div className="solli-meta-tiles">
+                  <div className="solli-meta-tile">
+                    <span className="solli-meta-label">Model</span>
+                    <span className="solli-meta-value">Prisma v2.5</span>
+                  </div>
+                  <div className="solli-meta-tile">
+                    <span className="solli-meta-label">Extractor</span>
+                    <span className="solli-meta-value">Evon v3.3</span>
+                  </div>
+                  <div className="solli-meta-tile">
+                    <span className="solli-meta-label">Region</span>
+                    <span className="solli-meta-value">Chennai</span>
+                  </div>
+                  <div className="solli-meta-tile">
+                    <span className="solli-meta-label">Privacy</span>
+                    <span className="solli-meta-value solli-meta-green">0-persist</span>
+                  </div>
                 </div>
-                <div className="solli-meta-tile">
-                  <span className="solli-meta-label">Extractor</span>
-                  <span className="solli-meta-value">Evon v3.3</span>
-                </div>
-                <div className="solli-meta-tile">
-                  <span className="solli-meta-label">Region</span>
-                  <span className="solli-meta-value">Chennai</span>
-                </div>
-                <div className="solli-meta-tile">
-                  <span className="solli-meta-label">Privacy</span>
-                  <span className="solli-meta-value solli-meta-green">0-persist</span>
-                </div>
-              </div>
+              )}
 
             </div>
           </div>
