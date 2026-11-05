@@ -303,7 +303,7 @@ export function useConversation(initialOptions = {}) {
         })
 
         if (cmdRes.command) {
-          if (cmdRes.command === 'skip' || cmdRes.command === 'dont_know') {
+          if (cmdRes.command === 'skip' || cmdRes.command === 'dont_know' || cmdRes.command === 'later') {
             const nextRes = await fetchNextField({
               formId: currentFormIdRef.current,
               answers: state.answers,
@@ -1047,7 +1047,7 @@ export function useConversation(initialOptions = {}) {
   const executeCommand = useCallback(
     async (command, options = {}) => {
       stopAudio()
-      if (command === 'skip' || command === 'dont_know') {
+      if (command === 'skip' || command === 'dont_know' || command === 'later') {
         const currentField = state.currentField
         if (!currentField) return
 

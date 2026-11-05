@@ -520,6 +520,12 @@
   color: var(--text-tertiary);
 }
 
+.solli-status-later {
+  background-color: #fef3c7;
+  color: #b45309;
+  font-weight: 500;
+}
+
 /* Row action */
 .solli-row-action {
   width: 28px;

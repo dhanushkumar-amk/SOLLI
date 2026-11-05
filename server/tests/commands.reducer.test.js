@@ -88,6 +88,22 @@ describe('Client State Machine Command Handling (commands.reducer.test.js)', () 
     assert.equal(s1.answers[firstSpoken.id].value, null)
   })
 
+  test('later: marks field deferred:true and advances to nextField', () => {
+    const s0 = getBaseListeningState()
+    const s1 = conversationReducer(s0, {
+      type: 'EXECUTE_COMMAND',
+      payload: {
+        command: 'later',
+        payload: { nextField: secondSpoken, isFinished: false },
+      },
+    })
+    assert.equal(s1.state, STATES.SPEAKING_QUESTION)
+    assert.equal(s1.currentFieldId, secondSpoken.id)
+    assert.equal(s1.answers[firstSpoken.id].deferred, true)
+    assert.equal(s1.answers[firstSpoken.id].value, null)
+    assert.equal(s1.answers[firstSpoken.id].display, '(See later)')
+  })
+
   test('back: at first field stops at first field', () => {
     const s0 = getBaseListeningState()
     const s1 = conversationReducer(s0, {

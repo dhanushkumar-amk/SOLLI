@@ -34,6 +34,14 @@ describe('Voice Command Detector (commands.detect.test.js)', () => {
       { input: 'aduthadhu', expected: 'skip' },
       { input: 'idha thavirthudunga', expected: 'skip' },
       { input: 'அடுத்தது', expected: 'skip' },
+      // Later / See Later
+      { input: 'this question that i will see later', expected: 'later' },
+      { input: 'this question i will see later', expected: 'later' },
+      { input: 'i will see later', expected: 'later' },
+      { input: 'see later', expected: 'later' },
+      { input: 'later', expected: 'later' },
+      { input: 'aprom paakalam', expected: 'later' },
+      { input: 'அப்புறம் பார்க்கலாம்', expected: 'later' },
       // Dont Know
       { input: 'dont know', expected: 'dont_know' },
       { input: "I don't know", expected: 'dont_know' },

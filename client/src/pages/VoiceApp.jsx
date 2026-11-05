@@ -446,6 +446,10 @@ export default function VoiceApp() {
                             <span className="solli-status solli-status-active">
                               Active
                             </span>
+                          ) : answerObj?.deferred ? (
+                            <span className="solli-status solli-status-later">
+                              Later
+                            </span>
                           ) : (
                             <span className="solli-status solli-status-pending">
                               Pending

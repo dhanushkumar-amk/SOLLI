@@ -293,7 +293,32 @@ export async function fetchNextField({ formId = 'pension', answers = {}, current
   // Fallback using local schema
   const schema = BUILTIN_SCHEMAS[formId] || BUILTIN_SCHEMAS.pension
   const spoken = schema.fields.filter((f) => f.spoken)
-  const nextField = spoken.find((f) => !answers[f.id] || !answers[f.id].confirmed)
+  let startIndex = 0
+  if (currentId) {
+    const curIdx = spoken.findIndex((f) => f.id === currentId)
+    if (curIdx !== -1) {
+      startIndex = curIdx + 1
+    }
+  }
+
+  let nextField = null
+  for (let i = startIndex; i < spoken.length; i++) {
+    const f = spoken[i]
+    if (!answers[f.id] || !answers[f.id].confirmed) {
+      nextField = f
+      break
+    }
+  }
+  if (!nextField && startIndex > 0) {
+    for (let i = 0; i < startIndex; i++) {
+      const f = spoken[i]
+      if (!answers[f.id] || !answers[f.id].confirmed) {
+        nextField = f
+        break
+      }
+    }
+  }
+
   const done = spoken.filter((f) => answers[f.id]?.confirmed).length
 
   return {
