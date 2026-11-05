@@ -845,10 +845,19 @@ export function useConversation(initialOptions = {}) {
     }
   }, [state.state, state.currentField, state.answers, state.editingFromReview])
 
-  // Tap-based Edit button from Review Screen
+  // Tap-based select/edit field (can be selected directly anytime from table)
   const startEditField = useCallback(
     (fieldId) => {
       stopAudio()
+      if (isRecordingRef.current) {
+        stopRecording().catch(() => {})
+        isRecordingRef.current = false
+        setIsRecording(false)
+      }
+      if (inFlightRef.current && abortControllerRef.current) {
+        abortControllerRef.current.abort()
+        inFlightRef.current = false
+      }
       dispatch({ type: 'START_EDIT_FIELD', payload: { fieldId } })
     },
     [stopAudio]

@@ -139,9 +139,9 @@ export function detectCommand(rawTranscript, context = {}) {
     }
   }
 
-  // 5. Defer / "see later" intent patterns (e.g. "i will see later", "this question that i will see later", "aprom paakalam")
+  // 5. Defer / "see later" / "see next" intent patterns (e.g. "i will see later", "lets see next", "see next", "aprom paakalam")
   const hasLaterIntent =
-    /\b(?:see\s+later|see\s+this\s+later|will\s+see\s+later|view\s+later|tell\s+later|do\s+later|see\s+it\s+later|aprom\s+(?:paakalam|solren|paathukalam|paarkalam))\b/i.test(cleaned) ||
+    /\b(?:see\s+later|see\s+this\s+later|will\s+see\s+later|view\s+later|tell\s+later|do\s+later|see\s+it\s+later|see\s+next|see\s+the\s+next|let'?s\s+see\s+next|let\s+see\s+next|let'?s\s+see|move\s+to\s+next|move\s+next|go\s+to\s+next|aprom\s+(?:paakalam|solren|paathukalam|paarkalam))\b/i.test(cleaned) ||
     /(?:அப்புறம்\s+(?:பார்க்கலாம்|சொல்றேன்|பாத்துக்கலாம்)|பிறகு\s+பார்க்கலாம்|பின்பு\s+பார்க்கலாம்)/u.test(cleaned)
 
   if (hasLaterIntent && !isConfirmState && words.length <= COMMAND_MAX_WORDS) {

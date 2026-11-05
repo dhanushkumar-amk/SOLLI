@@ -104,6 +104,17 @@ describe('Client State Machine Command Handling (commands.reducer.test.js)', () 
     assert.equal(s1.answers[firstSpoken.id].display, '(See later)')
   })
 
+  test('START_EDIT_FIELD: switches to requested field anytime during active session', () => {
+    const s0 = getBaseListeningState()
+    const s1 = conversationReducer(s0, {
+      type: 'START_EDIT_FIELD',
+      payload: { fieldId: secondSpoken.id },
+    })
+    assert.equal(s1.state, STATES.SPEAKING_QUESTION)
+    assert.equal(s1.currentFieldId, secondSpoken.id)
+    assert.equal(s1.currentField.id, secondSpoken.id)
+  })
+
   test('back: at first field stops at first field', () => {
     const s0 = getBaseListeningState()
     const s1 = conversationReducer(s0, {

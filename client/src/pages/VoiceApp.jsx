@@ -81,6 +81,8 @@ export default function VoiceApp() {
     skipCurrentField,
     repeatQuestion,
     confirmFullForm,
+    readFullSummary,
+    summaryReading,
     setVoiceMuted,
     restart,
     resumeFromPause,
@@ -408,6 +410,17 @@ export default function VoiceApp() {
                       <tr
                         key={field.id}
                         id={`row_${field.id}`}
+                        onClick={() => { triggerHaptic(15); startEditField(field.id) }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            triggerHaptic(15)
+                            startEditField(field.id)
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        title={`Click to talk or edit ${field.labels?.en || field.id}`}
                         className={`solli-tr${isCurrent ? ' solli-tr-active' : ''}${isConfirmed ? ' solli-tr-confirmed' : ''}`}
                       >
                         {/* Type */}
@@ -550,6 +563,40 @@ export default function VoiceApp() {
                     <RefreshCw size={14} />
                     Restart
                   </button>
+                </div>
+              )}
+
+              {/* ── STATE: REVIEW / FIELD SELECT ──────────────────────── */}
+              {(state === STATES.REVIEW || (!currentField && !isFinished && state !== STATES.IDLE && state !== STATES.ERROR)) && (
+                <div className="solli-state-review">
+                  <div className="solli-review-card">
+                    <div className="solli-review-badge">
+                      <FileText size={13} />
+                      Review & select
+                    </div>
+                    <h3 className="solli-review-title">விண்ணப்ப விவரங்கள்</h3>
+                    <p className="solli-review-sub">
+                      Tap any row in the form table to speak or update that field, or click below to finalize.
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => { triggerHaptic(20); readFullSummary() }}
+                      className="solli-btn solli-btn-ghost solli-btn-block"
+                    >
+                      <Volume2 size={14} />
+                      {summaryReading ? 'Stop audio summary' : 'Read full summary (சுருக்கம்)'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { triggerHaptic(30); confirmFullForm() }}
+                      className="solli-btn solli-btn-primary solli-btn-block"
+                    >
+                      <CheckCircle2 size={14} />
+                      Confirm & finish application
+                    </button>
+                  </div>
                 </div>
               )}
 

@@ -761,7 +761,13 @@ export function conversationReducer(state, action) {
     }
 
     case 'START_EDIT_FIELD': {
-      if (state.state !== STATES.REVIEW) return state
+      if (
+        state.state === STATES.IDLE ||
+        state.state === STATES.LOADING_FORM ||
+        state.state === STATES.READY_FOR_PDF
+      ) {
+        return state
+      }
       const { fieldId } = action.payload
       const targetField = state.form?.fields?.find((f) => f.id === fieldId)
       if (!targetField) return state
@@ -771,13 +777,22 @@ export function conversationReducer(state, action) {
         state: STATES.SPEAKING_QUESTION,
         currentField: targetField,
         currentFieldId: fieldId,
-        editingFromReview: true,
+        editingFromReview: state.state === STATES.REVIEW || Boolean(state.editingFromReview),
+        pendingConfirmation: null,
+        showConfirmButtons: false,
+        summaryReading: false,
         activePromptText: targetField.question,
       }
     }
 
     case 'CONFIRM_FULL_FORM': {
-      if (state.state !== STATES.REVIEW) return state
+      if (
+        state.state === STATES.IDLE ||
+        state.state === STATES.LOADING_FORM ||
+        state.state === STATES.READY_FOR_PDF
+      ) {
+        return state
+      }
       return {
         ...state,
         state: STATES.READY_FOR_PDF,

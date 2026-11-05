@@ -30,23 +30,23 @@
   --brand-primary-hover: #1e293b;
   --brand-light: #f1f5f9;
   --brand-light-border: #cbd5e1;
-  --brand-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  --brand-gradient-hover: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  --brand-gradient: #0f172a;
+  --brand-gradient-hover: #1e293b;
   --brand-secondary: #334155;
-  --brand-glow: rgba(15, 23, 42, 0.08);
+  --brand-glow: transparent;
 
   /* ==========================================================================
      Semantic
      ========================================================================== */
   --success-green: #16a34a;
   --success-green-dark: #15803d;
-  --success-gradient: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  --success-gradient: #16a34a;
   --success-light: #f0fdf4;
   --success-border: #bbf7d0;
 
   --danger-red: #ef4444;
   --danger-red-dark: #dc2626;
-  --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --danger-gradient: #ef4444;
   --danger-light: #fef2f2;
   --danger-border: #fecaca;
 
@@ -118,6 +118,7 @@
   /* ==========================================================================
      Typography
      ========================================================================== */
+  --font-display: "Plus Jakarta Sans", "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-stack: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Tamil", system-ui, sans-serif;
   --line-height-base: 1.5;
   --line-height-heading: 1.25;
@@ -200,15 +201,15 @@
 
   --brand-primary: #ffffff;
   --brand-primary-hover: #ffff00;
-  --brand-gradient: linear-gradient(135deg, #ffffff 0%, #ffff00 100%);
+  --brand-gradient: #ffffff;
   --brand-light: #222200;
 
   --success-green: #00ff00;
-  --success-gradient: linear-gradient(135deg, #00ff00 0%, #00cc00 100%);
+  --success-gradient: #00ff00;
   --success-light: #002200;
 
   --danger-red: #ff3333;
-  --danger-gradient: linear-gradient(135deg, #ff3333 0%, #cc0000 100%);
+  --danger-gradient: #ff3333;
   --danger-light: #220000;
 
   --amber-warning: #ffff00;

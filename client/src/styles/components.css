@@ -15,9 +15,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 0.85rem;
-  background: rgba(251, 250, 249, 0.9);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background-color: var(--app-card);
   border-bottom: 1px solid var(--separator);
 }
 
@@ -40,14 +38,14 @@
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: var(--brand-gradient);
+  background-color: var(--brand-primary);
   color: var(--text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.95rem;
   font-weight: 800;
-  box-shadow: 0 2px 8px rgba(255, 94, 98, 0.35);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
 }
 
 .ios-icon-btn {
@@ -211,33 +209,33 @@
   cursor: not-allowed;
 }
 
-/* Primary Action - Sunset Coral Gradient */
+/* Primary Action */
 .ios-btn-primary {
-  background: var(--brand-gradient);
+  background-color: var(--brand-primary);
   color: var(--text-inverse);
   box-shadow: var(--shadow-btn);
 }
 
 .ios-btn-primary:hover:not(:disabled) {
-  background: var(--brand-gradient-hover);
+  background-color: var(--brand-primary-hover);
 }
 
-/* Affirmative / Yes Action - Emerald Green Gradient */
+/* Affirmative / Yes Action */
 .ios-btn-yes {
-  background: var(--success-gradient);
+  background-color: var(--success-green);
   color: var(--text-inverse);
   min-height: 50px;
   font-size: var(--font-size-btn);
   box-shadow: var(--shadow-btn-green);
 }
 
-/* Destructive / No Action - Danger Red Gradient */
+/* Destructive / No Action */
 .ios-btn-no {
-  background: var(--danger-gradient);
+  background-color: var(--danger-red);
   color: var(--text-inverse);
   min-height: 50px;
   font-size: var(--font-size-btn);
-  box-shadow: 0 4px 14px -1px rgba(239, 68, 68, 0.32);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
 }
 
 /* Secondary Neutral Action */
@@ -276,7 +274,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--brand-gradient);
+  background: var(--brand-primary);
   color: var(--text-inverse);
   border: none;
   box-shadow: var(--shadow-mic);
@@ -295,7 +293,7 @@
 }
 
 .ios-mic-btn-recording {
-  background: var(--danger-gradient) !important;
+  background: var(--danger-red) !important;
   color: var(--text-inverse) !important;
   box-shadow: var(--shadow-mic-active);
   animation: flutter-pulse 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
@@ -337,7 +335,7 @@
 
 .ios-audio-bar-fill {
   height: 100%;
-  background: var(--brand-gradient);
+  background: var(--brand-primary);
   border-radius: var(--radius-ios-pill);
   transition: width 0.08s ease;
 }
@@ -384,7 +382,7 @@
 
 .ios-progress-fill {
   height: 100%;
-  background: var(--brand-gradient);
+  background: var(--brand-primary);
   border-radius: var(--radius-ios-pill);
   transition: width 0.3s ease;
 }
@@ -454,9 +452,7 @@
 .ios-sheet-backdrop {
   position: fixed;
   inset: 0;
-  background-color: var(--app-backdrop);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(15, 23, 42, 0.45);
   z-index: 1000;
   display: flex;
   align-items: flex-end;
