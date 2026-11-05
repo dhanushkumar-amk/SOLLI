@@ -139,7 +139,21 @@ export function detectCommand(rawTranscript, context = {}) {
     }
   }
 
-  // 5. Negative keyword safety: ensure names, addresses, and answers with command substrings stay answers
+  // 5. Defer / "see later" intent patterns (e.g. "i will see later", "this question that i will see later", "aprom paakalam")
+  const hasLaterIntent =
+    /\b(?:see\s+later|see\s+this\s+later|will\s+see\s+later|view\s+later|tell\s+later|do\s+later|see\s+it\s+later|aprom\s+(?:paakalam|solren|paathukalam|paarkalam))\b/i.test(cleaned) ||
+    /(?:அப்புறம்\s+(?:பார்க்கலாம்|சொல்றேன்|பாத்துக்கலாம்)|பிறகு\s+பார்க்கலாம்|பின்பு\s+பார்க்கலாம்)/u.test(cleaned)
+
+  if (hasLaterIntent && !isConfirmState && words.length <= COMMAND_MAX_WORDS) {
+    return {
+      command: 'later',
+      confidence: 0.95,
+      target: null,
+      ambiguous: false,
+    }
+  }
+
+  // 6. Negative keyword safety: ensure names, addresses, and answers with command substrings stay answers
   // If no confident command matched, return null
   return { command: null, confidence: 0, target: null, ambiguous: false }
 }

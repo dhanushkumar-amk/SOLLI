@@ -27,7 +27,7 @@ export const COMMAND_FILLERS = new Set([
 ])
 
 // Maximum words in an utterance to be eligible for command detection
-export const COMMAND_MAX_WORDS = 6
+export const COMMAND_MAX_WORDS = 8
 
 /**
  * Command phrase lookup table
@@ -72,6 +72,37 @@ export const COMMAND_PHRASES = {
     'இன்னொரு தடவை',
     'ரிப்பீட்',
     'ரிபீட்',
+  ],
+
+  later: [
+    'later',
+    'see later',
+    'see this later',
+    'will see later',
+    'i will see later',
+    'this question i will see later',
+    'this question that i will see later',
+    'ill see later',
+    "i'll see later",
+    'tell later',
+    'i will tell later',
+    'afterwards',
+    'later on',
+    'aprom',
+    'aprom paakalam',
+    'aprom solren',
+    'aprom paathukalam',
+    'idha aprom paakalam',
+    'indha kelvi aprom paakalam',
+    'idha aprom solren',
+    'அப்புறம்',
+    'அப்புறம் பார்க்கலாம்',
+    'அப்புறம் சொல்றேன்',
+    'அப்புறம் பாத்துக்கலாம்',
+    'இந்த கேள்வி அப்புறம் பார்க்கலாம்',
+    'இதை அப்புறம் பார்க்கலாம்',
+    'பிறகு பார்க்கலாம்',
+    'பின்பு பார்க்கலாம்',
   ],
 
   skip: [

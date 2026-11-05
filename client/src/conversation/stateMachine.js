@@ -932,6 +932,43 @@ export function conversationReducer(state, action) {
           }
         }
 
+        case 'later': {
+          if (state.state !== STATES.LISTENING) return state
+          const { nextField, progress, isFinished, summary } = payload || {}
+          const fieldId = state.currentFieldId
+          const updatedAnswers = {
+            ...state.answers,
+            [fieldId]: {
+              value: null,
+              display: '(See later)',
+              confirmed: false,
+              attempts: 0,
+              deferred: true,
+            },
+          }
+          if (state.editingFromReview || isFinished || !nextField) {
+            return {
+              ...state,
+              answers: updatedAnswers,
+              currentField: null,
+              currentFieldId: null,
+              editingFromReview: false,
+              progress: progress || state.progress,
+              summary: summary || state.summary,
+              state: STATES.REVIEW,
+            }
+          }
+          return {
+            ...state,
+            answers: updatedAnswers,
+            currentField: nextField,
+            currentFieldId: nextField.id,
+            progress: progress || state.progress,
+            state: STATES.SPEAKING_QUESTION,
+            activePromptText: nextField.question,
+          }
+        }
+
         case 'back': {
           if (state.state !== STATES.LISTENING) return state
           const prevField = getPreviousSpokenField(state.form, state.currentFieldId)

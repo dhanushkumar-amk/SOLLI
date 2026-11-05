@@ -59,6 +59,7 @@ const stats = {
   commands: {
     repeat: 0,
     skip: 0,
+    later: 0,
     dont_know: 0,
     back: 0,
     change_field: 0,
