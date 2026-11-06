@@ -1,17 +1,17 @@
 import {
-  IconClose,
-  IconGear,
-  IconPlay,
-  IconRefresh,
-  IconTrash,
-  IconVolume,
-  IconVolumeMute,
-} from './Icons'
+  X,
+  Settings,
+  Play,
+  RotateCcw,
+  Trash2,
+  Volume2,
+  VolumeX,
+} from 'lucide-react'
 
 /**
- * OperatorSheet Component (Flutter Modal Bottom Sheet)
- * Slides up from the bottom of the device screen when the operator taps settings.
- * Settings persist only in memory for the active kiosk session.
+ * OperatorSheet Component (Modern Shadcn Sheet)
+ * Slides up when the operator taps settings.
+ * In-memory settings only.
  */
 export default function OperatorSheet({
   isOpen = false,
@@ -31,42 +31,31 @@ export default function OperatorSheet({
 
   return (
     <div
-      className="ios-sheet-backdrop"
+      className="solli-modal-backdrop"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="ios-operator-title"
+      aria-labelledby="operator-sheet-title"
       onClick={onClose}
     >
       <div
-        className="ios-sheet-panel"
+        className="solli-sheet-panel"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Flutter Drag Handle */}
-        <div className="ios-sheet-handle" aria-hidden="true" />
+        {/* Drag handle */}
+        <div className="solli-sheet-handle" aria-hidden="true" />
 
         {/* Sheet Header */}
-        <div className="ios-sheet-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                background: 'var(--brand-light)',
-                color: 'var(--brand-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <IconGear size={18} />
+        <div className="solli-sheet-header">
+          <div className="solli-sheet-title-group">
+            <div className="solli-sheet-icon">
+              <Settings size={18} />
             </div>
             <div>
-              <h2 id="ios-operator-title" style={{ fontSize: 'var(--font-size-btn)', fontWeight: 700, margin: 0 }}>
+              <h2 id="operator-sheet-title" className="solli-sheet-title">
                 பணியாளர் அமைப்புகள்
               </h2>
-              <span style={{ display: 'block', fontSize: 'var(--font-size-small)', color: 'var(--text-secondary)', fontWeight: 500 }}>
-                Operator Assistance Settings (In-Memory Only)
+              <span className="solli-sheet-subtitle">
+                Operator Settings (In-Memory Only)
               </span>
             </div>
           </div>
@@ -74,128 +63,130 @@ export default function OperatorSheet({
           <button
             type="button"
             onClick={onClose}
-            className="ios-icon-btn"
+            className="solli-icon-btn solli-icon-btn--light"
             aria-label="Close operator settings"
           >
-            <IconClose size={18} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* Group 1: Font Size */}
-        <div className="ios-sheet-cell">
-          <span style={{ display: 'block', fontWeight: 600, fontSize: 'var(--font-size-small)', marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-            எழுத்து அளவு / Font Scale:
-          </span>
-          <div className="ios-segmented-control" style={{ margin: 0 }}>
-            <button
-              type="button"
-              className={`ios-segment-btn ${fontSize === 'normal' ? 'active' : ''}`}
-              onClick={() => setFontSize('normal')}
-            >
-              Compact (14px)
-            </button>
-            <button
-              type="button"
-              className={`ios-segment-btn ${fontSize === 'large' ? 'active' : ''}`}
-              onClick={() => setFontSize('large')}
-            >
-              Large (16px)
-            </button>
-            <button
-              type="button"
-              className={`ios-segment-btn ${fontSize === 'xlarge' ? 'active' : ''}`}
-              onClick={() => setFontSize('xlarge')}
-            >
-              X-Large (18px)
-            </button>
-          </div>
-        </div>
-
-        {/* Group 2: Contrast */}
-        <div className="ios-sheet-cell">
-          <span style={{ display: 'block', fontWeight: 600, fontSize: 'var(--font-size-small)', marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-            மாறுபட்ட வண்ணம் / Contrast:
-          </span>
-          <div className="ios-segmented-control" style={{ margin: 0 }}>
-            <button
-              type="button"
-              className={`ios-segment-btn ${contrast === 'normal' ? 'active' : ''}`}
-              onClick={() => setContrast('normal')}
-            >
-              இயல்பு (Normal)
-            </button>
-            <button
-              type="button"
-              className={`ios-segment-btn ${contrast === 'high' ? 'active' : ''}`}
-              onClick={() => setContrast('high')}
-            >
-              உயர் மாறுபாடு (High)
-            </button>
-          </div>
-        </div>
-
-        {/* Group 3: Voice Audio Mute */}
-        <div className="ios-sheet-cell">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <span style={{ display: 'block', fontWeight: 600, fontSize: 'var(--font-size-small)', color: 'var(--text-primary)' }}>
-                குரல் ஒலி / Voice Speech:
-              </span>
-              <span style={{ fontSize: 'var(--font-size-small)', color: 'var(--text-secondary)' }}>
-                {voiceMuted ? 'ஒலி முடக்கப்பட்டுள்ளது (Muted)' : 'இயக்கத்தில் உள்ளது (Active)'}
-              </span>
+        {/* Content */}
+        <div className="solli-sheet-body">
+          {/* Group 1: Font Size */}
+          <div className="solli-sheet-cell">
+            <label className="solli-sheet-label">
+              எழுத்து அளவு / Font Scale:
+            </label>
+            <div className="solli-segmented">
+              <button
+                type="button"
+                className={`solli-seg-btn ${fontSize === 'normal' ? 'solli-seg-btn--active' : ''}`}
+                onClick={() => setFontSize('normal')}
+              >
+                Compact (14px)
+              </button>
+              <button
+                type="button"
+                className={`solli-seg-btn ${fontSize === 'large' ? 'solli-seg-btn--active' : ''}`}
+                onClick={() => setFontSize('large')}
+              >
+                Large (16px)
+              </button>
+              <button
+                type="button"
+                className={`solli-seg-btn ${fontSize === 'xlarge' ? 'solli-seg-btn--active' : ''}`}
+                onClick={() => setFontSize('xlarge')}
+              >
+                X-Large (18px)
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setVoiceMuted(!voiceMuted)}
-              className="ios-btn ios-btn-secondary"
-              style={{ minHeight: '38px', padding: '0.35rem 0.85rem', fontSize: 'var(--font-size-small)' }}
-            >
-              {voiceMuted ? <><IconVolume size={16} /> Unmute</> : <><IconVolumeMute size={16} /> Mute</>}
-            </button>
           </div>
-        </div>
 
-        {/* Group 4: Session Controls */}
-        <div className="ios-sheet-cell">
-          <span style={{ display: 'block', fontWeight: 600, fontSize: 'var(--font-size-small)', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-            அமர்வு கட்டுப்பாடு / Session Controls:
-          </span>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-            {canResume && (
+          {/* Group 2: Contrast */}
+          <div className="solli-sheet-cell">
+            <label className="solli-sheet-label">
+              மாறுபட்ட வண்ணம் / Contrast:
+            </label>
+            <div className="solli-segmented">
+              <button
+                type="button"
+                className={`solli-seg-btn ${contrast === 'normal' ? 'solli-seg-btn--active' : ''}`}
+                onClick={() => setContrast('normal')}
+              >
+                இயல்பு (Normal)
+              </button>
+              <button
+                type="button"
+                className={`solli-seg-btn ${contrast === 'high' ? 'solli-seg-btn--active' : ''}`}
+                onClick={() => setContrast('high')}
+              >
+                உயர் மாறுபாடு (High)
+              </button>
+            </div>
+          </div>
+
+          {/* Group 3: Voice Audio Mute */}
+          <div className="solli-sheet-cell">
+            <div className="solli-sheet-flex">
+              <div>
+                <span className="solli-sheet-label">
+                  குரல் ஒலி / Voice Speech:
+                </span>
+                <span className="solli-sheet-hint">
+                  {voiceMuted ? 'ஒலி முடக்கப்பட்டுள்ளது (Muted)' : 'இயக்கத்தில் உள்ளது (Active)'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setVoiceMuted(!voiceMuted)}
+                className="solli-btn solli-btn-ghost"
+              >
+                {voiceMuted ? <><Volume2 size={16} /> Unmute</> : <><VolumeX size={16} /> Mute</>}
+              </button>
+            </div>
+          </div>
+
+          {/* Group 4: Session Controls */}
+          <div className="solli-sheet-cell">
+            <label className="solli-sheet-label">
+              அமர்வு கட்டுப்பாடு / Session Controls:
+            </label>
+            <div className="solli-sheet-actions">
+              {canResume && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onResume()
+                    onClose()
+                  }}
+                  className="solli-btn solli-btn-primary solli-btn-block"
+                >
+                  <Play size={16} /> உரையாடலைத் தொடரவும் / Resume
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => {
-                  onResume()
+                  onRestart()
                   onClose()
                 }}
-                className="ios-btn ios-btn-primary ios-btn-block"
+                className="solli-btn solli-btn-ghost solli-btn-block"
               >
-                <IconPlay size={16} /> உரையாடலைத் தொடரவும் / Resume
+                <RotateCcw size={16} /> அமர்வை மீட்டமை / Restart
               </button>
-            )}
 
-            <button
-              type="button"
-              onClick={() => {
-                onRestart()
-                onClose()
-              }}
-              className="ios-btn ios-btn-secondary ios-btn-block"
-            >
-              <IconRefresh size={16} /> அமர்வை மீட்டமை / Restart
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                onClearData()
-                onClose()
-              }}
-              className="ios-btn ios-btn-no ios-btn-block"
-            >
-              <IconTrash size={16} /> விவரங்களை அழி / Clear Memory
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onClearData()
+                  onClose()
+                }}
+                className="solli-btn solli-btn-confirm-no solli-btn-block"
+              >
+                <Trash2 size={16} /> விவரங்களை அழி / Clear Memory
+              </button>
+            </div>
           </div>
         </div>
       </div>
