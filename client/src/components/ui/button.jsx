@@ -19,11 +19,9 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         brand:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90 active:scale-[0.98]",
+          "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow hover:from-amber-500 hover:to-orange-500 active:scale-[0.98]",
         success:
-          "bg-emerald-600 text-white shadow hover:bg-emerald-700 active:scale-[0.98]",
-        accent:
-          "bg-sky-600 text-white shadow hover:bg-sky-700 active:scale-[0.98]",
+          "bg-emerald-600 text-white shadow hover:bg-emerald-500 active:scale-[0.98]",
       },
       size: {
         default: "h-9 px-4 py-2",

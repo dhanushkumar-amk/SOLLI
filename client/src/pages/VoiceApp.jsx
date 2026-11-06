@@ -16,14 +16,6 @@ import { BUILTIN_SCHEMAS } from '../forms/index'
 // Shadcn UI Primitives
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
-import { Progress } from '@/components/ui/progress'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
 
 // Lucide Icons
 import {
@@ -236,46 +228,43 @@ export default function VoiceApp() {
           </div>
 
           {/* Centre: Scheme Identity Badge */}
-          <Badge variant="outline" className="hidden sm:inline-flex items-center gap-2 px-3 py-1 bg-muted/30 border-border text-foreground font-normal rounded-full">
-            <span className="text-muted-foreground text-xs font-medium">தமிழ்நாடு அரசு · சமூக நலத்துறை</span>
-            <Separator orientation="vertical" className="h-3 bg-border" />
-            <span className="font-semibold text-xs font-display">முதியோர் ஓய்வூதியத் திட்டம் (IGNOAPS)</span>
-          </Badge>
+          <div className="solli-header-scheme">
+            <span className="solli-scheme-dept">தமிழ்நாடு அரசு · சமூக நலத்துறை</span>
+            <span className="solli-scheme-sep" aria-hidden="true" />
+            <span className="solli-scheme-name">முதியோர் ஓய்வூதியத் திட்டம் (IGNOAPS)</span>
+          </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
+          <div className="solli-header-actions">
+            <button
+              type="button"
               onClick={() => setVoiceMuted(!context.voiceMuted)}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="solli-icon-btn"
               title={context.voiceMuted ? 'Unmute audio' : 'Mute audio'}
               aria-label={context.voiceMuted ? 'Unmute audio' : 'Mute audio'}
             >
               {context.voiceMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </Button>
+            </button>
             {state !== STATES.IDLE && (
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
+                type="button"
                 onClick={() => { triggerHaptic(20); restart() }}
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                className="solli-icon-btn"
                 title="Reset session"
                 aria-label="Reset session"
               >
                 <RefreshCw size={16} />
-              </Button>
+              </button>
             )}
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
+              type="button"
               onClick={() => { triggerHaptic(20); setIsOperatorSheetOpen(true) }}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="solli-icon-btn"
               title="Settings"
               aria-label="Settings"
             >
               <Settings size={16} />
-            </Button>
+            </button>
           </div>
         </div>
       </header>
