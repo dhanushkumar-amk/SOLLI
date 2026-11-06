@@ -110,8 +110,9 @@ export function useConversation(initialOptions = {}) {
           abortControllerRef.current = controller
 
           const currentLang = languageRef.current || 'ta'
-          const langCode = currentLang === 'en' ? 'en-IN' : 'ta-IN'
-          const voiceName = currentLang === 'en' ? 'en-IN-Neural2-A' : 'ta-IN-Valluvar'
+          const langConfig = getLanguageConfig(currentLang)
+          const langCode = langConfig.bcp47 || 'ta-IN'
+          const voiceName = langConfig.voice || 'ta-IN-Valluvar'
 
           const { audioBlob } = await synthesizeSpeech(text, {
             language: langCode,
@@ -261,10 +262,12 @@ export function useConversation(initialOptions = {}) {
         playReadbackAudio(parts)
       } else {
         const currentLang = languageRef.current || 'ta'
-        const text =
-          currentLang === 'en'
-            ? (state.activePromptText?.en || state.activePromptText?.ta || '')
-            : (state.activePromptText?.ta || state.activePromptText?.en || '')
+        const val =
+          state.answers?.[state.currentField?.id]?.display ||
+          state.answers?.[state.currentField?.id]?.value ||
+          ''
+        const template = READBACK_TEMPLATES[currentLang] || READBACK_TEMPLATES.ta
+        const text = template.replace('{value}', val)
         playPromptAudio(text, { noCache: true, isReadback: true })
       }
       return
@@ -276,10 +279,15 @@ export function useConversation(initialOptions = {}) {
       state.state === STATES.SPEAKING_ERROR
     ) {
       const currentLang = languageRef.current || 'ta'
-      const textToSpeak =
-        currentLang === 'en'
-          ? (state.activePromptText?.en || state.currentField?.question?.en || state.activePromptText?.ta)
-          : (state.activePromptText?.ta || state.currentField?.question?.ta || state.activePromptText?.en)
+      let textToSpeak = null
+      if (state.currentField) {
+        textToSpeak = getFieldQuestionInLanguage(state.currentField, currentLang)
+      } else if (state.activePromptText) {
+        textToSpeak =
+          state.activePromptText[currentLang] ||
+          state.activePromptText.ta ||
+          state.activePromptText.en
+      }
 
       if (textToSpeak) {
         playPromptAudio(textToSpeak)
