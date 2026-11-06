@@ -229,7 +229,7 @@ export default function VoiceApp() {
 
           {/* Centre: Scheme Identity Badge */}
           <div className="solli-header-scheme">
-            <span className="solli-scheme-dept">தமிழ்நாடு அரசு · சமூக நலத்துறை</span>
+            <span className="solli-scheme-dept">தமிழ்நாடு அரசு, சமூக நலத்துறை</span>
             <span className="solli-scheme-sep" aria-hidden="true" />
             <span className="solli-scheme-name">முதியோர் ஓய்வூதியத் திட்டம் (IGNOAPS)</span>
           </div>
@@ -304,7 +304,7 @@ export default function VoiceApp() {
                 Indira Gandhi National Old Age Pension Scheme
               </h1>
               <p className="solli-page-sub">
-                தமிழ்நாடு அரசு சமூக நலத்துறை — IGNOAPS Kiosk Voice Application
+                தமிழ்நாடு அரசு சமூக நலத்துறை, IGNOAPS Kiosk Voice Application
               </p>
             </div>
 
@@ -413,7 +413,7 @@ export default function VoiceApp() {
                               Listening…
                             </span>
                           ) : (
-                            <span className="solli-value-empty">—</span>
+                            <span className="solli-value-empty">Not answered</span>
                           )}
                         </td>
 
@@ -468,10 +468,11 @@ export default function VoiceApp() {
             {/* Companion header */}
             <div className="solli-companion-head">
               <div className="solli-companion-title">
-                <span className={`solli-live-dot ${state !== STATES.IDLE && !isFinished ? 'solli-live-dot--active' : ''}`} aria-hidden="true" />
                 Voice assistant
               </div>
-              <span className="solli-companion-node">Tamil Nadu</span>
+              <span className={`solli-companion-node ${state !== STATES.IDLE && !isFinished ? 'solli-companion-node--active' : ''}`}>
+                {state !== STATES.IDLE && !isFinished ? 'Session active' : 'Ready to begin'}
+              </span>
             </div>
 
             <div className="solli-companion-body">
@@ -503,7 +504,7 @@ export default function VoiceApp() {
 
                   {/* Demo voice guidance */}
                   <div className="solli-demo-box">
-                    <span className="solli-demo-title">Voice Demo Phrases (பேசக்கூடிய உதாரணங்கள்):</span>
+                    <span className="solli-demo-title">Things you can say (பேசக்கூடிய உதாரணங்கள்)</span>
                     <div className="solli-demo-list">
                       <div className="solli-demo-item">
                         <span className="solli-demo-tag">Answer:</span>
@@ -549,10 +550,6 @@ export default function VoiceApp() {
               {(state === STATES.REVIEW || (!currentField && !isFinished && state !== STATES.IDLE && state !== STATES.ERROR)) && (
                 <div className="solli-state-review">
                   <div className="solli-review-card">
-                    <div className="solli-review-badge">
-                      <FileText size={13} />
-                      Review & select
-                    </div>
                     <h3 className="solli-review-title">விண்ணப்ப விவரங்கள்</h3>
                     <p className="solli-review-sub">
                       Tap any row in the form table to speak or update that field, or click below to finalize.
@@ -573,7 +570,7 @@ export default function VoiceApp() {
                       className="solli-btn solli-btn-primary solli-btn-block"
                     >
                       <CheckCircle2 size={14} />
-                      Confirm & finish application
+                      Finish application
                     </button>
                   </div>
                 </div>
@@ -660,7 +657,7 @@ export default function VoiceApp() {
                       {isRecording ? (
                         <span className="solli-mic-label-recording">
                           <span className="solli-rec-dot" aria-hidden="true" />
-                          Recording — speak now
+                          Recording. Speak now.
                         </span>
                       ) : 'Tap to speak'}
                     </p>
@@ -729,7 +726,7 @@ export default function VoiceApp() {
                   </div>
                   <h3 className="solli-done-title">All done</h3>
                   <p className="solli-done-sub">All {totalFields} fields verified and ready to submit.</p>
-                  <div className="solli-done-cert">CERT-ID: TN-OAP-2026-849201</div>
+                  <div className="solli-done-cert">Ready for acknowledgment</div>
                   <button
                     type="button"
                     onClick={() => { triggerHaptic(30); downloadReceipt({ form: context.form || BUILTIN_SCHEMAS.pension, answers: context.answers, summary }) }}
@@ -757,7 +754,7 @@ export default function VoiceApp() {
                 aria-expanded={showMeta}
               >
                 {showMeta ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                <span>System specs & telemetry</span>
+                <span>Operator details</span>
               </button>
 
               {showMeta && (
@@ -776,7 +773,7 @@ export default function VoiceApp() {
                   </div>
                   <div className="solli-meta-tile">
                     <span className="solli-meta-label">Privacy</span>
-                    <span className="solli-meta-value solli-meta-green">0-persist</span>
+                    <span className="solli-meta-value solli-meta-green">Session only</span>
                   </div>
                 </div>
               )}

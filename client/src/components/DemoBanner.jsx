@@ -12,9 +12,8 @@ export default function DemoBanner() {
       aria-label="Demo mode announcement"
     >
       <IconAlert size={15} className="shrink-0" />
-      <span lang="en">DEMO &mdash; Fake data only, nothing is submitted</span>
-      <span aria-hidden="true" className="opacity-40">|</span>
-      <span lang="ta">மாதிரி &mdash; போலியான தரவு மட்டுமே, எங்கும் சமர்ப்பிக்கப்படாது</span>
+      <span lang="en">Demo. Fake data only, nothing is submitted.</span>
+      <span lang="ta">மாதிரி. போலியான தரவு மட்டுமே, எங்கும் சமர்ப்பிக்கப்படாது.</span>
     </aside>
   )
 }

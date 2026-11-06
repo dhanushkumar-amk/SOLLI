@@ -16,7 +16,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Applicant name (generic draft)",
+        "en": "Applicant name",
         "ta": "விண்ணப்பதாரர் பெயர்"
       },
       "question": {
@@ -62,7 +62,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Father/Husband name (generic draft)",
+        "en": "Father/Husband name",
         "ta": "தந்தை/கணவர் பெயர்"
       },
       "question": {
@@ -108,7 +108,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Date of birth (generic draft)",
+        "en": "Date of birth",
         "ta": "பிறந்த தேதி"
       },
       "question": {
@@ -154,7 +154,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Nominee name (generic draft)",
+        "en": "Nominee name",
         "ta": "நியமனதாரர் பெயர்"
       },
       "question": {
@@ -200,7 +200,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Gender (generic draft)",
+        "en": "Gender",
         "ta": "பாலினம்"
       },
       "question": {
@@ -245,7 +245,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Address (generic draft)",
+        "en": "Address",
         "ta": "முகவரி"
       },
       "question": {
@@ -291,7 +291,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Village (generic draft)",
+        "en": "Village",
         "ta": "கிராமம்"
       },
       "question": {
@@ -337,7 +337,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Taluk (generic draft)",
+        "en": "Taluk",
         "ta": "தாலுகா"
       },
       "question": {
@@ -383,7 +383,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "District (generic draft)",
+        "en": "District",
         "ta": "மாவட்டம்"
       },
       "question": {
@@ -429,7 +429,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Phone number (generic draft)",
+        "en": "Phone number",
         "ta": "தொலைபேசி எண்"
       },
       "question": {
@@ -474,7 +474,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Bank account number (generic draft)",
+        "en": "Bank account number",
         "ta": "வங்கி கணக்கு எண்"
       },
       "question": {
@@ -520,7 +520,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Aadhaar number (generic draft)",
+        "en": "Aadhaar number",
         "ta": "ஆதார் எண்"
       },
       "question": {
