@@ -39,12 +39,14 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  Globe,
 } from 'lucide-react'
 
 export default function VoiceApp() {
   const [fontSize, setFontSize] = useState('normal')
   const [contrast, setContrast] = useState('normal')
   const [isOperatorSheetOpen, setIsOperatorSheetOpen] = useState(false)
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false)
   const [typedInput, setTypedInput] = useState('')
   const [filterQuery, setFilterQuery] = useState('')
   const [showMeta, setShowMeta] = useState(false)
@@ -81,6 +83,8 @@ export default function VoiceApp() {
     restart,
     resumeFromPause,
     executeCommand,
+    language,
+    setLanguage,
   } = useConversation({
     mode: 'voice',
     voiceMuted: false,
@@ -236,6 +240,18 @@ export default function VoiceApp() {
 
           {/* Right actions */}
           <div className="solli-header-actions">
+            {/* Language Pill Button */}
+            <button
+              type="button"
+              onClick={() => { triggerHaptic(20); setIsLanguageModalOpen(true) }}
+              className="solli-lang-btn"
+              title="Change Voice Language / மொழி தேர்வு"
+              aria-label="Change Voice Language"
+            >
+              <Globe size={14} />
+              <span>{language === 'en' ? 'English' : language === 'tanglish' ? 'Tanglish' : 'தமிழ்'}</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setVoiceMuted(!context.voiceMuted)}
@@ -290,6 +306,113 @@ export default function VoiceApp() {
         onRestart={() => { triggerHaptic(20); restart() }}
         onClearData={handleClearSession}
       />
+
+      {/* Language Selection Modal */}
+      {isLanguageModalOpen && (
+        <div
+          className="solli-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="lang-modal-title"
+          onClick={() => setIsLanguageModalOpen(false)}
+        >
+          <div
+            className="solli-modal-card solli-lang-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="solli-modal-icon" aria-hidden="true">
+              <Globe size={22} />
+            </div>
+
+            <h2 id="lang-modal-title" className="solli-modal-title">
+              மொழியைத் தேர்ந்தெடுக்கவும்
+              <span className="solli-modal-subtitle">
+                Select Your Voice Language
+              </span>
+            </h2>
+
+            <p className="solli-modal-desc">
+              உங்கள் வசதிக்கேற்ப மொழியை மாற்றலாம். இது குரல் ஒலி மற்றும் கேட்கப்படும் வினாக்களை மாற்றும்.
+              <span className="solli-modal-desc-en">
+                Select a language to switch the voice, audio prompts, and speech recognition.
+              </span>
+            </p>
+
+            <div className="solli-lang-cards">
+              {/* Card 1: Tamil */}
+              <button
+                type="button"
+                className={`solli-lang-card ${language === 'ta' ? 'solli-lang-card--active' : ''}`}
+                onClick={() => {
+                  triggerHaptic(20)
+                  setLanguage('ta')
+                  setIsLanguageModalOpen(false)
+                }}
+              >
+                <div className="solli-lang-card-header">
+                  <span className="solli-lang-card-native">தமிழ்</span>
+                  {language === 'ta' && <Check size={18} className="solli-lang-card-check" />}
+                </div>
+                <span className="solli-lang-card-title">Tamil Natural Voice</span>
+                <span className="solli-lang-card-desc">தூய தமிழ் குரல் மற்றும் வினாக்கள்</span>
+              </button>
+
+              {/* Card 2: English */}
+              <button
+                type="button"
+                className={`solli-lang-card ${language === 'en' ? 'solli-lang-card--active' : ''}`}
+                onClick={() => {
+                  triggerHaptic(20)
+                  setLanguage('en')
+                  setIsLanguageModalOpen(false)
+                }}
+              >
+                <div className="solli-lang-card-header">
+                  <span className="solli-lang-card-native">English</span>
+                  {language === 'en' && <Check size={18} className="solli-lang-card-check" />}
+                </div>
+                <span className="solli-lang-card-title">Indian English Voice</span>
+                <span className="solli-lang-card-desc">Clear English speech, prompts & recognition</span>
+              </button>
+
+              {/* Card 3: Tanglish */}
+              <button
+                type="button"
+                className={`solli-lang-card ${language === 'tanglish' ? 'solli-lang-card--active' : ''}`}
+                onClick={() => {
+                  triggerHaptic(20)
+                  setLanguage('tanglish')
+                  setIsLanguageModalOpen(false)
+                }}
+              >
+                <div className="solli-lang-card-header">
+                  <span className="solli-lang-card-native">Tanglish</span>
+                  {language === 'tanglish' && <Check size={18} className="solli-lang-card-check" />}
+                </div>
+                <span className="solli-lang-card-title">Tamil + English Mixed</span>
+                <span className="solli-lang-card-desc">தமிழும் ஆங்கிலமும் கலந்த இயல்பான பேச்சு</span>
+              </button>
+            </div>
+
+            <div className="solli-lang-modal-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic(30)
+                  setIsLanguageModalOpen(false)
+                  if (state === STATES.IDLE) {
+                    handleStartSession()
+                  }
+                }}
+                className="solli-btn solli-btn-primary solli-btn-block"
+              >
+                <Play size={14} />
+                {language === 'en' ? 'Confirm & Start Voice Session' : 'உறுதி செய்து தொடங்கவும்'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── MAIN WORKSPACE ─────────────────────────────────────────────── */}
       <main className="solli-workspace">
@@ -491,15 +614,54 @@ export default function VoiceApp() {
                       <Mic size={28} />
                     </button>
                   </div>
-                  <h2 className="solli-idle-title">சொல்லுங்கள்</h2>
-                  <p className="solli-idle-sub">Speak in Tamil, Tanglish, or English and Solli fills the pension form for you.</p>
+                  <h2 className="solli-idle-title">
+                    {language === 'en' ? 'Speak Now' : 'சொல்லுங்கள்'}
+                  </h2>
+                  <p className="solli-idle-sub">
+                    {language === 'en'
+                      ? 'Speak clearly in English and Solli will fill the pension form for you.'
+                      : 'தமிழில் பேசவும். Solli படிவத்தை உங்களுக்காக நிரப்பும்.'}
+                  </p>
+
+                  {/* Language Selector Dropdown & Modal trigger */}
+                  <div className="solli-lang-picker">
+                    <div className="solli-lang-dropdown-wrap">
+                      <Globe size={15} className="solli-lang-dropdown-icon" />
+                      <select
+                        value={language}
+                        onChange={(e) => {
+                          triggerHaptic(15)
+                          setLanguage(e.target.value)
+                        }}
+                        className="solli-lang-dropdown"
+                        aria-label="Select voice language"
+                      >
+                        <option value="ta">தமிழ் (Tamil Voice)</option>
+                        <option value="en">English (Indian Voice)</option>
+                        <option value="tanglish">Tanglish (தமிழ் + Eng)</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic(15)
+                        setIsLanguageModalOpen(true)
+                      }}
+                      className="solli-lang-picker-btn"
+                      title="Choose language modal"
+                    >
+                      {language === 'en' ? 'Change' : 'மாற்று'}
+                    </button>
+                  </div>
+
                   <button
                     type="button"
                     onClick={handleStartSession}
                     className="solli-btn solli-btn-primary solli-btn-block"
                   >
                     <Play size={14} />
-                    Start voice session
+                    {language === 'en' ? 'Start voice session' : 'குரல் அமர்வை தொடங்கவும்'}
                   </button>
                 </div>
               )}
@@ -566,24 +728,32 @@ export default function VoiceApp() {
                   {/* Current field card */}
                   <div className="solli-field-card">
                     <span className="solli-field-card-label">{currentField.id.replace(/_/g, ' ')}</span>
-                    <h2 className="solli-field-card-question" lang="ta">
-                      {currentField.question?.ta || currentField.labels?.ta}
+                    <h2 className="solli-field-card-question" lang={language === 'en' ? 'en' : 'ta'}>
+                      {language === 'en'
+                        ? (currentField.question?.en || currentField.labels?.en)
+                        : (currentField.question?.ta || currentField.labels?.ta)}
                     </h2>
                     <p className="solli-field-card-en">
-                      {currentField.question?.en || currentField.labels?.en}
+                      {language === 'en'
+                        ? (currentField.question?.ta || currentField.labels?.ta)
+                        : (currentField.question?.en || currentField.labels?.en)}
                     </p>
                   </div>
 
                   {/* Readback confirmation */}
                   {isConfirmState && (
                     <div className="solli-readback">
-                      <p className="solli-readback-label">Heard:</p>
+                      <p className="solli-readback-label">
+                        {language === 'en' ? 'Heard:' : 'கேட்டது (Heard):'}
+                      </p>
                       <div className="solli-readback-value">
                         {context.answers?.[currentField.id]?.display ||
                           context.answers?.[currentField.id]?.value || '…'}
                       </div>
-                      <p className="solli-readback-hint" lang="ta">
-                        சரியாக இருந்தால் "ஆம்" எனவும், தவறெனில் "இல்லை" எனவும் சொல்லுங்கள்.
+                      <p className="solli-readback-hint">
+                        {language === 'en'
+                          ? 'Say "Yes" if correct, or "No" to re-take.'
+                          : 'சரியாக இருந்தால் "ஆம்" எனவும், தவறெனில் "இல்லை" எனவும் சொல்லுங்கள்.'}
                       </p>
                       <div className="solli-confirm-grid">
                         <button
@@ -592,7 +762,7 @@ export default function VoiceApp() {
                           className="solli-btn solli-btn-confirm-yes"
                         >
                           <Check size={15} />
-                          Confirm
+                          {language === 'en' ? 'Yes, Confirm' : 'ஆம் (Confirm)'}
                         </button>
                         <button
                           type="button"
@@ -600,7 +770,7 @@ export default function VoiceApp() {
                           className="solli-btn solli-btn-confirm-no"
                         >
                           <X size={15} />
-                          Re-take
+                          {language === 'en' ? 'No, Re-take' : 'இல்லை (Re-take)'}
                         </button>
                       </div>
                     </div>
@@ -666,30 +836,30 @@ export default function VoiceApp() {
                       type="button"
                       onClick={() => { triggerHaptic(15); repeatQuestion() }}
                       className="solli-quick-btn"
-                      title="Repeat / மீண்டும் கேள்"
+                      title={language === 'en' ? 'Repeat question' : 'மீண்டும் கேள்'}
                     >
                       <RotateCcw size={13} />
-                      Repeat
+                      {language === 'en' ? 'Repeat' : 'மீண்டும்'}
                     </button>
                     <div className="solli-quick-sep" aria-hidden="true" />
                     <button
                       type="button"
                       onClick={() => { triggerHaptic(15); executeCommand('later') }}
                       className="solli-quick-btn"
-                      title="See later / பிறகு பார்க்கலாம்"
+                      title={language === 'en' ? 'See later' : 'பிறகு பார்க்கலாம்'}
                     >
                       <Clock size={13} />
-                      Later (பிறகு)
+                      {language === 'en' ? 'Later' : 'பிறகு'}
                     </button>
                     <div className="solli-quick-sep" aria-hidden="true" />
                     <button
                       type="button"
                       onClick={() => { triggerHaptic(15); skipCurrentField() }}
                       className="solli-quick-btn"
-                      title="Skip / தவிர்"
+                      title={language === 'en' ? 'Skip field' : 'தவிர்'}
                     >
                       <SkipForward size={13} />
-                      Skip
+                      {language === 'en' ? 'Skip' : 'தவிர்'}
                     </button>
                   </div>
                 </div>

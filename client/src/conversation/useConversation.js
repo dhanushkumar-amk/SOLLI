@@ -18,11 +18,24 @@ import {
   MAX_CONFIRM_ROUNDS,
   STATES,
 } from './stateMachine'
+import {
+  getLanguageConfig,
+  getFieldQuestionInLanguage,
+  READBACK_TEMPLATES,
+} from '../utils/languages'
 
 export const MAX_SUMMARY_CHARS = 1200
 
 export function useConversation(initialOptions = {}) {
   const currentFormIdRef = useRef(initialOptions.formId || currentFormIdRef.current)
+  const [selectedLanguage, setSelectedLanguageState] = useState(initialOptions.language || 'ta')
+  const languageRef = useRef(initialOptions.language || 'ta')
+
+  const setLanguage = useCallback((lang) => {
+    languageRef.current = lang
+    setSelectedLanguageState(lang)
+  }, [])
+
   const [state, dispatch] = useReducer(
     conversationReducer,
     createInitialContext(initialOptions)
@@ -96,8 +109,13 @@ export function useConversation(initialOptions = {}) {
           const controller = new AbortController()
           abortControllerRef.current = controller
 
+          const currentLang = languageRef.current || 'ta'
+          const langCode = currentLang === 'en' ? 'en-IN' : 'ta-IN'
+          const voiceName = currentLang === 'en' ? 'en-IN-Neural2-A' : 'ta-IN-Valluvar'
+
           const { audioBlob } = await synthesizeSpeech(text, {
-            language: 'ta-IN',
+            language: langCode,
+            voice: voiceName,
             sensitive,
             noCache,
             isReadback,
@@ -242,7 +260,11 @@ export function useConversation(initialOptions = {}) {
       if (parts) {
         playReadbackAudio(parts)
       } else {
-        const text = state.activePromptText?.ta || state.activePromptText?.en || ''
+        const currentLang = languageRef.current || 'ta'
+        const text =
+          currentLang === 'en'
+            ? (state.activePromptText?.en || state.activePromptText?.ta || '')
+            : (state.activePromptText?.ta || state.activePromptText?.en || '')
         playPromptAudio(text, { noCache: true, isReadback: true })
       }
       return
@@ -253,10 +275,11 @@ export function useConversation(initialOptions = {}) {
       state.state === STATES.SPEAKING_HELP ||
       state.state === STATES.SPEAKING_ERROR
     ) {
+      const currentLang = languageRef.current || 'ta'
       const textToSpeak =
-        state.activePromptText?.ta ||
-        state.activePromptText?.en ||
-        state.currentField?.question?.ta
+        currentLang === 'en'
+          ? (state.activePromptText?.en || state.currentField?.question?.en || state.activePromptText?.ta)
+          : (state.activePromptText?.ta || state.currentField?.question?.ta || state.activePromptText?.en)
 
       if (textToSpeak) {
         playPromptAudio(textToSpeak)
@@ -495,7 +518,9 @@ export function useConversation(initialOptions = {}) {
         abortControllerRef.current = new AbortController()
         const signal = abortControllerRef.current.signal
 
-        const transcribeRes = await transcribeAudio(wavBlob, 'ta-IN', { signal })
+        const currentLang = languageRef.current || 'ta'
+        const langCode = currentLang === 'en' ? 'en-IN' : 'ta-IN'
+        const transcribeRes = await transcribeAudio(wavBlob, langCode, { signal })
         dispatch({
           type: 'TRANSCRIBE_SUCCESS',
           payload: { latencyMs: transcribeRes.latencyMs },
@@ -597,7 +622,9 @@ export function useConversation(initialOptions = {}) {
         abortControllerRef.current = new AbortController()
         const signal = abortControllerRef.current.signal
 
-        const transcribeRes = await transcribeAudio(wavBlob, 'ta-IN', { signal })
+        const currentLang = languageRef.current || 'ta'
+        const langCode = currentLang === 'en' ? 'en-IN' : 'ta-IN'
+        const transcribeRes = await transcribeAudio(wavBlob, langCode, { signal })
         const text = (transcribeRes.text || '').trim()
 
         if (!text) {
@@ -993,7 +1020,9 @@ export function useConversation(initialOptions = {}) {
           try {
             abortControllerRef.current = new AbortController()
             const signal = abortControllerRef.current.signal
-            const transcribeRes = await transcribeAudio(wavBlob, 'ta-IN', { signal })
+            const currentLang = languageRef.current || 'ta'
+        const langCode = currentLang === 'en' ? 'en-IN' : 'ta-IN'
+        const transcribeRes = await transcribeAudio(wavBlob, langCode, { signal })
             const text = (transcribeRes.text || '').trim()
             if (!text) return
 
@@ -1143,5 +1172,7 @@ export function useConversation(initialOptions = {}) {
     chooseTargetField,
     cancelChooseField,
     executeCommand,
+    language: selectedLanguage,
+    setLanguage,
   }
 }

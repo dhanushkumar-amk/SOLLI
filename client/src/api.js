@@ -93,7 +93,7 @@ export async function synthesizeSpeech(
   if (typeof window !== 'undefined' && 'speechSynthesis' in window && text) {
     try {
       const utter = new SpeechSynthesisUtterance(text.replace(/\{value\}/g, ''))
-      utter.lang = /[\u0B80-\u0BFF]/.test(text) ? 'ta-IN' : 'en-IN'
+      utter.lang = language || (/[\u0B80-\u0BFF]/.test(text) ? 'ta-IN' : 'en-IN')
       window.speechSynthesis.cancel()
       window.speechSynthesis.speak(utter)
     } catch (_) {}

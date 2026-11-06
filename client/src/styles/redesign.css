@@ -214,6 +214,27 @@
   color: var(--color-ink);
 }
 
+/* Language selector trigger in header */
+.solli-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-control);
+  background: var(--color-paper-muted);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 0;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+
+.solli-lang-btn:hover {
+  background: var(--color-paper-strong);
+}
+
 /* ── MAIN WORKSPACE ─────────────────────────────────────────────────────── */
 .solli-workspace {
   display: flex;
@@ -691,6 +712,71 @@
   text-wrap: pretty;
 }
 
+/* Language picker inline in Voice Assistant Card */
+.solli-lang-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin: 0.5rem 0 1.25rem;
+}
+
+.solli-lang-dropdown-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.solli-lang-dropdown-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--color-teal);
+  pointer-events: none;
+}
+
+.solli-lang-dropdown {
+  width: 100%;
+  height: 40px;
+  padding: 0 0.75rem 0 2.25rem;
+  border-radius: var(--radius-control);
+  background: var(--color-paper-muted);
+  border: 0;
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+
+.solli-lang-dropdown:focus {
+  background: var(--color-paper-strong);
+  outline: none;
+}
+
+.solli-lang-picker-btn {
+  height: 40px;
+  padding: 0 0.85rem;
+  border-radius: var(--radius-control);
+  background: var(--color-paper-muted);
+  border: 0;
+  color: var(--color-ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.775rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+
+.solli-lang-picker-btn:hover {
+  background: var(--color-paper-strong);
+  color: var(--color-ink);
+}
+
 /* Review state card */
 .solli-review-card {
   width: 100%;
@@ -1058,6 +1144,82 @@
   flex-direction: column;
   align-items: center;
   border: 0;
+}
+
+/* Language modal popup touch cards */
+.solli-lang-modal-card {
+  max-width: 480px;
+}
+
+.solli-lang-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  width: 100%;
+  margin: 1.25rem 0 1.5rem;
+}
+
+.solli-lang-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-control);
+  background: var(--color-paper-muted);
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+
+.solli-lang-card:hover {
+  background: var(--color-paper-strong);
+  transform: translateY(-1px);
+}
+
+.solli-lang-card--active {
+  background: var(--color-teal-pale);
+  box-shadow: inset 3px 0 var(--color-teal);
+}
+
+.solli-lang-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 0.2rem;
+}
+
+.solli-lang-card-native {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 750;
+  color: var(--color-ink);
+}
+
+.solli-lang-card--active .solli-lang-card-native {
+  color: var(--color-teal);
+}
+
+.solli-lang-card-check {
+  color: var(--color-teal);
+}
+
+.solli-lang-card-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.solli-lang-card-desc {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+  margin-top: 0.15rem;
+}
+
+.solli-lang-modal-actions {
+  width: 100%;
 }
 
 .solli-modal-icon {
