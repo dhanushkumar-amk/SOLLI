@@ -1,28 +1,28 @@
-/* Hallmark · v2.0.0 · shape: app screen · theme: service-ledger · genre: modern-minimal · posture: committed · floor: pending sweep */
-/* critique: The former interface treated every region like a small SaaS card. This layer gives the form and the live question a clear operational hierarchy. */
+/* Hallmark · v2.0.0 · shape: app screen · theme: signal-studio · genre: modern-minimal · posture: committed · floor: pending sweep */
+/* critique: Startup-grade contrast comes from a dark shell and two vivid signals, not gradients, glow or decorative cards. */
 
 :root {
-  --color-canvas: oklch(0.975 0.006 240);
-  --color-paper: oklch(0.995 0.002 240);
-  --color-paper-muted: oklch(0.955 0.008 240);
-  --color-paper-strong: oklch(0.925 0.012 240);
-  --color-ink: oklch(0.22 0.025 245);
-  --color-ink-muted: oklch(0.43 0.02 245);
-  --color-ink-faint: oklch(0.57 0.018 245);
-  --color-rule: oklch(0.84 0.012 245);
-  --color-navy: oklch(0.25 0.045 244);
-  --color-navy-hover: oklch(0.2 0.04 244);
-  --color-teal: oklch(0.48 0.1 177);
-  --color-teal-pale: oklch(0.93 0.035 177);
-  --color-saffron: oklch(0.68 0.14 71);
-  --color-saffron-ink: oklch(0.42 0.12 65);
-  --color-saffron-pale: oklch(0.95 0.04 78);
-  --color-success: oklch(0.5 0.115 151);
-  --color-success-pale: oklch(0.94 0.04 151);
-  --color-danger: oklch(0.52 0.16 28);
-  --color-danger-pale: oklch(0.95 0.04 28);
-  --color-on-dark: oklch(0.98 0.004 240);
-  --color-focus: oklch(0.57 0.16 75);
+  --color-canvas: oklch(0.979 0.008 100);
+  --color-paper: oklch(0.998 0.004 100);
+  --color-paper-muted: oklch(0.952 0.014 100);
+  --color-paper-strong: oklch(0.913 0.02 100);
+  --color-ink: oklch(0.22 0.014 100);
+  --color-ink-muted: oklch(0.45 0.018 100);
+  --color-ink-faint: oklch(0.61 0.015 100);
+  --color-rule: oklch(0.84 0.016 100);
+  --color-navy: oklch(0.2 0.012 100);
+  --color-navy-hover: oklch(0.29 0.018 100);
+  --color-teal: oklch(0.9 0.19 122);
+  --color-teal-pale: oklch(0.96 0.07 122);
+  --color-saffron: oklch(0.68 0.18 32);
+  --color-saffron-ink: oklch(0.46 0.15 30);
+  --color-saffron-pale: oklch(0.955 0.06 32);
+  --color-success: oklch(0.5 0.12 145);
+  --color-success-pale: oklch(0.94 0.05 145);
+  --color-danger: oklch(0.54 0.18 28);
+  --color-danger-pale: oklch(0.95 0.05 28);
+  --color-on-dark: oklch(0.985 0.006 100);
+  --color-focus: oklch(0.68 0.2 122);
   --font-ui: system-ui, sans-serif;
   --font-display: system-ui, sans-serif;
   --font-size-ui: 0.875rem;
@@ -86,7 +86,7 @@
 .solli-header::before { display: none; }
 .solli-header-inner { display: flex; max-width: 1440px; height: 68px; margin-inline: auto; padding: 0 var(--space-xl); align-items: center; justify-content: space-between; gap: var(--space-lg); }
 .solli-brand { display: flex; align-items: center; gap: var(--space-sm); color: var(--color-on-dark); }
-.solli-brand-icon { width: 34px; height: 34px; border-radius: var(--radius-control); background: var(--color-saffron); color: var(--color-navy); box-shadow: none; }
+.solli-brand-icon { width: 34px; height: 34px; border-radius: var(--radius-control); background: var(--color-teal); color: var(--color-ink); box-shadow: none; }
 .solli-brand-name { color: var(--color-on-dark); font-family: var(--font-display); font-size: 1.2rem; font-weight: 750; letter-spacing: -0.045em; }
 .solli-header-scheme { display: flex; flex: 1; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 0; background: transparent; }
 .solli-scheme-dept { color: var(--color-on-dark); font-size: var(--font-size-small-ui); font-weight: 600; }
@@ -172,8 +172,8 @@
 .solli-idle-sub, .solli-done-sub, .solli-review-sub, .solli-error-sub { color: var(--color-ink-muted); font-size: 0.95rem; }
 .solli-mic-ring-wrap { margin: var(--space-md) auto var(--space-lg); }
 .solli-mic-ring { border-color: var(--color-teal-pale); }
-.solli-mic-btn { border-radius: 50%; background: var(--color-teal); color: var(--color-on-dark); box-shadow: 0 0 0 10px var(--color-teal-pale); transition: background-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
-.solli-mic-btn:hover { background: var(--color-navy); }
+.solli-mic-btn { border-radius: 50%; background: var(--color-teal); color: var(--color-ink); box-shadow: 0 0 0 10px var(--color-teal-pale); transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+.solli-mic-btn:hover { background: var(--color-saffron); color: var(--color-on-dark); }
 .solli-mic-btn-idle { background: var(--color-teal); }
 .solli-mic-btn-recording { background: var(--color-danger); box-shadow: 0 0 0 10px var(--color-danger-pale); animation: none; }
 .solli-mic-label { color: var(--color-ink-muted); font-weight: 600; }

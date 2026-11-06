@@ -229,8 +229,8 @@ export default function VoiceApp() {
 
           {/* Centre: Scheme Identity Badge */}
           <div className="solli-header-scheme">
-            <span className="solli-scheme-dept">தமிழ்நாடு அரசு, சமூக நலத்துறை</span>
-            <span className="solli-scheme-sep" aria-hidden="true" />
+            <span className="solli-scheme-dept">தமிழ்நாடு அரசு · சமூக நலத்துறை</span>
+            <span className="solli-scheme-sep" aria-hidden="true">·</span>
             <span className="solli-scheme-name">முதியோர் ஓய்வூதியத் திட்டம் (IGNOAPS)</span>
           </div>
 
@@ -501,29 +501,6 @@ export default function VoiceApp() {
                     <Play size={14} />
                     Start voice session
                   </button>
-
-                  {/* Demo voice guidance */}
-                  <div className="solli-demo-box">
-                    <span className="solli-demo-title">Things you can say (பேசக்கூடிய உதாரணங்கள்)</span>
-                    <div className="solli-demo-list">
-                      <div className="solli-demo-item">
-                        <span className="solli-demo-tag">Answer:</span>
-                        <code>"என் பெயர் தனுஷ்குமார்"</code>
-                      </div>
-                      <div className="solli-demo-item">
-                        <span className="solli-demo-tag">Confirm:</span>
-                        <code>"சரி / ஆம்" அல்லது "இல்லை"</code>
-                      </div>
-                      <div className="solli-demo-item">
-                        <span className="solli-demo-tag">Later:</span>
-                        <code>"இந்த கேள்வியை பிறகு பார்க்கலாம்"</code>
-                      </div>
-                      <div className="solli-demo-item">
-                        <span className="solli-demo-tag">Next:</span>
-                        <code>"அடுத்த கேள்விக்கு போகலாம்"</code>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
 

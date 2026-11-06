@@ -16,7 +16,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Applicant name (generic draft)",
+        "en": "Applicant Full Name",
         "ta": "விண்ணப்பதாரர் பெயர்"
       },
       "question": {
@@ -62,7 +62,7 @@
       "skipReason": null,
       "labels": {
         "printed": "UNCLEAR - ask user",
-        "en": "Father/Husband name (generic draft)",
+        "en": "Father / Husband Name",
         "ta": "தந்தை/கணவர் பெயர்"
       },
       "question": {
