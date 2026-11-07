@@ -527,7 +527,8 @@ export function useConversation(initialOptions = {}) {
         const signal = abortControllerRef.current.signal
 
         const currentLang = languageRef.current || 'ta'
-        const langCode = currentLang === 'en' ? 'en-IN' : 'ta-IN'
+        const langConfig = getLanguageConfig(currentLang)
+        const langCode = langConfig?.bcp47 || 'ta-IN'
         const transcribeRes = await transcribeAudio(wavBlob, langCode, { signal })
         dispatch({
           type: 'TRANSCRIBE_SUCCESS',
@@ -631,7 +632,8 @@ export function useConversation(initialOptions = {}) {
         const signal = abortControllerRef.current.signal
 
         const currentLang = languageRef.current || 'ta'
-        const langCode = currentLang === 'en' ? 'en-IN' : 'ta-IN'
+        const langConfig = getLanguageConfig(currentLang)
+        const langCode = langConfig?.bcp47 || 'ta-IN'
         const transcribeRes = await transcribeAudio(wavBlob, langCode, { signal })
         const text = (transcribeRes.text || '').trim()
 
@@ -919,7 +921,7 @@ export function useConversation(initialOptions = {}) {
         const res = await fetchSummary({
           formId: currentFormIdRef.current,
           answers: state.answers,
-          lang: 'ta',
+          lang: languageRef.current || 'ta',
         })
         summaryList = res.summary
       }
@@ -1029,7 +1031,8 @@ export function useConversation(initialOptions = {}) {
             abortControllerRef.current = new AbortController()
             const signal = abortControllerRef.current.signal
             const currentLang = languageRef.current || 'ta'
-        const langCode = currentLang === 'en' ? 'en-IN' : 'ta-IN'
+        const langConfig = getLanguageConfig(currentLang)
+        const langCode = langConfig?.bcp47 || 'ta-IN'
         const transcribeRes = await transcribeAudio(wavBlob, langCode, { signal })
             const text = (transcribeRes.text || '').trim()
             if (!text) return

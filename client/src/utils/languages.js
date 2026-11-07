@@ -520,3 +520,4 @@ export function getFieldQuestionInLanguage(field, langCode = 'ta') {
     ''
   )
 }
+
