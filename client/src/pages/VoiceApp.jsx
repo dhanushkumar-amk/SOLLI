@@ -46,9 +46,11 @@ import {
   Clock,
   Globe,
   ShieldCheck,
+  Home,
 } from 'lucide-react'
+import Logo from '../components/Logo'
 
-export default function VoiceApp() {
+export default function VoiceApp({ onBackToLanding }) {
   const [fontSize, setFontSize] = useState('normal')
   const [contrast, setContrast] = useState('normal')
   const [isOperatorSheetOpen, setIsOperatorSheetOpen] = useState(false)
@@ -231,26 +233,36 @@ export default function VoiceApp() {
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <header className="solli-header">
         <div className="solli-header-inner">
-          {/* Brand */}
-          <div className="solli-brand">
-            <div className="solli-brand-icon" aria-hidden="true">
-              <ShieldCheck size={16} />
-            </div>
-            <div className="solli-brand-copy">
-              <span className="solli-brand-name">Solli</span>
-              <span className="solli-brand-sub">Civic Kiosk</span>
-            </div>
+          {/* Brand Logo with optional Back to Landing navigation */}
+          <div
+            className={`solli-brand ${onBackToLanding ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+            onClick={onBackToLanding}
+            title={onBackToLanding ? 'Back to Overview / முதன்மைப் பக்கம்' : 'Solli Civic Kiosk'}
+          >
+            <Logo size={32} showSub={true} />
           </div>
 
-          {/* Centre: Scheme Identity Badge */}
+          {/* Centre: Prototype Identity Badge */}
           <div className="solli-header-scheme">
-            <span className="solli-scheme-dept">தமிழ்நாடு அரசு · சமூக நலத்துறை</span>
+            <span className="solli-scheme-dept">Solli: independent prototype</span>
             <span className="solli-scheme-sep" aria-hidden="true">/</span>
-            <span className="solli-scheme-name">IGNOAPS Kiosk Registry</span>
+            <span className="solli-scheme-name">Example Form: IGNOAPS Pension</span>
           </div>
 
           {/* Right actions */}
           <div className="solli-header-actions">
+            {onBackToLanding && (
+              <button
+                type="button"
+                onClick={onBackToLanding}
+                className="solli-icon-btn"
+                title="Overview / Landing Page"
+                aria-label="Overview / Landing Page"
+              >
+                <Home size={16} />
+              </button>
+            )}
+
             {/* Language Pill Button */}
             <button
               type="button"
@@ -338,7 +350,7 @@ export default function VoiceApp() {
             <h2 id="lang-modal-title" className="solli-modal-title">
               {language === 'en' ? 'Select Voice Language' : 'மொழியைத் தேர்ந்தெடுக்கவும்'}
               <span className="solli-modal-subtitle">
-                10 Official Indian Languages + Tanglish
+                10 Indian languages (Tamil & English tested, others preview)
               </span>
             </h2>
 
@@ -406,7 +418,7 @@ export default function VoiceApp() {
                 Indira Gandhi National Old Age Pension Scheme
               </h1>
               <p className="solli-page-sub">
-                தமிழ்நாடு அரசு சமூக நலத்துறை, IGNOAPS Kiosk Voice Application
+                Solli Multilingual Voice Assistant · Example Form Prototype (IGNOAPS)
               </p>
             </div>
 

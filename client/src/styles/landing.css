@@ -1,0 +1,680 @@
+/* ==========================================================================
+   SOLLI LANDING PAGE STYLES
+   High-Craft Obsidian & Ember Theme (#161316, #453027, #FF6D29, #BABABA, #FFFFFF)
+   ========================================================================== */
+
+.landing-root {
+  min-height: 100vh;
+  background-color: #161316;
+  color: #ffffff;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  overflow-x: clip;
+  selection-background-color: #FF6D29;
+  selection-color: #161316;
+}
+
+/* ── NAV BAR ───────────────────────────────────────────────────────────── */
+.landing-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(22, 19, 22, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(69, 48, 39, 0.7);
+}
+
+.landing-nav-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.landing-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.landing-nav-link {
+  color: #BABABA;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.landing-nav-link:hover {
+  color: #ffffff;
+}
+
+.landing-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.landing-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: #272024;
+  border: 1px solid #453027;
+  color: #BABABA;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.landing-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FF6D29;
+}
+
+.landing-btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 8px;
+  background: #FF6D29;
+  color: #161316;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(255, 109, 41, 0.35);
+  transition: background-color 150ms ease, transform 100ms ease, box-shadow 150ms ease;
+}
+
+.landing-btn-cta:hover {
+  background: #ff7e40;
+  box-shadow: 0 0 24px rgba(255, 109, 41, 0.55);
+}
+
+.landing-btn-cta:active {
+  transform: scale(0.97);
+}
+
+.landing-btn-cta-lg {
+  padding: 0.85rem 1.75rem;
+  font-size: 1rem;
+  border-radius: 10px;
+}
+
+.landing-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.35rem;
+  border-radius: 10px;
+  background: #1F191D;
+  color: #ffffff;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border: 1px solid #453027;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.landing-btn-ghost:hover {
+  background: #272024;
+  border-color: #FF6D29;
+}
+
+/* ── HERO ──────────────────────────────────────────────────────────────── */
+.landing-hero {
+  position: relative;
+  padding: 4.5rem 1.5rem 3.5rem;
+  text-align: center;
+  border-bottom: 1px solid #453027;
+  overflow: hidden;
+}
+
+.landing-hero-glow {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 650px;
+  height: 380px;
+  background: radial-gradient(ellipse, rgba(255, 109, 41, 0.15) 0%, rgba(22, 19, 22, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.landing-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.landing-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: #1F191D;
+  border: 1px solid #453027;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #BABABA;
+  margin-bottom: 1.5rem;
+}
+
+.landing-hero-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin: 0 0 1.25rem;
+}
+
+.landing-hero-title-accent {
+  color: #FF6D29;
+  display: inline-block;
+}
+
+.landing-hero-sub {
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  color: #BABABA;
+  line-height: 1.6;
+  max-width: 680px;
+  margin: 0 auto 2rem;
+  font-weight: 400;
+}
+
+.landing-hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 3.5rem;
+}
+
+/* ── HERO SIMULATION CARD ──────────────────────────────────────────────── */
+.landing-mockup-wrap {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto 3rem;
+  text-align: left;
+}
+
+.landing-mockup {
+  background: #1C171A;
+  border: 1px solid rgba(255, 109, 41, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 32px rgba(255, 109, 41, 0.12);
+  overflow: hidden;
+}
+
+.landing-mockup-head {
+  padding: 0.75rem 1.25rem;
+  background: #241D21;
+  border-bottom: 1px solid #453027;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.landing-mockup-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.landing-mockup-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #161316;
+  border: 1px solid #453027;
+  font-size: 0.6875rem;
+  color: #BABABA;
+  font-family: monospace;
+}
+
+.landing-mockup-body {
+  padding: 1.5rem;
+}
+
+.landing-bubble {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.landing-bubble-solli {
+  background: #272024;
+  border: 1px solid #453027;
+}
+
+.landing-bubble-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #FF6D29;
+  margin-bottom: 0.35rem;
+}
+
+.landing-bubble-text {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #ffffff;
+  margin: 0;
+}
+
+.landing-bubble-sub {
+  font-size: 0.8125rem;
+  color: #BABABA;
+  margin: 0.25rem 0 0;
+}
+
+.landing-bubble-user {
+  background: rgba(255, 109, 41, 0.1);
+  border: 1px solid rgba(255, 109, 41, 0.3);
+  margin-left: 2rem;
+}
+
+.landing-telemetry-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #161316;
+  border: 1px solid #453027;
+  margin-top: 1rem;
+}
+
+.landing-telemetry-bars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 20px;
+}
+
+.landing-t-bar {
+  width: 3px;
+  border-radius: 1.5px;
+  background: #FF6D29;
+}
+
+.landing-telemetry-text {
+  font-size: 0.75rem;
+  color: #BABABA;
+  font-family: monospace;
+}
+
+.landing-mockup-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  background: #241D21;
+  border: 1px solid #453027;
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* ── STATS STRIP ───────────────────────────────────────────────────────── */
+.landing-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  max-width: 980px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.landing-stat-card {
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: #1F191D;
+  border: 1px solid #453027;
+  transition: border-color 150ms ease;
+}
+
+.landing-stat-card:hover {
+  border-color: rgba(255, 109, 41, 0.4);
+}
+
+.landing-stat-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: monospace;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.landing-stat-val-accent {
+  color: #FF6D29;
+}
+
+.landing-stat-label {
+  font-size: 0.75rem;
+  color: #BABABA;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+/* ── SECTIONS ──────────────────────────────────────────────────────────── */
+.landing-section {
+  padding: 5rem 1.5rem;
+  border-bottom: 1px solid #453027;
+}
+
+.landing-section-alt {
+  background: #1A1519;
+}
+
+.landing-container {
+  max-width: 1140px;
+  margin: 0 auto;
+}
+
+.landing-section-head {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 3.5rem;
+}
+
+.landing-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #FF6D29;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.landing-section-title {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  margin: 0 0 0.75rem;
+}
+
+.landing-section-desc {
+  font-size: 0.9375rem;
+  color: #BABABA;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── PROBLEM / SOLUTION CARDS ─────────────────────────────────────────── */
+.landing-problem-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.landing-ps-card {
+  padding: 2rem;
+  border-radius: 16px;
+  background: #1F191D;
+  border: 1px solid #453027;
+}
+
+.landing-ps-card-solution {
+  background: linear-gradient(180deg, rgba(255, 109, 41, 0.06) 0%, rgba(31, 25, 29, 1) 100%);
+  border-color: rgba(255, 109, 41, 0.35);
+}
+
+.landing-ps-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #272024;
+  border: 1px solid #453027;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #BABABA;
+  margin-bottom: 1.25rem;
+}
+
+.landing-ps-icon-solution {
+  color: #FF6D29;
+  border-color: rgba(255, 109, 41, 0.4);
+}
+
+.landing-ps-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 0.75rem;
+}
+
+.landing-ps-text {
+  font-size: 0.875rem;
+  color: #BABABA;
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+}
+
+.landing-ps-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.landing-ps-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.8125rem;
+  color: #d1d1d1;
+  line-height: 1.5;
+}
+
+/* ── 4-STEP PIPELINE ───────────────────────────────────────────────────── */
+.landing-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.landing-step-card {
+  padding: 1.75rem 1.5rem;
+  border-radius: 14px;
+  background: #1F191D;
+  border: 1px solid #453027;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+
+.landing-step-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 109, 41, 0.4);
+}
+
+.landing-step-num {
+  font-size: 0.75rem;
+  font-family: monospace;
+  font-weight: 700;
+  color: #FF6D29;
+  background: rgba(255, 109, 41, 0.12);
+  border: 1px solid rgba(255, 109, 41, 0.3);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.landing-step-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 0.5rem;
+}
+
+.landing-step-desc {
+  font-size: 0.8125rem;
+  color: #BABABA;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── EXTENSION FEATURE BOX ─────────────────────────────────────────────── */
+.landing-ext-box {
+  padding: 2.5rem;
+  border-radius: 20px;
+  background: #1F191D;
+  border: 1px solid #453027;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.landing-ext-demo-card {
+  background: #161316;
+  border: 1px solid #453027;
+  border-radius: 14px;
+  padding: 1.75rem;
+  text-align: center;
+}
+
+/* ── LANGUAGE CHIPS ────────────────────────────────────────────────────── */
+.landing-lang-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.landing-lang-chip {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #1F191D;
+  border: 1px solid #453027;
+  text-align: center;
+}
+
+.landing-lang-chip-tested {
+  border-color: rgba(255, 109, 41, 0.4);
+  background: rgba(255, 109, 41, 0.06);
+}
+
+.landing-lang-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.landing-lang-tag {
+  font-size: 0.6875rem;
+  color: #BABABA;
+  margin-top: 0.2rem;
+}
+
+.landing-note-callout {
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  background: #241D21;
+  border: 1px solid #453027;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* ── GNANI STACK TABLE ─────────────────────────────────────────────────── */
+.landing-table-wrap {
+  border-radius: 14px;
+  border: 1px solid #453027;
+  background: #1F191D;
+  overflow: hidden;
+}
+
+.landing-table-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 140px;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #453027;
+  gap: 1rem;
+}
+
+.landing-table-row:last-child {
+  border-bottom: 0;
+}
+
+/* ── RESPONSIVE ────────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .landing-nav-links {
+    display: none;
+  }
+  .landing-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .landing-problem-grid {
+    grid-template-columns: 1fr;
+  }
+  .landing-steps-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .landing-ext-box {
+    grid-template-columns: 1fr;
+  }
+  .landing-lang-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .landing-table-row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .landing-steps-grid {
+    grid-template-columns: 1fr;
+  }
+  .landing-lang-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .landing-hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .landing-btn-cta-lg,
+  .landing-btn-ghost {
+    width: 100%;
+  }
+}

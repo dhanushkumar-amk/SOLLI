@@ -1,6 +1,6 @@
 /**
- * Solli Official Government Acknowledgment Receipt Generator
- * Generates an official, print-ready bilingual PDF receipt for Tamil Nadu & Indian public forms.
+ * Solli Voice Assistant Acknowledgment Receipt Generator (Example Prototype)
+ * Generates an example print-ready bilingual PDF receipt for testing.
  */
 
 export function downloadReceipt({ form, answers, summary = [] }) {
@@ -104,7 +104,7 @@ export function downloadReceipt({ form, answers, summary = [] }) {
       <div class="header">
         <div>
           <div style="font-size: 13px; font-weight: 700; color: #ff5e62; text-transform: uppercase; letter-spacing: 1px;">
-            தமிழ்நாடு அரசு மின்-சேவை மையம் &bull; Sovereign Public Service
+            Solli Voice Assistant Prototype &bull; Example Receipt Preview
           </div>
           <h1 style="font-size: 20px; margin: 4px 0; color: #0f172a;">
             ${formTitleTa}
@@ -150,7 +150,7 @@ export function downloadReceipt({ form, answers, summary = [] }) {
 
       <div class="footer">
         <div>
-          <strong>சொல்லி &bull; Solli AI Kiosk</strong> &mdash; Built on Gnani AI Prisma v2.5 + Timbre + Evon
+          <strong>Solli &bull; Multilingual Voice Form Assistant</strong> &mdash; Student Prototype built with Gnani AI (Prisma v2.5 + Timbre v3.0)
           <br />
           <span>Zero-persistence privacy: எந்த விவரமும் சேவையகத்தில் நிரந்தரமாக சேமிக்கப்படவில்லை.</span>
         </div>
