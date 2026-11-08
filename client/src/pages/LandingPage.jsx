@@ -1,5 +1,7 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import Logo from '../components/Logo'
+import { motion } from 'motion/react'
+import gsap from 'gsap'
 import {
   Mic,
   ShieldCheck,
@@ -17,6 +19,29 @@ import {
 } from 'lucide-react'
 
 export default function LandingPage({ onLaunchKiosk }) {
+  const statsRef = useRef(null)
+
+  useEffect(() => {
+    if (statsRef.current) {
+      const cards = statsRef.current.querySelectorAll('.landing-stat-card')
+      gsap.fromTo(
+        cards,
+        { opacity: 0, y: 16 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: 'power2.out',
+          delay: 0.2,
+        }
+      )
+    }
+  }, [])
+
+  // 16 calibrated acoustic bar heights for the visualizer
+  const acousticFrequencies = [6, 12, 18, 14, 20, 16, 10, 18, 12, 16, 8, 4, 12, 18, 10, 6]
+
   return (
     <div className="landing-root">
       {/* ── TOP NAVIGATION ─────────────────────────────────────────────────── */}
@@ -48,57 +73,95 @@ export default function LandingPage({ onLaunchKiosk }) {
               <span>Independent prototype</span>
             </div>
 
-            <button
+            <motion.button
               type="button"
               onClick={onLaunchKiosk}
               className="landing-btn-primary"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               <Mic size={15} strokeWidth={1.5} />
               <span>Launch kiosk</span>
-            </button>
+            </motion.button>
           </div>
         </div>
       </header>
 
       <main>
-        {/* ── HERO SECTION ─────────────────────────────────────────────────── */}
+        {/* ── HERO SECTION WITH TASTEFUL AMBIENT GLOW ──────────────────────── */}
         <section className="landing-hero">
+          {/* Subtle Ambient Ember Glow Effect */}
+          <div className="landing-hero-glow" aria-hidden="true" />
+          <div className="landing-hero-glow-secondary" aria-hidden="true" />
+
           <div className="landing-hero-inner">
-            <div className="landing-hero-meta">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="landing-hero-meta"
+            >
               <span className="landing-status-dot" aria-hidden="true" />
               <span style={{ color: '#ffffff' }}>Solli prototype</span>
               <span className="landing-hero-meta-sep">/</span>
               <span>IGNOAPS Pension Form Example</span>
-            </div>
+            </motion.div>
 
-            <h1 className="landing-hero-title">
+            <motion.h1
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+              className="landing-hero-title"
+            >
               Just say it.{' '}
               <span className="landing-hero-title-accent">We'll fill the form.</span>
-            </h1>
+            </motion.h1>
 
-            <p className="landing-hero-sub">
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+              className="landing-hero-sub"
+            >
               A multilingual voice assistant helping citizens who find forms difficult to read or type complete them by speaking in their own language.
-            </p>
+            </motion.p>
 
-            <div className="landing-hero-actions">
-              <button
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="landing-hero-actions"
+            >
+              <motion.button
                 type="button"
                 onClick={onLaunchKiosk}
                 className="landing-btn-primary landing-btn-hero"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Mic size={17} strokeWidth={1.5} />
                 <span>Try voice form demo</span>
                 <ArrowRight size={16} strokeWidth={1.5} />
-              </button>
+              </motion.button>
 
-              <a href="#extension" className="landing-btn-secondary">
+              <motion.a
+                href="#extension"
+                className="landing-btn-secondary"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 <Puzzle size={16} strokeWidth={1.5} style={{ color: '#FF6D29' }} />
                 <span>Browser extension preview</span>
-              </a>
-            </div>
+              </motion.a>
+            </motion.div>
 
             {/* ── PRODUCT PREVIEW MOMENT ─────────────────────────────────────── */}
-            <div className="landing-mockup-frame">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              className="landing-mockup-frame"
+            >
               <div className="landing-mockup-window">
                 <div className="landing-mockup-head">
                   <div className="landing-mockup-title">
@@ -134,14 +197,27 @@ export default function LandingPage({ onLaunchKiosk }) {
                     </p>
                   </div>
 
-                  {/* Acoustic Telemetry */}
+                  {/* Acoustic Telemetry Visualizer with Real Motion Waves */}
                   <div className="landing-telemetry-strip">
                     <div className="landing-telemetry-bars" aria-hidden="true">
-                      {[6, 12, 18, 14, 20, 16, 10, 18, 12, 16, 8, 4, 12, 18, 10, 6].map((h, i) => (
-                        <span
+                      {acousticFrequencies.map((baseH, i) => (
+                        <motion.span
                           key={i}
                           className="landing-bar"
-                          style={{ height: `${h}px` }}
+                          animate={{
+                            height: [
+                              baseH,
+                              Math.min(22, Math.round(baseH * 1.5 + 2)),
+                              Math.max(3, Math.round(baseH * 0.45)),
+                              baseH,
+                            ],
+                          }}
+                          transition={{
+                            duration: 1.1 + (i % 5) * 0.15,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                            delay: i * 0.05,
+                          }}
                         />
                       ))}
                     </div>
@@ -157,21 +233,23 @@ export default function LandingPage({ onLaunchKiosk }) {
                       <strong style={{ color: '#ffffff', fontFamily: 'monospace' }}>15/08/1958</strong>
                       <span style={{ color: '#BABABA', fontSize: '12px' }}>(Age 66)</span>
                     </div>
-                    <button
+                    <motion.button
                       type="button"
                       onClick={onLaunchKiosk}
                       className="landing-extracted-btn"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <CheckCircle2 size={14} strokeWidth={1.5} />
                       <span>Verified format · Test in kiosk</span>
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* ── STATS ROW ─────────────────────────────────────────────────── */}
-            <div className="landing-stats-grid">
+            {/* ── STATS ROW (ANIMATED VIA GSAP) ──────────────────────────────── */}
+            <div ref={statsRef} className="landing-stats-grid">
               <div className="landing-stat-card">
                 <div className="landing-stat-num">436 / 436</div>
                 <div className="landing-stat-desc">Automated tests passing (100%)</div>
@@ -290,93 +368,33 @@ export default function LandingPage({ onLaunchKiosk }) {
             </div>
 
             <div className="landing-steps-grid">
-              <div className="landing-step-card">
-                <div className="landing-step-head">
-                  <span className="landing-step-num">01</span>
-                  <Globe2 size={16} strokeWidth={1.5} className="landing-step-icon" />
-                </div>
-                <h3 className="landing-step-title">Choose language</h3>
-                <p className="landing-step-desc">
-                  Pick from 10 Indian languages. Screen text and spoken voice switch together.
-                </p>
-              </div>
-
-              <div className="landing-step-card">
-                <div className="landing-step-head">
-                  <span className="landing-step-num">02</span>
-                  <Volume2 size={16} strokeWidth={1.5} className="landing-step-icon" />
-                </div>
-                <h3 className="landing-step-title">Solli asks</h3>
-                <p className="landing-step-desc">
-                  Each question is spoken aloud in a natural, friendly voice powered by Gnani AI.
-                </p>
-              </div>
-
-              <div className="landing-step-card">
-                <div className="landing-step-head">
-                  <span className="landing-step-num">03</span>
-                  <Mic size={16} strokeWidth={1.5} className="landing-step-icon" />
-                </div>
-                <h3 className="landing-step-title">Person answers</h3>
-                <p className="landing-step-desc">
-                  Speak freely, including mixed conversational speech such as Tamil-English.
-                </p>
-              </div>
-
-              <div className="landing-step-card">
-                <div className="landing-step-head">
-                  <span className="landing-step-num">04</span>
-                  <Layers size={16} strokeWidth={1.5} className="landing-step-icon" />
-                </div>
-                <h3 className="landing-step-title">Solli understands</h3>
-                <p className="landing-step-desc">
-                  Speech becomes text, and text becomes clean values (name, date, phone).
-                </p>
-              </div>
-
-              <div className="landing-step-card">
-                <div className="landing-step-head">
-                  <span className="landing-step-num">05</span>
-                  <CheckCircle2 size={16} strokeWidth={1.5} className="landing-step-icon" />
-                </div>
-                <h3 className="landing-step-title">Solli confirms</h3>
-                <p className="landing-step-desc">
-                  Names, dates, and numbers are read back in small groups for confirmation.
-                </p>
-              </div>
-
-              <div className="landing-step-card">
-                <div className="landing-step-head">
-                  <span className="landing-step-num">06</span>
-                  <RefreshCw size={16} strokeWidth={1.5} className="landing-step-icon" />
-                </div>
-                <h3 className="landing-step-title">Person controls flow</h3>
-                <p className="landing-step-desc">
-                  Say commands like "repeat", "go back", "skip", or "change field" at any time.
-                </p>
-              </div>
-
-              <div className="landing-step-card">
-                <div className="landing-step-head">
-                  <span className="landing-step-num">07</span>
-                  <Clock size={16} strokeWidth={1.5} className="landing-step-icon" />
-                </div>
-                <h3 className="landing-step-title">Review screen</h3>
-                <p className="landing-step-desc">
-                  A final screen lists every field with its status, editable by voice or tap.
-                </p>
-              </div>
-
-              <div className="landing-step-card">
-                <div className="landing-step-head">
-                  <span className="landing-step-num">08</span>
-                  <FileText size={16} strokeWidth={1.5} className="landing-step-icon" />
-                </div>
-                <h3 className="landing-step-title">Finish and clear</h3>
-                <p className="landing-step-desc">
-                  Generates an acknowledgment PDF, and the session clears safely from memory.
-                </p>
-              </div>
+              {[
+                { num: '01', icon: Globe2, title: 'Choose language', desc: 'Pick from 10 Indian languages. Screen text and spoken voice switch together.' },
+                { num: '02', icon: Volume2, title: 'Solli asks', desc: 'Each question is spoken aloud in a natural, friendly voice powered by Gnani AI.' },
+                { num: '03', icon: Mic, title: 'Person answers', desc: 'Speak freely, including mixed conversational speech such as Tamil-English.' },
+                { num: '04', icon: Layers, title: 'Solli understands', desc: 'Speech becomes text, and text becomes clean values (name, date, phone).' },
+                { num: '05', icon: CheckCircle2, title: 'Solli confirms', desc: 'Names, dates, and numbers are read back in small groups for confirmation.' },
+                { num: '06', icon: RefreshCw, title: 'Person controls flow', desc: 'Say commands like "repeat", "go back", "skip", or "change field" at any time.' },
+                { num: '07', icon: Clock, title: 'Review screen', desc: 'A final screen lists every field with its status, editable by voice or tap.' },
+                { num: '08', icon: FileText, title: 'Finish and clear', desc: 'Generates an acknowledgment PDF, and the session clears safely from memory.' },
+              ].map((step, idx) => {
+                const IconComponent = step.icon
+                return (
+                  <motion.div
+                    key={step.num}
+                    className="landing-step-card"
+                    whileHover={{ y: -3 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <div className="landing-step-head">
+                      <span className="landing-step-num">{step.num}</span>
+                      <IconComponent size={16} strokeWidth={1.5} className="landing-step-icon" />
+                    </div>
+                    <h3 className="landing-step-title">{step.title}</h3>
+                    <p className="landing-step-desc">{step.desc}</p>
+                  </motion.div>
+                )
+              })}
             </div>
           </div>
         </section>
@@ -393,55 +411,30 @@ export default function LandingPage({ onLaunchKiosk }) {
             </div>
 
             <div className="landing-lang-grid">
-              <div className="landing-lang-chip landing-lang-chip-tested">
-                <div className="landing-lang-name">தமிழ் (Tamil)</div>
-                <div className="landing-lang-status landing-lang-status-active">Tested speech</div>
-              </div>
-
-              <div className="landing-lang-chip landing-lang-chip-tested">
-                <div className="landing-lang-name">English (Indian)</div>
-                <div className="landing-lang-status landing-lang-status-active">Tested speech</div>
-              </div>
-
-              <div className="landing-lang-chip landing-lang-chip-tested">
-                <div className="landing-lang-name">Tanglish (Mixed)</div>
-                <div className="landing-lang-status landing-lang-status-active">Tested speech</div>
-              </div>
-
-              <div className="landing-lang-chip">
-                <div className="landing-lang-name">हिंदी (Hindi)</div>
-                <div className="landing-lang-status">Preview</div>
-              </div>
-
-              <div className="landing-lang-chip">
-                <div className="landing-lang-name">తెలుగు (Telugu)</div>
-                <div className="landing-lang-status">Preview</div>
-              </div>
-
-              <div className="landing-lang-chip">
-                <div className="landing-lang-name">ಕನ್ನಡ (Kannada)</div>
-                <div className="landing-lang-status">Preview</div>
-              </div>
-
-              <div className="landing-lang-chip">
-                <div className="landing-lang-name">മലയാളம் (Malayalam)</div>
-                <div className="landing-lang-status">Preview</div>
-              </div>
-
-              <div className="landing-lang-chip">
-                <div className="landing-lang-name">বাংলা (Bengali)</div>
-                <div className="landing-lang-status">Preview</div>
-              </div>
-
-              <div className="landing-lang-chip">
-                <div className="landing-lang-name">मराठी (Marathi)</div>
-                <div className="landing-lang-status">Preview</div>
-              </div>
-
-              <div className="landing-lang-chip">
-                <div className="landing-lang-name">ગુજરાતી (Gujarati)</div>
-                <div className="landing-lang-status">Preview</div>
-              </div>
+              {[
+                { name: 'தமிழ் (Tamil)', status: 'Tested speech', tested: true },
+                { name: 'English (Indian)', status: 'Tested speech', tested: true },
+                { name: 'Tanglish (Mixed)', status: 'Tested speech', tested: true },
+                { name: 'हिंदी (Hindi)', status: 'Preview', tested: false },
+                { name: 'తెలుగు (Telugu)', status: 'Preview', tested: false },
+                { name: 'ಕನ್ನಡ (Kannada)', status: 'Preview', tested: false },
+                { name: 'മലയാളം (Malayalam)', status: 'Preview', tested: false },
+                { name: 'বাংলা (Bengali)', status: 'Preview', tested: false },
+                { name: 'मराठी (Marathi)', status: 'Preview', tested: false },
+                { name: 'ગુજરાતી (Gujarati)', status: 'Preview', tested: false },
+              ].map((lang) => (
+                <motion.div
+                  key={lang.name}
+                  className={`landing-lang-chip ${lang.tested ? 'landing-lang-chip-tested' : ''}`}
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.14 }}
+                >
+                  <div className="landing-lang-name">{lang.name}</div>
+                  <div className={`landing-lang-status ${lang.tested ? 'landing-lang-status-active' : ''}`}>
+                    {lang.status}
+                  </div>
+                </motion.div>
+              ))}
             </div>
 
             <div className="landing-callout">
@@ -485,15 +478,17 @@ export default function LandingPage({ onLaunchKiosk }) {
                 <p style={{ fontSize: '13px', color: '#BABABA', margin: '0 0 20px' }}>
                   Experience spoken questions, answers, and audio read-backs.
                 </p>
-                <button
+                <motion.button
                   type="button"
                   onClick={onLaunchKiosk}
                   className="landing-btn-primary"
                   style={{ width: '100%', height: '40px' }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <span>Open voice demo</span>
                   <ArrowRight size={15} strokeWidth={1.5} />
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
@@ -603,15 +598,17 @@ export default function LandingPage({ onLaunchKiosk }) {
             </div>
 
             <div style={{ marginTop: '36px' }}>
-              <button
+              <motion.button
                 type="button"
                 onClick={onLaunchKiosk}
                 className="landing-btn-primary landing-btn-hero"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Mic size={17} strokeWidth={1.5} />
                 <span>Launch voice form demo</span>
                 <ArrowRight size={16} strokeWidth={1.5} />
-              </button>
+              </motion.button>
             </div>
           </div>
         </section>
