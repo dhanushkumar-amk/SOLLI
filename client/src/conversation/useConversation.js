@@ -111,8 +111,8 @@ export function useConversation(initialOptions = {}) {
 
           const currentLang = languageRef.current || 'ta'
           const langConfig = getLanguageConfig(currentLang)
-          const langCode = langConfig.bcp47 || 'ta-IN'
-          const voiceName = langConfig.voice || 'ta-IN-Valluvar'
+          const langCode = langConfig?.bcp47 || 'ta-IN'
+          const voiceName = langConfig?.voice || 'Shivani'
 
           const { audioBlob } = await synthesizeSpeech(text, {
             language: langCode,
@@ -254,7 +254,7 @@ export function useConversation(initialOptions = {}) {
 
   // Handle entry into audio-speaking states
   useEffect(() => {
-    if (inFlightRef.current) return
+    if (inFlightRef.current || isPlayingRef.current) return
 
     if (state.state === STATES.SPEAKING_READBACK) {
       const parts = state.pendingConfirmation?.readbackParts
@@ -263,6 +263,8 @@ export function useConversation(initialOptions = {}) {
       } else {
         const currentLang = languageRef.current || 'ta'
         const val =
+          state.pendingConfirmation?.display ||
+          state.pendingConfirmation?.value ||
           state.answers?.[state.currentField?.id]?.display ||
           state.answers?.[state.currentField?.id]?.value ||
           ''
@@ -280,13 +282,15 @@ export function useConversation(initialOptions = {}) {
     ) {
       const currentLang = languageRef.current || 'ta'
       let textToSpeak = null
-      if (state.currentField) {
+      if (state.state === STATES.SPEAKING_QUESTION && state.currentField) {
         textToSpeak = getFieldQuestionInLanguage(state.currentField, currentLang)
       } else if (state.activePromptText) {
         textToSpeak =
           state.activePromptText[currentLang] ||
           state.activePromptText.ta ||
           state.activePromptText.en
+      } else if (state.currentField) {
+        textToSpeak = getFieldQuestionInLanguage(state.currentField, currentLang)
       }
 
       if (textToSpeak) {

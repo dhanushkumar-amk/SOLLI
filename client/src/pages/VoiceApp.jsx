@@ -448,9 +448,9 @@ export default function VoiceApp() {
                 type="search"
                 value={filterQuery}
                 onChange={(e) => setFilterQuery(e.target.value)}
-                placeholder="Filter…"
+                placeholder="Search fields"
                 className="solli-search"
-                aria-label="Filter fields"
+                aria-label="Search fields"
               />
             </div>
 
@@ -720,8 +720,11 @@ export default function VoiceApp() {
                         {currentLangConfig.heardLabel}
                       </p>
                       <div className="solli-readback-value">
-                        {context.answers?.[currentField.id]?.display ||
-                          context.answers?.[currentField.id]?.value || '…'}
+                        {context.pendingConfirmation?.display ||
+                          context.pendingConfirmation?.value ||
+                          context.answers?.[currentField?.id]?.display ||
+                          context.answers?.[currentField?.id]?.value ||
+                          '…'}
                       </div>
                       <p className="solli-readback-hint">
                         {currentLangConfig.confirmHint}
@@ -792,7 +795,7 @@ export default function VoiceApp() {
                       type="text"
                       value={typedInput}
                       onChange={(e) => setTypedInput(e.target.value)}
-                      placeholder={isConfirmState ? 'ஆம் / இல்லை / Yes / No' : 'Or type the value…'}
+                      placeholder={isConfirmState ? 'ஆம் / இல்லை (Yes / No)' : 'Type answer manually'}
                       className="solli-type-input"
                       aria-label="Type answer"
                     />

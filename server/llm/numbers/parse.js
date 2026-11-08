@@ -8,6 +8,7 @@ import {
   TAMIL_DIGITS,
   TAMIL_TEENS,
   TAMIL_TENS,
+  TAMIL_COMPOUND_NUMBERS,
   TAMIL_SCALES,
 } from './lexicon.js'
 
@@ -107,7 +108,7 @@ export function parseSpokenNumbers(text, options = {}) {
 
   // 1. Replace Tamil glyph digits and normalize
   const clean = normalizeNumberGlyphs(text)
-    .replace(/[,\-_/]/g, ' ')
+    .replace(/[.,;:!?\-_/()[\]{}'"]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 
@@ -141,7 +142,8 @@ export function parseSpokenNumbers(text, options = {}) {
       ENGLISH_TEENS[t] !== undefined ||
       ENGLISH_TENS[t] !== undefined ||
       TAMIL_TEENS[t] !== undefined ||
-      TAMIL_TENS[t] !== undefined
+      TAMIL_TENS[t] !== undefined ||
+      TAMIL_COMPOUND_NUMBERS[t] !== undefined
     ) {
       hasTensOrTeens = true
       hasDigitsOnly = false
@@ -158,26 +160,69 @@ export function parseSpokenNumbers(text, options = {}) {
     }
   }
 
-  // Case A: Pure digit sequence (e.g. phone, aadhaar, bank account, pin, repeated digits)
-  // If there are no scale words and no tens/teens, extract sequential digits.
-  if (!hasScale && !hasTensOrTeens) {
-    let digitStr = ''
-    for (const tok of tokens) {
-      const d = getSingleDigit(tok)
-      if (d !== null) {
-        digitStr += d
-      } else if (/^[0-9]+$/.test(tok)) {
-        digitStr += tok
+  // Case A: No scale multipliers (e.g. phone numbers, account digits, PINs, digit sequences, or single numbers <= 99)
+  // Handles pairs, compound numbers, tens+units, and individual digits without summing them into mathematical totals
+  if (!hasScale) {
+    const groups = []
+    for (let i = 0; i < tokens.length; i++) {
+      const tok = tokens[i].toLowerCase()
+      if (tok === 'and' || tok === 'in' || tok === 'la' || tok === 'ரூபாய்' || tok === 'rs') {
+        continue
+      }
+
+      // 1. Compound Tamil numbers (e.g. நாற்பத்திரண்டு -> 42, தொண்ணூற்றெட்டு -> 98)
+      if (TAMIL_COMPOUND_NUMBERS[tok] !== undefined) {
+        groups.push(String(TAMIL_COMPOUND_NUMBERS[tok]))
+        continue
+      }
+
+      // 2. Tens word (English or Tamil)
+      const tensVal = ENGLISH_TENS[tok] ?? TAMIL_TENS[tok]
+      if (tensVal !== undefined) {
+        if (i + 1 < tokens.length) {
+          const nextTok = tokens[i + 1].toLowerCase()
+          const unitDigit = getSingleDigit(nextTok)
+          if (unitDigit !== null && unitDigit !== '0') {
+            const combined = tensVal + parseInt(unitDigit, 10)
+            groups.push(String(combined))
+            i++ // consumed unit token
+            continue
+          }
+        }
+        groups.push(String(tensVal))
+        continue
+      }
+
+      // 3. Teen word (English or Tamil)
+      const teenVal = ENGLISH_TEENS[tok] ?? TAMIL_TEENS[tok]
+      if (teenVal !== undefined) {
+        groups.push(String(teenVal))
+        continue
+      }
+
+      // 4. Single digit (0-9)
+      const single = getSingleDigit(tok)
+      if (single !== null) {
+        groups.push(single)
+        continue
+      }
+
+      // 5. Raw digit tokens (e.g. "98", "4215", "52010")
+      if (/^[0-9]+$/.test(tok)) {
+        groups.push(tok)
+        continue
       }
     }
 
-    if (digitStr.length > 0) {
+    if (groups.length > 0) {
+      const digitStr = groups.join('')
+      const isSingleNumber = groups.length === 1 && hasTensOrTeens
       return {
         digits: digitStr,
         value: Number(digitStr),
-        interpretation: 'digit_sequence',
+        interpretation: isSingleNumber ? 'cardinal' : 'digit_sequence',
         ambiguous: false,
-        notes: `Extracted ${digitStr.length} digits`,
+        notes: isSingleNumber ? `Parsed cardinal total: ${digitStr}` : `Extracted ${digitStr.length} digits`,
       }
     }
   }

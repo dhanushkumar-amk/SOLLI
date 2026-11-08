@@ -84,6 +84,18 @@ describe('Conversation State Machine Reducer', () => {
     assert.equal(next.advanceAfterAudio, true)
     assert.equal(next.answers.bank_account.attempts, 2)
     assert.equal(next.answers.bank_account.needsOperatorHelp, true)
+
+    // And after audio ends, it advances to next field (aadhaar), NOT jumping to review
+    const form = {
+      fields: [
+        { id: 'bank_account', spoken: true, question: { ta: 'வங்கி கணக்கு எண்?' } },
+        { id: 'aadhaar', spoken: true, question: { ta: 'ஆதார் எண்?' } },
+      ],
+    }
+    const withForm = { ...next, form }
+    const advanced = conversationReducer(withForm, { type: 'AUDIO_ENDED' })
+    assert.equal(advanced.state, STATES.SPEAKING_QUESTION)
+    assert.equal(advanced.currentFieldId, 'aadhaar')
   })
 
   test('valid answer advances to next question', () => {

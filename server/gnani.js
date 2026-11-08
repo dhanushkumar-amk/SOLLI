@@ -124,7 +124,8 @@ export async function transcribe(audioBuffer, { mimeType = 'audio/wav', language
  */
 export async function speak(text, { voice, language } = {}) {
   const apiKey = getApiKey()
-  const targetVoice = voice || GNANI_CONFIG.timbreDefaults.voice
+  const isInvalidVoice = !voice || typeof voice !== 'string' || voice.includes('-')
+  const targetVoice = isInvalidVoice ? GNANI_CONFIG.timbreDefaults.voice : voice
   const targetLang = language || GNANI_CONFIG.timbreDefaults.language
   const endpointUrl = `${GNANI_CONFIG.baseUrl}${GNANI_CONFIG.endpoints.tts}`
 
@@ -135,68 +136,95 @@ export async function speak(text, { voice, language } = {}) {
     throw new Error(`Text exceeds maximum allowed length of ${GNANI_CONFIG.maxTtsChars} characters`)
   }
 
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), GNANI_CONFIG.timeoutMs)
-
-  const startTime = Date.now()
-  let status = null
-
-  try {
-    const payload = {
-      text,
-      voice: targetVoice,
-      model: GNANI_CONFIG.timbreDefaults.model,
-      language: targetLang,
-      speed: GNANI_CONFIG.timbreDefaults.speed,
-      audio_config: GNANI_CONFIG.timbreDefaults.audioConfig,
-    }
-
-    const response = await fetch(endpointUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key-ID': apiKey,
-      },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-    })
-
-    status = response.status
-    const latencyMs = Date.now() - startTime
-
-    if (!response.ok) {
-      let errBody
-      try {
-        errBody = await response.json()
-      } catch {
-        errBody = await response.text()
-      }
-      handleGnaniError(response.status, errBody, apiKey)
-    }
-
-    const arrayBuffer = await response.arrayBuffer()
-    const audioBuffer = Buffer.from(arrayBuffer)
-    const mimeType = response.headers.get('content-type') || 'audio/wav'
-
-    // Safe logging: function name, language, audio byte size, latencyMs, and status
-    console.log(
-      `[gnani.speak] language=${targetLang} bytes=${audioBuffer.length} latencyMs=${latencyMs} status=${status}`
-    )
-
-    return {
-      audioBuffer,
-      mimeType,
-      latencyMs,
-    }
-  } catch (error) {
-    const latencyMs = Date.now() - startTime
-    if (error.name === 'AbortError') {
-      throw new Error(`Gnani TTS timed out after ${GNANI_CONFIG.timeoutMs}ms`)
-    }
-    const safeMsg = sanitizeMessage(error.message, apiKey)
-    console.error(`[gnani.speak] failed language=${targetLang} textLength=${text.length} latencyMs=${latencyMs} status=${status} error=${safeMsg}`)
-    throw new Error(safeMsg)
-  } finally {
-    clearTimeout(timer)
+  const payload = {
+    text,
+    voice: targetVoice,
+    model: GNANI_CONFIG.timbreDefaults.model,
+    language: targetLang,
+    speed: GNANI_CONFIG.timbreDefaults.speed,
+    audio_config: GNANI_CONFIG.timbreDefaults.audioConfig,
   }
+
+  let lastError = null
+
+  // Retry once on transient network/socket drops
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), GNANI_CONFIG.timeoutMs)
+    const startTime = Date.now()
+    let status = null
+
+    try {
+      const response = await fetch(endpointUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key-ID': apiKey,
+          'Connection': 'close',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      })
+
+      status = response.status
+      const latencyMs = Date.now() - startTime
+
+      if (!response.ok) {
+        let errBody
+        try {
+          errBody = await response.json()
+        } catch {
+          errBody = await response.text()
+        }
+        handleGnaniError(response.status, errBody, apiKey)
+      }
+
+      const arrayBuffer = await response.arrayBuffer()
+      const audioBuffer = Buffer.from(arrayBuffer)
+      const mimeType = response.headers.get('content-type') || 'audio/wav'
+
+      console.log(
+        `[gnani.speak] language=${targetLang} bytes=${audioBuffer.length} latencyMs=${latencyMs} status=${status}`
+      )
+
+      return {
+        audioBuffer,
+        mimeType,
+        latencyMs,
+      }
+    } catch (error) {
+      const latencyMs = Date.now() - startTime
+      clearTimeout(timer)
+
+      // If it is an explicit HTTP error from Gnani (e.g. 400 Bad Request, 401, 429), fail immediately without retrying
+      if (status !== null) {
+        const safeMsg = sanitizeMessage(error.message, apiKey)
+        console.error(`[gnani.speak] failed language=${targetLang} textLength=${text.length} latencyMs=${latencyMs} status=${status} error=${safeMsg}`)
+        throw new Error(safeMsg)
+      }
+
+      if (error.name === 'AbortError') {
+        const safeMsg = sanitizeMessage(`Gnani TTS timed out after ${GNANI_CONFIG.timeoutMs}ms`, apiKey)
+        console.error(`[gnani.speak] failed language=${targetLang} textLength=${text.length} latencyMs=${latencyMs} status=${status} error=${safeMsg}`)
+        throw new Error(safeMsg)
+      }
+
+      const causeMsg = error.cause?.message || error.cause?.code || ''
+      const safeMsg = sanitizeMessage(causeMsg ? `${error.message} (${causeMsg})` : error.message, apiKey)
+      console.warn(`[gnani.speak] attempt ${attempt} network glitch latencyMs=${latencyMs} error=${safeMsg}`)
+      lastError = error
+
+      if (attempt < 2) {
+        // Short pause before retrying fresh connection
+        await new Promise((r) => setTimeout(r, 400))
+      }
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+
+  const causeMsg = lastError?.cause?.message || lastError?.cause?.code || ''
+  const finalMsg = sanitizeMessage(causeMsg ? `${lastError.message} (${causeMsg})` : (lastError?.message || 'Gnani TTS request failed'), apiKey)
+  console.error(`[gnani.speak] failed language=${targetLang} textLength=${text.length} error=${finalMsg}`)
+  throw new Error(finalMsg)
 }

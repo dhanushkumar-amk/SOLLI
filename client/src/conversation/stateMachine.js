@@ -139,6 +139,34 @@ export function getPreviousSpokenField(form, currentFieldId) {
   return spoken[0] || null
 }
 
+export function getNextSpokenField(form, currentFieldId, answers = {}) {
+  if (!form?.fields) return null
+  const spoken = form.fields.filter((f) => f.spoken)
+  if (!spoken.length) return null
+
+  let startIndex = 0
+  if (currentFieldId) {
+    const curIdx = spoken.findIndex((f) => f.id === currentFieldId)
+    if (curIdx !== -1) {
+      startIndex = curIdx + 1
+    }
+  }
+
+  for (let i = startIndex; i < spoken.length; i++) {
+    const f = spoken[i]
+    if (f.dependsOn && answers[f.dependsOn.field]?.value !== f.dependsOn.equals) {
+      continue
+    }
+    const ans = answers[f.id]
+    // Unanswered field
+    if (!ans || (ans.value === null && !ans.skipped && !ans.needsOperatorHelp)) {
+      return f
+    }
+  }
+
+  return null
+}
+
 export function createInitialContext(options = {}) {
   return {
     state: STATES.IDLE,
@@ -246,27 +274,51 @@ export function conversationReducer(state, action) {
 
       if (state.state === STATES.SPEAKING_ERROR) {
         if (state.advanceAfterAudio) {
-          // If advancing after max attempts or max confirmation rounds
-          const { nextField, progress, isFinished, summary } = action.payload || {}
-          if (state.editingFromReview || isFinished || !nextField) {
+          if (state.editingFromReview) {
             return {
               ...state,
               state: STATES.REVIEW,
               currentField: null,
               currentFieldId: null,
               editingFromReview: false,
-              summary: summary || state.summary,
               advanceAfterAudio: false,
+              payloadForAdvance: null,
             }
           }
+
+          const advanceData = action.payload || state.payloadForAdvance || {}
+          let nextField = advanceData.nextField
+          if (!nextField && state.form && state.currentFieldId) {
+            nextField = getNextSpokenField(state.form, state.currentFieldId, state.answers)
+          }
+
+          if (!nextField || advanceData.isFinished) {
+            return {
+              ...state,
+              state: STATES.REVIEW,
+              currentField: null,
+              currentFieldId: null,
+              editingFromReview: false,
+              summary: advanceData.summary || state.summary,
+              advanceAfterAudio: false,
+              payloadForAdvance: null,
+            }
+          }
+
+          const spokenTotal = (state.form?.fields || []).filter((f) => f.spoken).length
+          const doneCount = Object.values(state.answers || {}).filter(
+            (a) => a && (a.value !== null || a.skipped || a.needsOperatorHelp)
+          ).length
+
           return {
             ...state,
             state: STATES.SPEAKING_QUESTION,
             currentField: nextField,
             currentFieldId: nextField.id,
-            progress: progress || state.progress,
+            progress: advanceData.progress || { done: doneCount, total: spokenTotal },
             activePromptText: nextField.question,
             advanceAfterAudio: false,
+            payloadForAdvance: null,
           }
         }
         // Retrying same question

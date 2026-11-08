@@ -40,6 +40,24 @@ describe('Sensitive Identifier Extractors (Phone, Aadhaar, Bank, IFSC)', () => {
       assert.ok(res.prompt.en.includes('I heard 6 digits'))
     })
 
+    it('extracts spoken word pairs (e.g. ninety eight forty two...)', () => {
+      const res = extractPhone('ninety eight forty two fifteen twenty ten')
+      assert.strictEqual(res.value, '98421 52010')
+      assert.strictEqual(res.valid, true)
+    })
+
+    it('extracts spoken Tamil digit pairs and colloquial words (saiber, ainthu)', () => {
+      const res = extractPhone('ஒன்பது எட்டு நான்கு இரண்டு ஒண்ணு ஐந்து இரண்டு சைபர் ஒண்ணு சைபர்')
+      assert.strictEqual(res.value, '98421 52010')
+      assert.strictEqual(res.valid, true)
+    })
+
+    it('strips conversational phone lead-in phrase in Tamil', () => {
+      const res = extractPhone('என் போன் நம்பர் 9842152010')
+      assert.strictEqual(res.value, '98421 52010')
+      assert.strictEqual(res.valid, true)
+    })
+
     it('rejects invalid character or too long phone', () => {
       const res = extractPhone('987654321012')
       assert.strictEqual(res.valid, false)

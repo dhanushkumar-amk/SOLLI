@@ -529,6 +529,8 @@ app.post(
   }
 )
 
+const inFlightSpeak = new Map()
+
 // Text-to-Speech endpoint (Cached & Rate-Limited)
 app.post('/api/speak', async (req, res, next) => {
   try {
@@ -562,9 +564,17 @@ app.post('/api/speak', async (req, res, next) => {
     // 2. Check live call rate limit
     assertLiveCallAllowed()
 
-    // 3. Perform live synthesis
-    const result = await speak(text, { voice, language })
-    recordLiveCall()
+    // 3. Deduplicate concurrent in-flight synthesis for identical prompt
+    const inFlightKey = `${text.trim()}::${voice || ''}::${language || ''}`
+    let speakPromise = inFlightSpeak.get(inFlightKey)
+    let isPrimary = false
+    if (!speakPromise) {
+      isPrimary = true
+      speakPromise = speak(text, { voice, language }).finally(() => inFlightSpeak.delete(inFlightKey))
+      inFlightSpeak.set(inFlightKey, speakPromise)
+    }
+    const result = await speakPromise
+    if (isPrimary) recordLiveCall()
 
     // Update call stats
     stats.speak.calls += 1
