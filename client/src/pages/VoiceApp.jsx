@@ -535,7 +535,7 @@ export default function VoiceApp({ onBackToLanding }) {
                         <td className="solli-th-status">
                           {isConfirmed ? (
                             <span className="solli-status solli-status-done">
-                              <Check size={10} aria-hidden="true" />
+                              <Check size={12} strokeWidth={1.5} aria-hidden="true" />
                               Done
                             </span>
                           ) : isCurrent ? (
@@ -568,7 +568,7 @@ export default function VoiceApp({ onBackToLanding }) {
                 onClick={() => { triggerHaptic(30); confirmFullForm() }}
                 className={`solli-btn ${isFinished ? 'solli-btn-primary' : 'solli-btn-ghost solli-btn-disabled'}`}
               >
-                <CheckCircle2 size={14} />
+                <CheckCircle2 size={15} strokeWidth={1.5} />
                 Submit application
               </button>
             </div>
@@ -602,7 +602,7 @@ export default function VoiceApp({ onBackToLanding }) {
                       className="solli-mic-btn solli-mic-btn-idle"
                       aria-label="Start voice session"
                     >
-                      <Mic size={28} />
+                      <Mic size={24} strokeWidth={1.5} />
                     </button>
                   </div>
                   <h2 className="solli-idle-title">
@@ -651,7 +651,7 @@ export default function VoiceApp({ onBackToLanding }) {
                     onClick={handleStartSession}
                     className="solli-btn solli-btn-primary solli-btn-block"
                   >
-                    <Play size={14} />
+                    <Play size={15} strokeWidth={1.5} />
                     {currentLangConfig.startBtn}
                   </button>
                 </div>
@@ -786,7 +786,7 @@ export default function VoiceApp({ onBackToLanding }) {
                         className={`solli-mic-btn ${isRecording ? 'solli-mic-btn-recording' : 'solli-mic-btn-idle'}`}
                         aria-label={isRecording ? 'Stop recording' : 'Start speaking'}
                       >
-                        <Mic size={22} />
+                        <Mic size={22} strokeWidth={1.5} />
                       </button>
                     </div>
 
@@ -794,7 +794,7 @@ export default function VoiceApp({ onBackToLanding }) {
                       {isRecording ? (
                         <span className="solli-mic-label-recording">
                           <span className="solli-rec-dot" aria-hidden="true" />
-                          Recording. Speak now.
+                          Recording · Speak now
                         </span>
                       ) : 'Tap to speak'}
                     </p>
@@ -816,7 +816,7 @@ export default function VoiceApp({ onBackToLanding }) {
                       aria-label="Type answer"
                     />
                     <button type="submit" className="solli-type-submit" aria-label="Submit typed answer">
-                      <Send size={14} />
+                      <Send size={15} strokeWidth={1.5} />
                     </button>
                   </form>
 
@@ -828,7 +828,7 @@ export default function VoiceApp({ onBackToLanding }) {
                       className="solli-quick-btn"
                       title={currentLangConfig.repeat}
                     >
-                      <RotateCcw size={13} />
+                      <RotateCcw size={14} strokeWidth={1.5} />
                       {currentLangConfig.repeat}
                     </button>
                     <div className="solli-quick-sep" aria-hidden="true" />
@@ -838,7 +838,7 @@ export default function VoiceApp({ onBackToLanding }) {
                       className="solli-quick-btn"
                       title={currentLangConfig.later}
                     >
-                      <Clock size={13} />
+                      <Clock size={14} strokeWidth={1.5} />
                       {currentLangConfig.later}
                     </button>
                     <div className="solli-quick-sep" aria-hidden="true" />
@@ -848,7 +848,7 @@ export default function VoiceApp({ onBackToLanding }) {
                       className="solli-quick-btn"
                       title={currentLangConfig.skip}
                     >
-                      <SkipForward size={13} />
+                      <SkipForward size={14} strokeWidth={1.5} />
                       {currentLangConfig.skip}
                     </button>
                   </div>

@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  /* Solli Dark Theme — Geist & Ember Palette */
-  --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
-  --font-display: "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  /* Solli Dark Theme — Neue Montreal & Ember Obsidian Palette (#FF6D29, #453027, #161316, #BABABA, #FFFFFF) */
+  --font-sans: "Neue Montreal", "PP Neue Montreal", "Plus Jakarta Sans", "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+  --font-display: "Neue Montreal", "PP Neue Montreal", "Plus Jakarta Sans", "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --color-background: #161316;
