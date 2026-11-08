@@ -18,6 +18,55 @@ import {
   FileText,
 } from 'lucide-react'
 
+// Reusable sequential animation variants for scroll reveals
+const sequentialGridVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.12,
+      delayChildren: 0.05,
+    },
+  },
+}
+
+const sequentialCardVariants = {
+  hidden: { opacity: 0, y: 28, scale: 0.96 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.55,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+}
+
+const langGridVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.07,
+      delayChildren: 0.05,
+    },
+  },
+}
+
+const langCardVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.45,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+}
+
 export default function LandingPage({ onLaunchKiosk }) {
   const statsRef = useRef(null)
 
@@ -267,44 +316,21 @@ export default function LandingPage({ onLaunchKiosk }) {
                 <div className="landing-stat-desc">In-memory session, synthetic data only</div>
               </div>
             </div>
-
-            {/* ── PALETTE TOKENS (NEUE MONTREAL) ────────────────────────────── */}
-            <div className="landing-swatch-row">
-              <div className="landing-swatch-card">
-                <span className="landing-swatch-dot" style={{ background: '#FF6D29' }} />
-                <span className="landing-swatch-hex">#FF6D29</span>
-                <span className="landing-swatch-name">Ember</span>
-              </div>
-              <div className="landing-swatch-card">
-                <span className="landing-swatch-dot" style={{ background: '#453027' }} />
-                <span className="landing-swatch-hex">#453027</span>
-                <span className="landing-swatch-name">Umber</span>
-              </div>
-              <div className="landing-swatch-card">
-                <span className="landing-swatch-dot" style={{ background: '#161316', border: '1px solid rgba(255,255,255,0.1)' }} />
-                <span className="landing-swatch-hex">#161316</span>
-                <span className="landing-swatch-name">Obsidian</span>
-              </div>
-              <div className="landing-swatch-card">
-                <span className="landing-swatch-dot" style={{ background: '#BABABA' }} />
-                <span className="landing-swatch-hex">#BABABA</span>
-                <span className="landing-swatch-name">Ash silver</span>
-              </div>
-              <div className="landing-swatch-card">
-                <span className="landing-swatch-dot" style={{ background: '#FFFFFF' }} />
-                <span className="landing-swatch-hex">#FFFFFF</span>
-                <span className="landing-swatch-name">White</span>
-              </div>
-            </div>
           </div>
         </section>
 
-        {/* ── 1. THE PROBLEM & 2. THE SOLUTION ─────────────────────────────── */}
+        {/* ── 1. THE PROBLEM & 2. THE SOLUTION (SEQUENTIAL SCROLL REVEAL) ──── */}
         <section className="landing-section">
           <div className="landing-container">
-            <div className="landing-ps-grid">
+            <motion.div
+              className="landing-ps-grid"
+              variants={sequentialGridVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+            >
               {/* Problem */}
-              <div className="landing-ps-card">
+              <motion.div className="landing-ps-card" variants={sequentialCardVariants}>
                 <div className="landing-ps-icon">
                   <AlertCircle size={20} strokeWidth={1.5} style={{ color: '#e11d48' }} />
                 </div>
@@ -326,10 +352,10 @@ export default function LandingPage({ onLaunchKiosk }) {
                     <span><strong>Monolingual portals:</strong> Most public welfare websites only support one or two formal languages.</span>
                   </li>
                 </ul>
-              </div>
+              </motion.div>
 
               {/* Solution */}
-              <div className="landing-ps-card landing-ps-card-solution">
+              <motion.div className="landing-ps-card landing-ps-card-solution" variants={sequentialCardVariants}>
                 <div className="landing-ps-icon landing-ps-icon-solution">
                   <CheckCircle2 size={20} strokeWidth={1.5} />
                 </div>
@@ -351,23 +377,36 @@ export default function LandingPage({ onLaunchKiosk }) {
                     <span><strong>Audio read-back:</strong> Critical values are read back in grouped chunks for spoken or tap confirmation.</span>
                   </li>
                 </ul>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </section>
 
-        {/* ── 3. HOW IT WORKS ──────────────────────────────────────────────── */}
+        {/* ── 3. HOW IT WORKS (ONE-BY-ONE SEQUENTIAL SCROLL ANIMATION) ──────── */}
         <section id="how-it-works" className="landing-section landing-section-alt">
           <div className="landing-container">
-            <div className="landing-section-head">
+            <motion.div
+              className="landing-section-head"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
               <span className="landing-eyebrow">Step-by-step flow</span>
               <h2 className="landing-section-title">3. How it works</h2>
               <p className="landing-section-desc">
                 From opening greeting to final printable receipt, Solli guides applicants step by step without typing.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="landing-steps-grid">
+            {/* Sequential One-By-One Cascade: 01 to 08 */}
+            <motion.div
+              className="landing-steps-grid"
+              variants={sequentialGridVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.15 }}
+            >
               {[
                 { num: '01', icon: Globe2, title: 'Choose language', desc: 'Pick from 10 Indian languages. Screen text and spoken voice switch together.' },
                 { num: '02', icon: Volume2, title: 'Solli asks', desc: 'Each question is spoken aloud in a natural, friendly voice powered by Gnani AI.' },
@@ -377,14 +416,15 @@ export default function LandingPage({ onLaunchKiosk }) {
                 { num: '06', icon: RefreshCw, title: 'Person controls flow', desc: 'Say commands like "repeat", "go back", "skip", or "change field" at any time.' },
                 { num: '07', icon: Clock, title: 'Review screen', desc: 'A final screen lists every field with its status, editable by voice or tap.' },
                 { num: '08', icon: FileText, title: 'Finish and clear', desc: 'Generates an acknowledgment PDF, and the session clears safely from memory.' },
-              ].map((step, idx) => {
+              ].map((step) => {
                 const IconComponent = step.icon
                 return (
                   <motion.div
                     key={step.num}
                     className="landing-step-card"
-                    whileHover={{ y: -3 }}
-                    transition={{ duration: 0.15 }}
+                    variants={sequentialCardVariants}
+                    whileHover={{ y: -4, borderColor: '#FF6D29' }}
+                    transition={{ duration: 0.14 }}
                   >
                     <div className="landing-step-head">
                       <span className="landing-step-num">{step.num}</span>
@@ -395,22 +435,35 @@ export default function LandingPage({ onLaunchKiosk }) {
                   </motion.div>
                 )
               })}
-            </div>
+            </motion.div>
           </div>
         </section>
 
-        {/* ── 4. MULTILINGUAL BY DESIGN ────────────────────────────────────── */}
+        {/* ── 4. MULTILINGUAL BY DESIGN (SEQUENTIAL SCROLL REVEAL) ─────────── */}
         <section id="multilingual" className="landing-section">
           <div className="landing-container">
-            <div className="landing-section-head">
+            <motion.div
+              className="landing-section-head"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
               <span className="landing-eyebrow">Language coverage</span>
               <h2 className="landing-section-title">4. Multilingual by design</h2>
               <p className="landing-section-desc">
                 One form definition powers every language. Adding a language means adding text and rules, not rebuilding the app.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="landing-lang-grid">
+            {/* Sequential Reveal of all 10 Language Chips */}
+            <motion.div
+              className="landing-lang-grid"
+              variants={langGridVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.15 }}
+            >
               {[
                 { name: 'தமிழ் (Tamil)', status: 'Tested speech', tested: true },
                 { name: 'English (Indian)', status: 'Tested speech', tested: true },
@@ -426,7 +479,8 @@ export default function LandingPage({ onLaunchKiosk }) {
                 <motion.div
                   key={lang.name}
                   className={`landing-lang-chip ${lang.tested ? 'landing-lang-chip-tested' : ''}`}
-                  whileHover={{ y: -2 }}
+                  variants={langCardVariants}
+                  whileHover={{ y: -3, borderColor: '#FF6D29' }}
                   transition={{ duration: 0.14 }}
                 >
                   <div className="landing-lang-name">{lang.name}</div>
@@ -435,9 +489,15 @@ export default function LandingPage({ onLaunchKiosk }) {
                   </div>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
 
-            <div className="landing-callout">
+            <motion.div
+              className="landing-callout"
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
               <HelpCircle size={20} strokeWidth={1.5} style={{ color: '#FF6D29', flexShrink: 0, marginTop: '2px' }} />
               <div>
                 <strong style={{ color: '#ffffff', fontSize: '14px' }}>Honest testing note</strong>
@@ -445,14 +505,20 @@ export default function LandingPage({ onLaunchKiosk }) {
                   Solli's voice and screen text are available in 10 Indian languages. Speech understanding was tested most thoroughly in <strong style={{ color: '#ffffff' }}>Tamil and English (including Tanglish)</strong> against 436 automated tests. Other languages are an early preview, and accuracy may vary.
                 </p>
               </div>
-            </div>
+            </motion.div>
           </div>
         </section>
 
         {/* ── EXTENSION PREVIEW ────────────────────────────────────────────── */}
         <section id="extension" className="landing-section landing-section-alt">
           <div className="landing-container">
-            <div className="landing-ext-box">
+            <motion.div
+              className="landing-ext-box"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            >
               <div>
                 <span className="landing-eyebrow">Deployment modes</span>
                 <h2 style={{ fontSize: '24px', fontWeight: 500, color: '#ffffff', margin: '0 0 12px', letterSpacing: '-0.02em' }}>
@@ -490,23 +556,35 @@ export default function LandingPage({ onLaunchKiosk }) {
                   <ArrowRight size={15} strokeWidth={1.5} />
                 </motion.button>
               </div>
-            </div>
+            </motion.div>
           </div>
         </section>
 
-        {/* ── 7. BUILT ON GNANI AI ─────────────────────────────────────────── */}
+        {/* ── 7. BUILT ON GNANI AI (SEQUENTIAL ROW REVEAL) ─────────────────── */}
         <section id="gnani" className="landing-section">
           <div className="landing-container" style={{ maxWidth: '860px' }}>
-            <div className="landing-section-head">
+            <motion.div
+              className="landing-section-head"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
               <span className="landing-eyebrow">Speech technology</span>
               <h2 className="landing-section-title">7. Built on Gnani AI</h2>
               <p className="landing-section-desc">
                 Specialized Indic acoustic models for conversational accuracy across vernacular dialects.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="landing-table-wrap">
-              <div className="landing-table-row">
+            <motion.div
+              className="landing-table-wrap"
+              variants={sequentialGridVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              <motion.div className="landing-table-row" variants={sequentialCardVariants}>
                 <div>
                   <strong style={{ color: '#ffffff', fontSize: '14px' }}>Prisma v2.5</strong>
                   <span className="landing-badge" style={{ marginLeft: '8px', background: 'rgba(255,109,41,0.12)', color: '#FF6D29', borderColor: 'rgba(255,109,41,0.3)' }}>Active</span>
@@ -517,9 +595,9 @@ export default function LandingPage({ onLaunchKiosk }) {
                 <div style={{ textAlign: 'right', fontSize: '12px', fontFamily: 'monospace', color: '#FF6D29' }}>
                   STT Engine
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="landing-table-row">
+              <motion.div className="landing-table-row" variants={sequentialCardVariants}>
                 <div>
                   <strong style={{ color: '#ffffff', fontSize: '14px' }}>Timbre v3.0</strong>
                   <span className="landing-badge" style={{ marginLeft: '8px', background: 'rgba(255,109,41,0.12)', color: '#FF6D29', borderColor: 'rgba(255,109,41,0.3)' }}>Active</span>
@@ -530,9 +608,9 @@ export default function LandingPage({ onLaunchKiosk }) {
                 <div style={{ textAlign: 'right', fontSize: '12px', fontFamily: 'monospace', color: '#FF6D29' }}>
                   TTS Engine
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="landing-table-row" style={{ background: '#181519' }}>
+              <motion.div className="landing-table-row" variants={sequentialCardVariants} style={{ background: '#181519' }}>
                 <div>
                   <strong style={{ color: '#BABABA', fontSize: '14px' }}>Evon v3.3</strong>
                   <span className="landing-badge" style={{ marginLeft: '8px' }}>Planned</span>
@@ -543,8 +621,8 @@ export default function LandingPage({ onLaunchKiosk }) {
                 <div style={{ textAlign: 'right', fontSize: '12px', fontFamily: 'monospace', color: '#BABABA' }}>
                   LLM Layer
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: '#BABABA' }}>
               The Gnani API key stays secure on the server and is never exposed to the client browser.
@@ -552,10 +630,16 @@ export default function LandingPage({ onLaunchKiosk }) {
           </div>
         </section>
 
-        {/* ── 9. PRIVACY & SAFETY ──────────────────────────────────────────── */}
+        {/* ── 9. PRIVACY & SAFETY (SEQUENTIAL CARD REVEAL) ──────────────────── */}
         <section className="landing-section landing-section-alt">
           <div className="landing-container" style={{ maxWidth: '860px' }}>
-            <div style={{ padding: '24px 28px', borderRadius: '14px', background: '#1C191D', border: '1px solid #453027' }}>
+            <motion.div
+              style={{ padding: '24px 28px', borderRadius: '14px', background: '#1C191D', border: '1px solid #453027' }}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                 <ShieldCheck size={18} strokeWidth={1.5} style={{ color: '#FF6D29' }} />
                 <h3 style={{ fontSize: '16px', fontWeight: 500, color: '#ffffff', margin: 0 }}>
@@ -563,21 +647,27 @@ export default function LandingPage({ onLaunchKiosk }) {
                 </h3>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', fontSize: '13px', color: '#BABABA', lineHeight: 1.55 }}>
-                <div style={{ padding: '12px 16px', background: '#161316', borderRadius: '8px', border: '1px solid #453027' }}>
+              <motion.div
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', fontSize: '13px', color: '#BABABA', lineHeight: 1.55 }}
+                variants={sequentialGridVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.15 }}
+              >
+                <motion.div style={{ padding: '12px 16px', background: '#161316', borderRadius: '8px', border: '1px solid #453027' }} variants={sequentialCardVariants}>
                   <strong style={{ color: '#ffffff' }}>Zero data stored:</strong> Answers exist only in volatile RAM during the session and are purged immediately after inactivity or restart.
-                </div>
-                <div style={{ padding: '12px 16px', background: '#161316', borderRadius: '8px', border: '1px solid #453027' }}>
+                </motion.div>
+                <motion.div style={{ padding: '12px 16px', background: '#161316', borderRadius: '8px', border: '1px solid #453027' }} variants={sequentialCardVariants}>
                   <strong style={{ color: '#ffffff' }}>Fake data only:</strong> All demos and tests use synthetic fake data only.
-                </div>
-                <div style={{ padding: '12px 16px', background: '#161316', borderRadius: '8px', border: '1px solid #453027' }}>
+                </motion.div>
+                <motion.div style={{ padding: '12px 16px', background: '#161316', borderRadius: '8px', border: '1px solid #453027' }} variants={sequentialCardVariants}>
                   <strong style={{ color: '#ffffff' }}>Format checking only:</strong> Solli checks format validity only. It does not verify records against live government databases.
-                </div>
-                <div style={{ padding: '12px 16px', background: '#161316', borderRadius: '8px', border: '1px solid #453027' }}>
+                </motion.div>
+                <motion.div style={{ padding: '12px 16px', background: '#161316', borderRadius: '8px', border: '1px solid #453027' }} variants={sequentialCardVariants}>
                   <strong style={{ color: '#ffffff' }}>No official submissions:</strong> Solli prepares forms for verification. It is an independent student prototype, not an official government service.
-                </div>
-              </div>
-            </div>
+                </motion.div>
+              </motion.div>
+            </motion.div>
           </div>
         </section>
 

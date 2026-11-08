@@ -425,47 +425,6 @@
   line-height: 1.4;
 }
 
-/* ── EXACT PALETTE SPECIFICATION STRIP ────────────────────────────────── */
-.landing-swatch-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 40px auto 0;
-  max-width: 860px;
-}
-
-.landing-swatch-card {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  height: 40px;
-  padding: 0 14px 0 6px;
-  border-radius: 8px;
-  background: #1C191D;
-  border: 1px solid #453027;
-}
-
-.landing-swatch-dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.landing-swatch-hex {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 13px;
-  color: #ffffff;
-  font-weight: 500;
-}
-
-.landing-swatch-name {
-  font-size: 12px;
-  color: #BABABA;
-}
-
 /* ── PASS 1 & 6: SECTIONS & GRID CADENCE ──────────────────────────────── */
 .landing-section {
   padding: 80px 24px;
