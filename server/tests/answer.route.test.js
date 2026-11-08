@@ -18,6 +18,9 @@ describe('POST /api/form/:id/answer Route Tests', () => {
 
   after(async () => {
     if (server) {
+      if (typeof server.closeAllConnections === 'function') {
+        server.closeAllConnections()
+      }
       await new Promise((resolve) => server.close(resolve))
     }
   })

@@ -45,6 +45,7 @@ import {
   ChevronUp,
   Clock,
   Globe,
+  ShieldCheck,
 } from 'lucide-react'
 
 export default function VoiceApp() {
@@ -233,16 +234,19 @@ export default function VoiceApp() {
           {/* Brand */}
           <div className="solli-brand">
             <div className="solli-brand-icon" aria-hidden="true">
-              <Mic size={14} />
+              <ShieldCheck size={16} />
             </div>
-            <span className="solli-brand-name">Solli</span>
+            <div className="solli-brand-copy">
+              <span className="solli-brand-name">Solli</span>
+              <span className="solli-brand-sub">Civic Kiosk</span>
+            </div>
           </div>
 
           {/* Centre: Scheme Identity Badge */}
           <div className="solli-header-scheme">
             <span className="solli-scheme-dept">தமிழ்நாடு அரசு · சமூக நலத்துறை</span>
-            <span className="solli-scheme-sep" aria-hidden="true">·</span>
-            <span className="solli-scheme-name">முதியோர் ஓய்வூதியத் திட்டம் (IGNOAPS)</span>
+            <span className="solli-scheme-sep" aria-hidden="true">/</span>
+            <span className="solli-scheme-name">IGNOAPS Kiosk Registry</span>
           </div>
 
           {/* Right actions */}

@@ -1,45 +1,45 @@
-/* Solli · Civic Voice Application · Seamless Modern Light Theme */
-/* Strict UI Mastery: No Gradients, DM Sans + Plus Jakarta Sans, Seamless Surfaces, No Blue / No Yellow */
+/* Solli · Civic Voice Application · Neue Montreal & Ember Dark Theme */
+/* Strict UI Mastery: Neue Montreal, Obsidian Base (#161316), Umber Rule (#453027), Ember Accent (#FF6D29) */
 
 :root {
-  /* ── ALPINE JADE & CHARCOAL PALETTE (Zero Blue, Zero Yellow) ─────────────── */
-  /* COLOR 1: Charcoal Ink (Headings, Body Text, Primary Buttons) */
-  --color-ink: #18181b;
-  --color-ink-muted: #71717a;
-  --color-ink-faint: #a1a1aa;
-  --color-navy: #18181b;
-  --color-navy-hover: #27272a;
-  --color-on-dark: #ffffff;
+  /* ── NEUE MONTREAL & EMBER OBSIDIAN PALETTE ───────────────────────────── */
+  /* COLOR 1: Text & Primary */
+  --color-ink: #ffffff;
+  --color-ink-muted: #BABABA;
+  --color-ink-faint: rgba(186, 186, 186, 0.6);
+  --color-navy: #FF6D29;
+  --color-navy-hover: #ff7e40;
+  --color-on-dark: #161316;
 
-  /* Surfaces & Canvas (Subtle depth without heavy borders) */
-  --color-canvas: #f6f7f8;
-  --color-paper: #ffffff;
-  --color-paper-muted: #f0f2f4;
-  --color-paper-strong: #e4e7eb;
-  --color-rule: rgba(0, 0, 0, 0.05);
+  /* Surfaces & Canvas */
+  --color-canvas: #161316;
+  --color-paper: #1d181c;
+  --color-paper-muted: #272024;
+  --color-paper-strong: #36292e;
+  --color-rule: #453027;
 
-  /* COLOR 2: Alpine Jade / Emerald (Brand, Active Focus, Mic) */
-  --color-teal: #059669;
-  --color-teal-pale: #ecfdf5;
-  --color-teal-border: rgba(5, 150, 105, 0.15);
-  --color-focus: #059669;
-  --color-saffron: #059669;
-  --color-saffron-ink: #047857;
-  --color-saffron-pale: #ecfdf5;
+  /* COLOR 2: Ember Orange (#FF6D29) */
+  --color-teal: #FF6D29;
+  --color-teal-pale: rgba(255, 109, 41, 0.14);
+  --color-teal-border: rgba(255, 109, 41, 0.35);
+  --color-focus: #FF6D29;
+  --color-saffron: #FF6D29;
+  --color-saffron-ink: #FF6D29;
+  --color-saffron-pale: rgba(255, 109, 41, 0.14);
 
-  /* COLOR 3: Forest Sage (Confirmed Answers, Checkmarks, Status Done) */
-  --color-success: #059669;
-  --color-success-pale: #ecfdf5;
-  --color-success-border: rgba(5, 150, 105, 0.18);
+  /* COLOR 3: Status Done / Confirmed */
+  --color-success: #FF6D29;
+  --color-success-pale: rgba(255, 109, 41, 0.14);
+  --color-success-border: rgba(255, 109, 41, 0.35);
 
   /* Semantic Alerts */
   --color-danger: #e11d48;
-  --color-danger-pale: #fff1f2;
-  --color-danger-border: rgba(225, 29, 72, 0.15);
+  --color-danger-pale: rgba(225, 29, 72, 0.18);
+  --color-danger-border: rgba(225, 29, 72, 0.35);
 
-  /* Typography */
-  --font-ui: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Typography: Neue Montreal */
+  --font-ui: 'Neue Montreal', -apple-system, BlinkMacSystemFont, 'Inter', 'DM Sans', sans-serif;
+  --font-display: 'Neue Montreal', -apple-system, BlinkMacSystemFont, 'Inter', 'Plus Jakarta Sans', sans-serif;
   --font-size-ui: 0.875rem;
   --font-size-small-ui: 0.75rem;
 
@@ -58,19 +58,19 @@
   --dur-short: 180ms;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Shadows for seamless elevation instead of boxy borders */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
-  --shadow-float: 0 12px 32px -8px rgba(0, 0, 0, 0.08);
+  /* Shadows for dark elevation */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-float: 0 16px 40px -8px rgba(0, 0, 0, 0.6);
 
   /* High contrast mode tokens */
-  --contrast-canvas: #09090b;
-  --contrast-paper: #18181b;
-  --contrast-paper-muted: #27272a;
-  --contrast-paper-strong: #3f3f46;
-  --contrast-ink: #fafafa;
-  --contrast-ink-muted: #d4d4d8;
-  --contrast-ink-faint: #a1a1aa;
-  --contrast-rule: #3f3f46;
+  --contrast-canvas: #0e0c0e;
+  --contrast-paper: #161316;
+  --contrast-paper-muted: #201a1e;
+  --contrast-paper-strong: #2c2227;
+  --contrast-ink: #ffffff;
+  --contrast-ink-muted: #d0d0d0;
+  --contrast-ink-faint: #BABABA;
+  --contrast-rule: #604337;
 }
 
 [data-contrast='high'] {
@@ -82,19 +82,19 @@
   --color-ink-muted: var(--contrast-ink-muted);
   --color-ink-faint: var(--contrast-ink-faint);
   --color-rule: var(--contrast-rule);
-  --color-navy: var(--contrast-ink);
-  --color-navy-hover: #ffffff;
-  --color-teal: #34d399;
-  --color-teal-pale: #064e3b;
-  --color-saffron: #34d399;
-  --color-saffron-ink: #34d399;
-  --color-saffron-pale: #064e3b;
-  --color-success: #34d399;
-  --color-success-pale: #064e3b;
+  --color-navy: #FF6D29;
+  --color-navy-hover: #ff7e40;
+  --color-teal: #FF6D29;
+  --color-teal-pale: rgba(255, 109, 41, 0.2);
+  --color-saffron: #FF6D29;
+  --color-saffron-ink: #FF6D29;
+  --color-saffron-pale: rgba(255, 109, 41, 0.2);
+  --color-success: #FF6D29;
+  --color-success-pale: rgba(255, 109, 41, 0.2);
   --color-danger: #fb7185;
   --color-danger-pale: #4c0519;
-  --color-on-dark: var(--contrast-canvas);
-  --color-focus: #34d399;
+  --color-on-dark: #161316;
+  --color-focus: #FF6D29;
 }
 
 /* ── ROOT & BASE ─────────────────────────────────────────────────────────── */
@@ -127,11 +127,11 @@
   gap: var(--space-lg);
 }
 
-/* Brand logo + icon */
+/* Brand logo + seal */
 .solli-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 10px;
   color: var(--color-ink);
   text-decoration: none;
 }
@@ -142,50 +142,59 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-control);
+  border-radius: 6px;
   background: var(--color-teal);
-  color: #ffffff;
+  color: #161316;
   flex-shrink: 0;
+}
+
+.solli-brand-copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
 }
 
 .solli-brand-name {
   color: var(--color-ink);
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 750;
-  letter-spacing: -0.03em;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
-/* Centre: Scheme Identity Badge (Borderless pill) */
+.solli-brand-sub {
+  color: var(--color-ink-muted);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Centre: Scheme Identity Badge (Civic ledger stamp) */
 .solli-header-scheme {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.35rem 0.95rem;
-  border-radius: 9999px;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 6px;
   background: var(--color-paper-muted);
-  border: 0;
+  border: 1px solid var(--color-rule);
 }
 
 .solli-scheme-dept {
   color: var(--color-ink-muted);
-  font-size: 0.775rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .solli-scheme-sep {
-  display: inline-block;
   color: var(--color-ink-faint);
-  font-size: 0.85rem;
-  line-height: 1;
+  font-size: 0.75rem;
 }
 
 .solli-scheme-name {
   color: var(--color-ink);
-  font-size: 0.8rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 /* Header action icons */
@@ -282,10 +291,10 @@
 .solli-page-title {
   color: var(--color-ink);
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
-  font-weight: 750;
-  line-height: 1.15;
-  letter-spacing: -0.035em;
+  font-size: clamp(1.35rem, 2.2vw, 1.65rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
@@ -331,7 +340,8 @@
 
 .solli-btn-primary {
   background: var(--color-navy);
-  color: #ffffff;
+  color: #161316;
+  font-weight: 600;
 }
 
 .solli-btn-primary:hover:not(:disabled) {
@@ -339,13 +349,14 @@
 }
 
 .solli-btn-ghost {
-  background: var(--color-paper);
+  background: var(--color-paper-muted);
   color: var(--color-ink);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--color-rule);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .solli-btn-ghost:hover:not(:disabled) {
-  background: var(--color-paper-muted);
+  background: var(--color-paper-strong);
   color: var(--color-ink);
 }
 
@@ -359,17 +370,19 @@
 }
 
 .solli-btn-confirm-yes {
-  background: var(--color-success);
-  color: #ffffff;
+  background: var(--color-teal);
+  color: #161316;
+  font-weight: 600;
 }
 
 .solli-btn-confirm-yes:hover {
-  background: #047857;
+  background: #ff7e40;
 }
 
 .solli-btn-confirm-no {
   background: var(--color-paper-muted);
   color: var(--color-ink);
+  border: 1px solid var(--color-rule);
 }
 
 .solli-btn-confirm-no:hover {
@@ -420,13 +433,13 @@
   transition: width var(--dur-short) var(--ease-out);
 }
 
-/* ── TABLE CARD (Clean surface, soft elevation, no harsh borders) ───────── */
+/* ── TABLE CARD (Clean surface, quiet hairline, soft elevation) ───────── */
 .solli-table-card {
   background: var(--color-paper);
   border-radius: var(--radius-surface);
   box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-rule);
   overflow: hidden;
-  border: 0;
 }
 
 .solli-table-toolbar {
@@ -595,15 +608,15 @@
 }
 
 .solli-status-done {
-  background: #ecfdf5;
-  color: #047857;
-  border-color: rgba(5, 150, 105, 0.2);
+  background: rgba(255, 109, 41, 0.15);
+  color: var(--color-teal);
+  border-color: rgba(255, 109, 41, 0.35);
 }
 
 .solli-status-active {
-  background: #f0fdf4;
-  color: var(--color-teal);
-  border-color: rgba(5, 150, 105, 0.25);
+  background: rgba(255, 109, 41, 0.25);
+  color: #ffffff;
+  border-color: var(--color-teal);
 }
 
 .solli-status-pending,
@@ -630,13 +643,13 @@
   font-weight: 500;
 }
 
-/* ── RIGHT: VOICE COMPANION CARD (Seamless, no boxy borders) ─────────────── */
+/* ── RIGHT: VOICE COMPANION CARD (Refined surface, quiet hairline) ─────────────── */
 .solli-companion {
   background: var(--color-paper);
   border-radius: var(--radius-surface);
   box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-rule);
   overflow: hidden;
-  border: 0;
 }
 
 .solli-companion-head {
@@ -658,18 +671,19 @@
 }
 
 .solli-companion-node {
-  padding: 0.2rem 0.65rem;
-  border-radius: 9999px;
+  padding: 2px 8px;
+  border-radius: 4px;
   background: var(--color-paper-muted);
   color: var(--color-ink-muted);
-  font-size: 0.725rem;
-  font-weight: 600;
-  border: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--color-rule);
 }
 
 .solli-companion-node--active {
   background: var(--color-teal-pale);
   color: var(--color-teal);
+  border-color: rgba(4, 120, 87, 0.2);
 }
 
 .solli-companion-body {
@@ -698,10 +712,10 @@
 .solli-review-title {
   color: var(--color-ink);
   font-family: var(--font-display);
-  font-size: 1.65rem;
-  font-weight: 750;
-  line-height: 1.15;
-  letter-spacing: -0.035em;
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
@@ -827,13 +841,13 @@
   border-radius: 50%;
   border: 0;
   background: var(--color-teal);
-  color: #ffffff;
+  color: #161316;
   cursor: pointer;
   transition: background-color 150ms ease, transform 100ms ease;
 }
 
 .solli-mic-btn:hover {
-  background: #047857;
+  background: #ff7e40;
 }
 
 .solli-mic-btn:active {
@@ -878,8 +892,27 @@
 
 .solli-audio-meter-wrap {
   display: flex;
-  min-height: 6px;
+  min-height: 24px;
+  align-items: center;
   justify-content: center;
+}
+
+.solli-audio-telemetry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 24px;
+  margin-top: 4px;
+}
+
+.solli-audio-bar {
+  width: 3px;
+  min-height: 3px;
+  border-radius: 1.5px;
+  background-color: var(--color-teal);
+  opacity: 0.95;
+  transition: height 60ms ease-out;
 }
 
 /* Current field question card (Clean spacing, no borders) */
@@ -1002,7 +1035,7 @@
   min-height: 38px;
   border: 0;
   background: var(--color-navy);
-  color: #ffffff;
+  color: #161316;
   cursor: pointer;
   transition: background-color var(--dur-micro) var(--ease-out);
 }
@@ -1054,16 +1087,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.75rem;
   border: 0;
 }
 
 .solli-done-icon {
-  background: var(--color-success-pale);
-  color: var(--color-success);
+  background: var(--color-teal-pale);
+  color: var(--color-teal);
 }
 
 .solli-error-icon {
@@ -1074,13 +1107,13 @@
 .solli-done-cert {
   display: inline-block;
   margin: 0.25rem 0 1rem;
-  padding: 0.3rem 0.75rem;
-  border-radius: var(--radius-control);
+  padding: 4px 10px;
+  border-radius: 4px;
   background: var(--color-paper-muted);
   color: var(--color-ink-muted);
   font-size: 0.75rem;
-  font-weight: 600;
-  border: 0;
+  font-weight: 500;
+  border: 1px solid var(--color-rule);
 }
 
 /* Operator details collapsible */
@@ -1158,13 +1191,13 @@
   background: var(--color-paper);
   border-radius: var(--radius-surface);
   box-shadow: var(--shadow-float);
+  border: 1px solid var(--color-rule);
   width: min(100%, 420px);
-  padding: 2.25rem 1.75rem 2rem;
+  padding: 2rem 1.75rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 0;
 }
 
 /* Language modal popup touch cards */
@@ -1202,19 +1235,19 @@
   padding: 0.85rem 1rem;
   border-radius: var(--radius-control);
   background: var(--color-paper-muted);
-  border: 0;
+  border: 1px solid var(--color-rule);
   text-align: left;
   cursor: pointer;
-  transition: background-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+  transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
 }
 
 .solli-lang-card:hover {
   background: var(--color-paper-strong);
-  transform: translateY(-1px);
 }
 
 .solli-lang-card--active {
   background: var(--color-teal-pale);
+  border-color: var(--color-teal);
   box-shadow: inset 3px 0 var(--color-teal);
 }
 
@@ -1229,7 +1262,7 @@
 .solli-lang-card-native {
   font-family: var(--font-display);
   font-size: 1.15rem;
-  font-weight: 750;
+  font-weight: 600;
   color: var(--color-ink);
 }
 
@@ -1258,8 +1291,8 @@
 }
 
 .solli-modal-icon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--color-teal-pale);
   color: var(--color-teal);
@@ -1267,16 +1300,16 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 1rem;
-  border: 0;
+  border: 1px solid var(--color-teal-border);
 }
 
 .solli-modal-title {
   font-family: var(--font-display);
   font-size: 1.25rem;
-  font-weight: 750;
+  font-weight: 600;
   color: var(--color-ink);
   margin: 0 0 0.5rem;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
 }
 
 .solli-modal-subtitle {
@@ -1291,25 +1324,25 @@
   display: inline-flex;
   align-items: baseline;
   gap: 0.45rem;
-  padding: 0.4rem 1rem;
+  padding: 4px 12px;
   background: var(--color-paper-muted);
-  border-radius: 9999px;
+  border-radius: 6px;
   margin: 0.75rem 0 1.15rem;
-  border: 0;
+  border: 1px solid var(--color-rule);
 }
 
 .solli-modal-countdown-num {
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.35rem;
+  font-weight: 600;
   color: var(--color-teal);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .solli-modal-countdown-label {
-  font-size: 0.775rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--color-ink-muted);
 }
 
@@ -1342,12 +1375,13 @@
   background: var(--color-paper);
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-rule);
+  border-bottom: 0;
   z-index: 501;
   overflow-y: auto;
   max-width: 580px;
   margin-inline: auto;
   padding: 1.25rem 1.5rem 2rem;
-  border: 0;
 }
 
 .solli-sheet-handle {
@@ -1382,13 +1416,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 0;
+  border: 1px solid var(--color-rule);
 }
 
 .solli-sheet-title {
   font-family: var(--font-display);
   font-size: 1.1rem;
-  font-weight: 750;
+  font-weight: 600;
   color: var(--color-ink);
   margin: 0;
 }

@@ -1,70 +1,70 @@
-/* hallmark: v2.0.0 · theme: slate-light · genre: modern-minimal · floor: verified */
 /**
- * Solli Design System Tokens (Slate / DM Sans — Clean Light Theme)
- * Pure white surfaces, slate accent, DM Sans type, no colour noise.
+ * Solli Design System Tokens (Neue Montreal & Ember Dark Theme)
+ * Pure obsidian surfaces (#161316), umber rules (#453027), ember orange accent (#FF6D29),
+ * ash silver secondary (#BABABA), and crisp white type (#FFFFFF).
  */
 
 :root {
   /* ==========================================================================
-     Core Surfaces — bright, airy light theme
+     Core Surfaces — Obsidian & Umber Dark Theme
      ========================================================================== */
-  --app-bg: #f8f9fa;
-  --app-card: #ffffff;
-  --app-card-secondary: #f8f9fa;
-  --app-sheet-bg: #ffffff;
-  --app-backdrop: rgba(15, 23, 42, 0.28);
+  --app-bg: #161316;
+  --app-card: #1d181c;
+  --app-card-secondary: #272024;
+  --app-sheet-bg: #1d181c;
+  --app-backdrop: rgba(22, 19, 22, 0.8);
 
   /* ==========================================================================
-     Typography — high contrast slate
+     Typography — High contrast White & Ash Silver
      ========================================================================== */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-tertiary: #94a3b8;
-  --text-inverse: #ffffff;
-  --text-muted: #64748b;
+  --text-primary: #ffffff;
+  --text-secondary: #BABABA;
+  --text-tertiary: rgba(186, 186, 186, 0.65);
+  --text-inverse: #161316;
+  --text-muted: #BABABA;
 
   /* ==========================================================================
-     Brand — slate/dark neutral accent (#0f172a family)
+     Brand — Ember Orange Accent (#FF6D29) & Umber (#453027)
      ========================================================================== */
-  --brand-primary: #0f172a;
-  --brand-primary-hover: #1e293b;
-  --brand-light: #f1f5f9;
-  --brand-light-border: #cbd5e1;
-  --brand-gradient: #0f172a;
-  --brand-gradient-hover: #1e293b;
-  --brand-secondary: #334155;
-  --brand-glow: transparent;
+  --brand-primary: #FF6D29;
+  --brand-primary-hover: #ff7e40;
+  --brand-light: rgba(255, 109, 41, 0.15);
+  --brand-light-border: #453027;
+  --brand-gradient: #FF6D29;
+  --brand-gradient-hover: #ff7e40;
+  --brand-secondary: #453027;
+  --brand-glow: rgba(255, 109, 41, 0.2);
 
   /* ==========================================================================
      Semantic
      ========================================================================== */
-  --success-green: #16a34a;
-  --success-green-dark: #15803d;
-  --success-gradient: #16a34a;
-  --success-light: #f0fdf4;
-  --success-border: #bbf7d0;
+  --success-green: #FF6D29;
+  --success-green-dark: #e65c19;
+  --success-gradient: #FF6D29;
+  --success-light: rgba(255, 109, 41, 0.15);
+  --success-border: rgba(255, 109, 41, 0.35);
 
-  --danger-red: #ef4444;
-  --danger-red-dark: #dc2626;
-  --danger-gradient: #ef4444;
-  --danger-light: #fef2f2;
-  --danger-border: #fecaca;
+  --danger-red: #e11d48;
+  --danger-red-dark: #be123c;
+  --danger-gradient: #e11d48;
+  --danger-light: rgba(225, 29, 72, 0.15);
+  --danger-border: rgba(225, 29, 72, 0.35);
 
-  --amber-warning: #d97706;
-  --amber-light: #fffbeb;
-  --amber-border: #fde68a;
+  --amber-warning: #f59e0b;
+  --amber-light: rgba(245, 158, 11, 0.15);
+  --amber-border: rgba(245, 158, 11, 0.35);
 
-  --sky-accent: #0ea5e9;
-  --sky-light: #f0f9ff;
-  --sky-border: #bae6fd;
+  --sky-accent: #FF6D29;
+  --sky-light: rgba(255, 109, 41, 0.15);
+  --sky-border: #453027;
 
   /* ==========================================================================
      Structural
      ========================================================================== */
-  --track-fill: rgba(0, 0, 0, 0.05);
-  --separator: rgba(0, 0, 0, 0.07);
-  --border: rgba(0, 0, 0, 0.09);
-  --border-subtle: rgba(91, 91, 214, 0.15);
+  --track-fill: #272024;
+  --separator: #453027;
+  --border: #453027;
+  --border-subtle: rgba(69, 48, 39, 0.6);
 
   /* Legacy aliases */
   --ios-bg: var(--app-bg);
@@ -90,149 +90,12 @@
   --ios-border: var(--border);
 
   /* ==========================================================================
-     Shadows — restrained, like Notion/Linear
+     Shadows — Dark elevation
      ========================================================================== */
-  --shadow-card: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
-  --shadow-card-elevated: 0 4px 16px rgba(15,23,42,0.08), 0 1px 4px rgba(15,23,42,0.04);
-  --shadow-btn: 0 1px 2px rgba(15,23,42,0.18), 0 0 0 1px rgba(15,23,42,0.08);
-  --shadow-btn-green: 0 1px 3px rgba(22, 163, 74, 0.25);
-  --shadow-mic: 0 4px 20px rgba(15,23,42,0.22);
-  --shadow-mic-active: 0 0 0 8px rgba(239, 68, 68, 0.1);
-  --shadow-sheet: 0 -2px 24px rgba(15,23,42,0.08);
-
-  --ios-shadow-card: var(--shadow-card);
-  --ios-shadow-card-elevated: var(--shadow-card-elevated);
-  --ios-shadow-btn: var(--shadow-btn);
-  --ios-shadow-mic: var(--shadow-mic);
-  --ios-shadow-mic-active: var(--shadow-mic-active);
-  --ios-shadow-sheet: var(--shadow-sheet);
-
-  /* ==========================================================================
-     Radii — tighter, Stripe-ish
-     ========================================================================== */
-  --radius-ios-card: 12px;
-  --radius-ios-btn: 8px;
-  --radius-ios-pill: 9999px;
-  --radius-ios-sm: 6px;
-
-  /* ==========================================================================
-     Typography
-     ========================================================================== */
-  --font-display: "Plus Jakarta Sans", "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-stack: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Tamil", system-ui, sans-serif;
-  --line-height-base: 1.5;
-  --line-height-heading: 1.25;
-
-  --font-size-base: 14px;
-  --font-size-body: 0.9375rem;
-  --font-size-question: 1.5rem;
-  --font-size-question-en: 0.9375rem;
-  --font-size-btn: 0.875rem;
-  --font-size-btn-large: 1rem;
-  --font-size-heard: 1.5rem;
-  --font-size-tagline: 0.9375rem;
-  --font-size-caption: 0.75rem;
-  --font-size-small: 0.6875rem;
-
-  /* ==========================================================================
-     Touch & Interaction
-     ========================================================================== */
-  --touch-target-min: 44px;
-  --touch-target-preferred: 48px;
-  --mic-btn-size: 80px;
-
-  --focus-ring-color: #0f172a;
-  --focus-ring-width: 2px;
-  --focus-ring-offset: 2px;
-
-  /* Spacing */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-}
-
-/* ==========================================================================
-   Operator Font Size Overrides (Scaled Compactly)
-   ========================================================================== */
-[data-font-size="large"] {
-  --font-size-base: 16px;
-  --font-size-body: 1.0625rem;     /* 17px */
-  --font-size-question: 1.4rem;    /* 22.4px */
-  --font-size-question-en: 1.0625rem; /* 17px */
-  --font-size-btn: 1.0625rem;      /* 17px */
-  --font-size-btn-large: 1.1875rem;/* 19px */
-  --font-size-heard: 1.55rem;      /* 24.8px */
-  --font-size-tagline: 1.0625rem;
-  --font-size-caption: 0.875rem;   /* 14px */
-  --font-size-small: 0.8125rem;    /* 13px */
-}
-
-[data-font-size="xlarge"] {
-  --font-size-base: 18px;
-  --font-size-body: 1.1875rem;     /* 19px */
-  --font-size-question: 1.5625rem; /* 25px */
-  --font-size-question-en: 1.1875rem;
-  --font-size-btn: 1.1875rem;      /* 19px */
-  --font-size-btn-large: 1.3125rem;/* 21px */
-  --font-size-heard: 1.75rem;      /* 28px */
-  --font-size-tagline: 1.1875rem;
-  --font-size-caption: 0.9375rem;  /* 15px */
-  --font-size-small: 0.875rem;     /* 14px */
-}
-
-/* ==========================================================================
-   High Contrast Mode Overrides ([data-contrast="high"])
-   ========================================================================== */
-[data-contrast="high"] {
-  --app-bg: #000000;
-  --app-card: #0a0a0a;
-  --app-card-secondary: #141414;
-  --app-sheet-bg: #0a0a0a;
-  --app-backdrop: rgba(0, 0, 0, 0.85);
-
-  --text-primary: #ffffff;
-  --text-secondary: #ffff00;
-  --text-tertiary: #f4f4f5;
-  --text-inverse: #000000;
-
-  --brand-primary: #ffffff;
-  --brand-primary-hover: #ffff00;
-  --brand-gradient: #ffffff;
-  --brand-light: #222200;
-
-  --success-green: #00ff00;
-  --success-gradient: #00ff00;
-  --success-light: #002200;
-
-  --danger-red: #ff3333;
-  --danger-gradient: #ff3333;
-  --danger-light: #220000;
-
-  --amber-warning: #ffff00;
-  --amber-light: #221c00;
-
-  --track-fill: #1f1f23;
-  --separator: #ffffff;
-  --border: #ffffff;
-
-  --focus-ring-color: #ffff00;
-  --focus-ring-width: 4px;
-  --focus-ring-offset: 3px;
-}
-
-/* ==========================================================================
-   Prefers-Reduced-Motion (Hallmark Floor Rule 7)
-   ========================================================================== */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-card-elevated: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-btn: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-btn-green: 0 1px 3px rgba(255, 109, 41, 0.3);
+  --shadow-mic: 0 4px 20px rgba(255, 109, 41, 0.25);
+  --shadow-mic-active: 0 0 0 8px rgba(255, 109, 41, 0.2);
 }

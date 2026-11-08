@@ -9,19 +9,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90 active:scale-[0.98]",
+          "bg-primary text-primary-foreground font-semibold shadow hover:bg-primary/90 active:scale-[0.98]",
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:scale-[0.98]",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground active:scale-[0.98]",
+          "border border-border bg-card text-foreground shadow-sm hover:bg-muted hover:text-foreground active:scale-[0.98]",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 active:scale-[0.98]",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-secondary text-secondary-foreground border border-border/80 shadow-sm hover:bg-secondary/80 active:scale-[0.98]",
+        ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         brand:
-          "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow hover:from-amber-500 hover:to-orange-500 active:scale-[0.98]",
+          "bg-[#FF6D29] text-[#161316] font-semibold shadow hover:bg-[#ff7e40] active:scale-[0.98]",
         success:
-          "bg-emerald-600 text-white shadow hover:bg-emerald-500 active:scale-[0.98]",
+          "bg-[#FF6D29] text-[#161316] font-semibold shadow hover:bg-[#ff7e40] active:scale-[0.98]",
       },
       size: {
         default: "h-9 px-4 py-2",
