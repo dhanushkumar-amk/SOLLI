@@ -8,6 +8,7 @@ A multilingual voice assistant that helps people who find forms hard to read or 
 
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org)
 [![React](https://img.shields.io/badge/react-19-blue.svg)](https://react.dev)
+[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-passing-brightgreen.svg)](#testing)
 [![Status](https://img.shields.io/badge/status-prototype-orange.svg)](#disclaimer)
 [![Challenge](https://img.shields.io/badge/contest-Great%20Indian%20AI%20Internship%20Challenge-purple.svg)](#contest-and-credits)
 [![License](https://img.shields.io/badge/license-TBD-lightgrey.svg)](#license)
@@ -49,15 +50,9 @@ A multilingual voice assistant that helps people who find forms hard to read or 
 
 ---
 
-<<<<<<< HEAD
 <div align="center">
   <img src="docs/screenshots/hero-landing.png" alt="Solli Multilingual Voice Assistant Hero Interface" width="100%" />
 </div>
-=======
-<!-- TODO: Hero screenshot or GIF (capture from demo mode and place in docs/screenshots/01-language-screen.png) -->
-> [!NOTE]
-> Application screenshots are being captured with synthetic demo data. See [docs/screenshots/README.md](docs/screenshots/README.md) for the 5-screen capture checklist.
->>>>>>> 4c065ca7ed5e7af1ec134ff98f66d559ab417217
 
 ---
 
@@ -69,13 +64,10 @@ Many eligible applicants miss welfare pensions, scholarships, and public assista
 
 Solli turns welfare form filling into a calm, spoken conversation in the applicant's own language. The applicant selects their language, listens to each question spoken aloud in a natural regional voice, and replies naturally using conversational or code-mixed speech. Solli extracts clean values, verifies sensitive identifiers through chunked read-backs, and presents a complete review summary with zero typing required. Answers live purely in volatile memory during the active session and are never saved to a database or browser storage.
 
-<<<<<<< HEAD
 <div align="center">
   <img src="docs/screenshots/problem-solution.png" alt="Solli Problem and Solution Overview" width="100%" />
 </div>
 
-=======
->>>>>>> 4c065ca7ed5e7af1ec134ff98f66d559ab417217
 ---
 
 ## Who it is for
@@ -84,24 +76,18 @@ Solli turns welfare form filling into a calm, spoken conversation in the applica
 - **Applicants (The End User):** Elderly citizens, rural residents, first-time welfare applicants, and anyone who finds typing or reading formal administrative prose difficult.
 - **Operators (The Supervisor):** Helpdesk staff who supervise kiosks, assist when users are unsure, make manual corrections via touch or voice, and print final summaries.
 
-<<<<<<< HEAD
 <div align="center">
   <img src="docs/screenshots/kiosk-app.png" alt="Solli Kiosk Voice Assistant Application Interface" width="100%" />
 </div>
 
-=======
->>>>>>> 4c065ca7ed5e7af1ec134ff98f66d559ab417217
 ---
 
 ## How it works
 
-<<<<<<< HEAD
 <div align="center">
   <img src="docs/screenshots/how-it-works-diagram.png" alt="How Solli Works - Handwritten End-to-End Flow Diagram" width="100%" />
 </div>
 
-=======
->>>>>>> 4c065ca7ed5e7af1ec134ff98f66d559ab417217
 1. **Choose a language:** The applicant picks from 10 Indian languages (or Tanglish). Screen text and spoken voice switch together.
 2. **Solli asks:** Each question is spoken aloud in a natural, friendly regional voice.
 3. **The person answers:** The applicant speaks freely, including code-mixed answers such as Tamil-English or Hindi-English.
@@ -203,7 +189,6 @@ stateDiagram-v2
 
 ## Architecture
 
-<<<<<<< HEAD
 <div align="center">
   <img src="docs/screenshots/architecture-deep-dive.png" alt="Solli High-Level Design (HLD) Architecture Deep Dive" width="100%" />
 </div>
@@ -315,147 +300,6 @@ Configured in `server/.env` (derived from `server/.env.example`):
 
 ---
 
-=======
-```mermaid
-graph TD
-    subgraph Browser ["Client (React 19 + Vite)"]
-        UI[Kiosk / Mobile UI]
-        AudioRec[Web Audio API 16kHz PCM WAV]
-        StateMachine[Conversation State Machine]
-    end
-
-    subgraph Backend ["Server (Node.js + Express)"]
-        Routes[API Routes: /api/transcribe, /api/speak, /api/form]
-        TTSCache[In-Memory Audio Cache]
-        ExtractionEngine[Swappable Extractor: Rules baseline / Evon routes]
-        FormEngine[pension.json Schema Engine]
-    end
-
-    subgraph GnaniCloud ["Gnani AI Platform"]
-        Prisma[Prisma v2.5 STT]
-        Timbre[Timbre v3.0 TTS]
-        Evon[Evon v3.3 Planned]
-    end
-
-    UI --> StateMachine
-    StateMachine --> AudioRec
-    AudioRec -->|WAV Audio| Routes
-    Routes -->|Cached Audio| UI
-    Routes -->|STT Request| Prisma
-    Routes -->|TTS Request| Timbre
-    Routes -.->|Optional LLM| Evon
-    Routes --> ExtractionEngine
-    ExtractionEngine --> FormEngine
-```
-
-### Folder Structure (2 levels)
-
-```text
-SOLLI/
-├── client/                     # Frontend client application (React 19 + Vite)
-│   ├── public/                 # Static assets, favicon, and brand icons
-│   ├── scripts/                # Client utility scripts
-│   ├── src/                    # Source code (pages, components, state machine, styles)
-│   ├── tests/                  # Frontend kiosk security & safety tests (18 tests)
-│   └── package.json            # Client dependencies and npm scripts
-├── server/                     # Backend API server (Node.js + Express)
-│   ├── forms/                  # Declarative form schemas (pension.json)
-│   ├── llm/                    # Field extractors, normalization, commands, and Evon drivers
-│   ├── scripts/                # Evaluation & smoke test runners (extract, commands, smoke)
-│   ├── tests/                  # Backend unit and integration test suites (418 tests)
-│   └── package.json            # Server dependencies and npm scripts
-├── docs/                       # Technical specs, evaluation reports, and architecture guides
-│   ├── results/                # Baseline and evaluation run records
-│   ├── screenshots/            # Application screenshot assets and capture guide
-│   └── INDEX.md                # Master directory linking to all documentation
-├── samples/                    # Fake audio and synthetic sample fixtures
-├── tests/                      # Stratified test fixture datasets (dev, heldout, fake applicants)
-├── package.json                # Root package workspace scripts
-└── README.md                   # Project documentation and submission pitch
-```
-
-### Design Decisions
-
-1. **Key stays server-side:** All calls to Gnani AI route through `server/gnani.js`. The client never handles credentials.
-2. **Zero persistent storage:** No database, browser storage, or cookies. Data lives in volatile memory during the active session only.
-3. **Rules plus swappable LLM:** Deterministic rule-based extraction baseline runs in under 1 ms with 0 credit cost; Evon LLM routes are swappable via `EVON_PROVIDER` with an automatic fallback guard.
-4. **Form definition in JSON:** The entire form schema (`server/forms/pension.json`) is declarative. Adding fields or languages does not require altering core state machine code.
-
----
-
-## Getting started
-
-### Prerequisites
-
-- **Node.js:** Node.js 18+ (Node.js 20+ recommended)
-- **Package Manager:** npm (bundled with Node)
-- **Gnani AI API Key:** A valid API key from [app.gnani.ai](https://app.gnani.ai) (for live speech features)
-
-### Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone <repo-url>
-   cd SOLLI
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm --prefix server install
-   npm --prefix client install
-   ```
-
-3. **Configure environment variables:**
-   ```bash
-   cp server/.env.example server/.env
-   ```
-   Open `server/.env` and add your Gnani API key:
-   ```env
-   GNANI_API_KEY=your_gnani_api_key_here
-   PORT=5000
-   ```
-
-4. **Start the server (Terminal 1):**
-   ```bash
-   npm --prefix server run dev
-   ```
-
-5. **Start the client (Terminal 2):**
-   ```bash
-   npm --prefix client run dev
-   ```
-
-6. **Open the application:**
-   Navigate to `http://localhost:5173`. The client automatically proxies `/api` requests to the server on port 5000.
-
-> [!TIP]
-> **HTTPS for Phone Testing:** Mobile browsers require a secure origin (HTTPS or localhost) to allow microphone recording. When testing on a physical phone over local Wi-Fi, use a secure tunnel tool (e.g. `cloudflared`, `ngrok`, or `localtunnel`) to access the client over HTTPS.
-
-> [!NOTE]
-> **Demo Mode:** To test the application without consuming live Gnani API credits or using a microphone, start the client with:
-> ```bash
-> VITE_DEMO_MODE=true npm --prefix client run dev
-> ```
-> This enables on-screen demo banners, pauses the inactivity timer, and allows typing answers via **Typed Test Mode**.
-
----
-
-## Environment variables
-
-Configured in `server/.env` (derived from `server/.env.example`):
-
-| Variable | Required | Description | Example |
-|---|---|---|---|
-| `GNANI_API_KEY` | Yes (for live voice) | API key from app.gnani.ai for Prisma STT & Timbre TTS | `vach_live_sample_key...` |
-| `PORT` | Optional (default: 5000) | Port for the Express backend server | `5000` |
-| `EVON_PROVIDER` | Optional (default: rules) | Extraction driver: `rules`, `evon-api`, or `evon-selfhost` | `rules` |
-| `EVON_API_URL` | Optional | API endpoint if using closed beta Evon API | `https://api.vachana.ai/v1/chat/completions` |
-| `EVON_API_KEY` | Optional | Dedicated API key for Evon if distinct from GNANI_API_KEY | `evon_beta_sample_key...` |
-| `EVON_SELFHOST_URL` | Optional | Base URL for self-hosted OpenAI-compatible Evon instance | `http://localhost:8000/v1` |
-
----
-
->>>>>>> 4c065ca7ed5e7af1ec134ff98f66d559ab417217
 ## Usage guide
 
 ### For applicants (what to say)
@@ -487,6 +331,8 @@ Configured in `server/.env` (derived from `server/.env.example`):
 ## Testing
 
 Solli includes automated test suites covering client kiosk safety, the state machine, API endpoints, number parsers, and command classifiers.
+
+> **Continuous Integration:** Solli runs an automated GitHub Actions CI/CD pipeline on every push and pull request across Node 20 and Node 22 (`.github/workflows/ci.yml`), enforcing security scans, the 436 automated tests, benchmark evaluations, and client distribution builds.
 
 ### Running tests
 

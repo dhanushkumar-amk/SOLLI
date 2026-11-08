@@ -35,7 +35,3 @@ This directory contains the engineering specifications, evaluation reports, arch
 - [SUBMISSION_DRAFT.md](SUBMISSION_DRAFT.md) — Hackathon submission form text, word-limited blurbs, and project links.
 - [SOCIAL_POSTS.md](SOCIAL_POSTS.md) — Draft submission social media posts and community announcement copy.
 - [screenshots/README.md](screenshots/README.md) — Guide and specification for the 5 required application showcase screenshots.
-<<<<<<< HEAD
-
-=======
->>>>>>> 4c065ca7ed5e7af1ec134ff98f66d559ab417217

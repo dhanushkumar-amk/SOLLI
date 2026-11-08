@@ -1,0 +1,150 @@
+name: Solli CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security-audit:
+    name: Security & Privacy Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+
+      - name: Verify zero committed secrets or live environment files
+        run: |
+          echo "Checking git index for forbidden tracked files..."
+          TRACKED=$(git ls-files .env server/.env client/.env "samples/real_*")
+          if [ -n "$TRACKED" ]; then
+            echo "ERROR: Sensitive or local files are tracked in git:"
+            echo "$TRACKED"
+            exit 1
+          fi
+          echo "PASS: Zero sensitive environment files tracked."
+
+      - name: Install server dependencies
+        run: npm --prefix server ci
+
+      - name: Install client dependencies
+        run: npm --prefix client ci
+
+      - name: Run heldout dataset isolation guard
+        run: node --test server/tests/heldout-guard.test.js
+
+      - name: Run frontend kiosk security & zero-storage test
+        run: node --test client/tests/frontendKioskSafety.test.js
+
+      - name: Run declarative form schema check
+        run: npm --prefix server run form:check
+
+  test:
+    name: Test Suite (Node ${{ matrix.node-version }})
+    needs: security-audit
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+
+      - name: Install server dependencies
+        run: npm --prefix server ci
+
+      - name: Install client dependencies
+        run: npm --prefix client ci
+
+      - name: Run all unit and integration tests (Client + Server)
+        run: npm test
+
+      - name: Run field extraction benchmark (Dev Set)
+        run: npm --prefix server run extract:eval -- --set dev
+
+      - name: Run voice command safety evaluation (Dev Set)
+        run: npm --prefix server run commands:eval -- --set dev
+
+  build:
+    name: Production Client Build
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm --prefix client ci
+
+      - name: Build client for production
+        run: npm --prefix client run build
+
+      - name: Verify build artifacts
+        run: |
+          if [ ! -f "client/dist/index.html" ]; then
+            echo "ERROR: client/dist/index.html was not generated!"
+            exit 1
+          fi
+          echo "Production build verified successfully."
+          ls -la client/dist
+
+      - name: Upload production build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: solli-client-production-dist
+          path: client/dist/
+          retention-days: 14
+
+  ci-summary:
+    name: CI Pipeline Summary
+    needs: [security-audit, test, build]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate summary report
+        run: |
+          echo "## 🚀 Solli CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check / Job | Status | Description |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ **Security & Privacy Audit** | ${{ needs.security-audit.result }} | Zero secrets, held-out isolation & kiosk memory safety |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 **Test Suite (Node 20 & 22)** | ${{ needs.test.result }} | 436 automated tests, parser checks & command evaluations |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📦 **Client Production Build** | ${{ needs.build.result }} | Vite production bundle & distribution artifact |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.security-audit.result }}" = "success" ] && [ "${{ needs.test.result }}" = "success" ] && [ "${{ needs.build.result }}" = "success" ]; then
+            echo "✅ **All pipeline checks passed successfully! Ready for review or deployment.**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **One or more pipeline jobs encountered an issue. Inspect the job logs above.**" >> $GITHUB_STEP_SUMMARY
+          fi
