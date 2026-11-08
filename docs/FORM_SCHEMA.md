@@ -1,7 +1,7 @@
 # Solli Form Schema Specification
 
 > **Status:** `[NATIVE SPEAKER REVIEW NEEDED]`  
-> The schema, field list, Tamil wording, and read-back templates are drafts based on Tamil Nadu Social Security Pension Scheme conventions. Coordinates and printed layout details remain `UNCLEAR - ask user` until an official blank source PDF is supplied in Phase 14.
+> The schema, field list, Tamil wording, and read-back templates are drafts based on pension application conventions. Coordinates and printed layout details remain `UNCLEAR - ask user` until an example blank source PDF is supplied in Phase 14.
 
 ---
 

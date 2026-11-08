@@ -1,6 +1,6 @@
 # Preliminary form fields
 
-> **DRAFT. Must be replaced by the exact fields of the real blank form in Phase 4.** These are typical fields only and do not claim to match any specific state's official form.
+> **DRAFT. Must be replaced by the exact fields of the real blank form in Phase 4.** These are typical fields only and do not claim to match any specific government agency's form.
 
 | Field ID | English label | Tamil label | Type | Validation rule | Example spoken answer in Tamil-English |
 |---|---|---|---|---|---|
