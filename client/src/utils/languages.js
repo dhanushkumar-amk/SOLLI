@@ -1,6 +1,6 @@
 /**
  * Multilingual Configuration for Solli Voice Assistant
- * Supports 10 Official Indian Languages + Tanglish
+ * Supports 10 Indian Languages + Tanglish
  * Full Speech Synthesis (TTS) & Speech Recognition (STT) support
  */
 

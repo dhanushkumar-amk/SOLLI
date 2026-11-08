@@ -26,7 +26,7 @@ The intended customer is an organisation such as a CSC or panchayat helpdesk. Th
 
 ## Why only one form?
 
-One old-age pension form keeps the build, testing, and 60-second demonstration focused. The exact official fields are TBD in Phase 4.
+One old-age pension form keeps the build, testing, and 60-second demonstration focused. The exact fields of the example form are defined in `server/forms/pension.json`.
 
 ## Is this a government or eligibility system?
 

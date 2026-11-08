@@ -65,7 +65,7 @@ The applicant answers simple questions aloud in Tamil-English code-mixed speech,
 ## Assumptions and honest limitations
 
 - This is a hackathon prototype; it uses fake sample data only.
-- The exact official blank form and its fields are TBD in Phase 4.
+- The prototype uses an example pension form schema in `server/forms/pension.json`.
 - The prototype creates a PDF but does not submit it anywhere.
 - Speech and extraction accuracy will be measured on a small, non-representative sample.
 - An operator remains available for corrections and unclear speech.

@@ -1,156 +1,452 @@
-# Solli
+<div align="center">
 
-Paper forms can be difficult for elderly and first-time rural applicants to complete without help. CSC and panchayat helpdesk operators often repeat questions, type answers, and check details manually. Solli is a planned voice-guided workflow for one old-age pension form: it records Tamil-English mixed answers, prepares the form for review, and creates a printable PDF without submitting it to a portal.
+# Solli / சொல்லி
 
-## Tech stack
+**Just say it. We'll fill the form.**
 
-- React and Vite (JavaScript) with plain CSS
-- Node.js 18+ and Express (ES modules)
+A multilingual voice assistant that helps people who find forms hard to read or type fill them in by speaking in their own language.
 
-## Gnani AI models used
+[![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org)
+[![React](https://img.shields.io/badge/react-19-blue.svg)](https://react.dev)
+[![Status](https://img.shields.io/badge/status-prototype-orange.svg)](#disclaimer)
+[![Challenge](https://img.shields.io/badge/contest-Great%20Indian%20AI%20Internship%20Challenge-purple.svg)](#contest-and-credits)
+[![License](https://img.shields.io/badge/license-TBD-lightgrey.svg)](#license)
 
-| Model | Planned role |
-|---|---|
-| Prisma v2.5 | Speech to text for recorded applicant answers (`POST /stt/v3`). |
-| Timbre v3.0 | Text to speech for questions and read-back (`POST /api/v1/tts/inference`). |
-| Evon v3.3 | Optional reasoning for ambiguous field extraction; rules remain the fallback. |
+</div>
 
-## Evon routes (Field Extraction)
+---
 
-Solli uses a swappable provider architecture in `server/llm/` controlled by the `EVON_PROVIDER` environment variable:
+### Quick Links
 
-- **Route A (`EVON_PROVIDER=rules`)**: High-speed, deterministic rule-based baseline in `server/llm/rules.js`. Extracts numbers, dates, addresses, Tamil/English yes/no, and conversational commands with zero credit usage and <1ms latency.
-- **Route B (`EVON_PROVIDER=evon-api`)**: Gnani AI closed beta API client. (Currently marked `NOT CONFIGURED` pending beta credentials).
-- **Route C (`EVON_PROVIDER=evon-selfhost`)**: OpenAI-compatible client for self-hosted vLLM/SGLang (`gnani/gnani-evon-v3.3-30B-A3B`) on rented cloud GPU. Base URL configured via `EVON_SELFHOST_URL`.
+- **Pitch (PDF):** `PITCH.pdf` (coming soon)
+- **Demo Video:** [Coming soon / Paste link]
+- **LinkedIn Post:** [Coming soon / Paste link]
+- **Live Demo:** [Coming soon / Paste link]
 
-**Automatic Fallback Guard**: If a selected LLM provider throws an error or times out (8 seconds), Solli automatically falls back to `rules` without crashing the user session.
+---
 
-To benchmark field extraction accuracy on spoken fixtures:
-```bash
-cd server
-npm run evon:smoke           # Default 10 fixtures
-npm run evon:smoke -- --limit 20
+## Table of Contents
+
+- [The problem](#the-problem)
+- [The solution](#the-solution)
+- [Who it is for](#who-it-is-for)
+- [How it works](#how-it-works)
+- [Features](#features)
+- [Languages](#languages)
+- [Built on Gnani AI](#built-on-gnani-ai)
+- [Architecture](#architecture)
+- [Getting started](#getting-started)
+- [Environment variables](#environment-variables)
+- [Usage guide](#usage-guide)
+- [Testing](#testing)
+- [Privacy and security](#privacy-and-security)
+- [Honest limitations](#honest-limitations)
+- [Roadmap](#roadmap)
+- [Contest and credits](#contest-and-credits)
+- [Contributing](#contributing)
+- [License](#license)
+- [Disclaimer](#disclaimer)
+
+---
+
+<!-- TODO: Hero screenshot or GIF (capture from demo mode and place in docs/screenshots/01-language-screen.png) -->
+> [!NOTE]
+> Application screenshots are being captured with synthetic demo data. See [docs/screenshots/README.md](docs/screenshots/README.md) for the 5-screen capture checklist.
+
+---
+
+## The problem
+
+Many eligible applicants miss welfare pensions, scholarships, and public assistance because of paperwork rather than eligibility. Forms are long, written in formal administrative phrasing, and rarely offered in the dialect spoken at home. Many applicants are elderly, have low vision, or cannot read and type digital text. They are forced to depend on unofficial intermediaries who charge fees, make typing mistakes, and occasionally expose applicants to fraud. Most existing digital form tools support only one or two languages, leaving millions excluded from benefits they qualify for.
+
+## The solution
+
+Solli turns welfare form filling into a calm, spoken conversation in the applicant's own language. The applicant selects their language, listens to each question spoken aloud in a natural regional voice, and replies naturally using conversational or code-mixed speech. Solli extracts clean values, verifies sensitive identifiers through chunked read-backs, and presents a complete review summary with zero typing required. Answers live purely in volatile memory during the active session and are never saved to a database or browser storage.
+
+---
+
+## Who it is for
+
+- **Organisations (The Customer):** Common Service Centres (CSCs), e-Sevai kendras, gram panchayat helpdesks, ward offices, bank branches, and welfare NGOs that assist dozens of applicants every day.
+- **Applicants (The End User):** Elderly citizens, rural residents, first-time welfare applicants, and anyone who finds typing or reading formal administrative prose difficult.
+- **Operators (The Supervisor):** Helpdesk staff who supervise kiosks, assist when users are unsure, make manual corrections via touch or voice, and print final summaries.
+
+---
+
+## How it works
+
+1. **Choose a language:** The applicant picks from 10 Indian languages (or Tanglish). Screen text and spoken voice switch together.
+2. **Solli asks:** Each question is spoken aloud in a natural, friendly regional voice.
+3. **The person answers:** The applicant speaks freely, including code-mixed answers such as Tamil-English or Hindi-English.
+4. **Solli understands:** Speech becomes text, and text becomes clean structured field values (names, dates, phone numbers).
+5. **Solli confirms:** Important names, dates, and long numbers are read back in small rhythmic groups. The applicant confirms by voice or taps on-screen buttons.
+6. **The person controls the flow:** Voice commands like "repeat", "go back", "skip", "I don't know", or "change the village" steer the session.
+7. **Review:** A final review ledger lists every field with a status badge; any field can be edited by voice or by tapping.
+8. **Finish:** The session generates a printable receipt summary and safely clears all applicant data from volatile memory.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: User opens kiosk
+    Idle --> SpeakingQuestion: Tap "Start" (Autoplay ready)
+    SpeakingQuestion --> Listening: Question audio finishes
+    Listening --> Transcribing: Speech recorded (or 15s auto-stop)
+    Transcribing --> Processing: Prisma STT transcript
+    Processing --> SpeakingReadback: Needs confirmation (numbers, dates)
+    Processing --> SpeakingQuestion: Confident non-critical field -> Next question
+    SpeakingReadback --> ListeningConfirm: Read-back audio finishes
+    ListeningConfirm --> SpeakingQuestion: Confirmed ("Yes" / button) -> Next question
+    ListeningConfirm --> SpeakingError: Rejected ("No" / button) -> Clear & re-ask
+    Listening --> SpeakingQuestion: Voice commands (repeat, back, skip, help)
+    Listening --> Review: Last field completed
+    SpeakingQuestion --> Review: Last field completed
+    Review --> ReadyForReceipt: User confirms summary
+    ReadyForReceipt --> Idle: Printable receipt generated & memory purged
 ```
 
-## Extraction Evaluation & Real Collector (`extract:eval`)
+---
 
-Phase 9 established a stratified evaluation pipeline with zero data leakage:
-- **Dev Set (`tests/fixtures/spoken_dev.json`, 53 items):** Used for rule tuning and few-shot calibration. Current accuracy: **98.1%**.
-- **Held-out Set (`tests/fixtures/spoken_heldout.json`, 25 items):** Strictly isolated for reporting. Current accuracy: **96.0%**. CI test `server/tests/heldout-guard.test.js` prevents leakage.
-- **Real Collector (`/dev/collect`):** Dev-only UI (`import.meta.env.DEV`) to speak FAKE answers via Prisma STT and append records to git-ignored `samples/real_transcripts.json`.
+## Features
 
-```bash
-cd server
-npm run extract:eval -- --set dev       # Run on development set (100.0% accuracy)
-npm run extract:eval -- --set heldout   # Run on strict held-out set (96.0% accuracy)
-npm run extract:eval -- --set real      # Run on empirical collected transcripts (100.0%)
-npm run extract:eval -- --set all       # Run across dev + held-out combined
-npm run extract:eval -- --set dev --types date,number,phone,aadhaar,bank_account,ifsc # Filter by types
+### Voice and language
+- Speech-to-text for recorded answers using Gnani Prisma v2.5.
+- Spoken questions and read-backs in regional voices using Gnani Timbre v3.0.
+- Dynamic language and voice switching across 10 Indian languages.
+- Code-mixed speech handling for natural conversational phrasing (e.g., Tamil-English).
+- Spoken number understanding for digits, number words, repetition patterns ("double five"), and scales (lakh, crore).
+- Flexible date understanding supporting spoken months, calendar years, and spoken self-corrections.
+
+### Accuracy and trust
+- Chunked read-back with natural rhythmic pauses (phone 5+5, Aadhaar 4+4+4, bank account 4-digit groups).
+- Dual-mode confirmation: voice ("ஆம் / இல்லை", "yes / no") or prominent on-screen touch buttons.
+- Silence or ambiguous speech is never treated as affirmative consent.
+- Finite retries: after 2 failed attempts, fields defer gracefully with "Let us come back to this" and flag for operator review.
+- Strict format validation for phone numbers, dates, identifiers, and names (syntax check only; no database lookup).
+
+### Control
+- Voice commands: `repeat`, `skip` (optional fields only), `dont_know`, `back`, `change_field`, `help`, `operator`, `stop`, `start_over`.
+- Voice and tap editing on the final review ledger.
+- Destructive safety guard: `start_over` always requires explicit modal confirmation before clearing data.
+
+### Kiosk and accessibility
+- High-contrast visual mode and scalable typography for low-vision applicants.
+- Operator control strip: mute voice, restart session, typed test mode, and manual field editing.
+- Live audio level display and animated telemetry equalizer during microphone listening.
+- Automatic inactivity timeout that purges in-memory session data if an applicant walks away.
+
+### Privacy
+- Zero persistent storage: no applicant data is saved to a database, cookies, or browser storage.
+- In-memory session lifecycle: answers exist only in volatile RAM during the session.
+- Sensitive values are masked on screen (`XXXX 1234`).
+- Server-side credentials: API keys never reach the client browser.
+
+---
+
+## Languages
+
+| Language | Script / Native Name | Screen Text | Voice Synthesis | Speech Understanding Tested |
+|---|---|---|---|---|
+| **Tamil** | தமிழ் | Available | Available (Shivani) | Thoroughly tested (dev & held-out suites) |
+| **English** | English (India) | Available | Available (Shivani) | Thoroughly tested (dev & held-out suites) |
+| **Tanglish** | Tanglish (தமிழ் + Eng) | Available | Available (Shivani) | Thoroughly tested (code-mixed rules) |
+| **Hindi** | हिन्दी | Available | Available (Shivani) | Preview (untested with real speech) |
+| **Telugu** | తెలుగు | Available | Available (Shivani) | Preview (untested with real speech) |
+| **Kannada** | ಕನ್ನಡ | Available | Available (Shivani) | Preview (untested with real speech) |
+| **Malayalam** | മലയാളം | Available | Available (Shivani) | Preview (untested with real speech) |
+| **Marathi** | मराठी | Available | Available (Shivani) | Preview (untested with real speech) |
+| **Bengali** | বাংলা | Available | Available (Shivani) | Preview (untested with real speech) |
+| **Gujarati** | ગુજરાતી | Available | Available (Shivani) | Preview (untested with real speech) |
+| **Punjabi** | ਪੰਜਾਬੀ | Available | Available (Shivani) | Preview (untested with real speech) |
+
+> [!NOTE]
+> **Honest Testing Note:** Solli's voice and screen text are available in 10 Indian languages. Speech understanding rules, number parsing tables, and automated test fixtures were built and tested thoroughly in **Tamil and English (including Tanglish)**. Other languages are an early UI and voice synthesis preview, and speech understanding accuracy has not been tested with native speakers.
+
+---
+
+## Built on Gnani AI
+
+| Model | Role in Solli | Status in Final Demo |
+|---|---|---|
+| **Prisma v2.5** | Speech-to-text: transcribes recorded applicant voice answers (`POST /stt/v3`) | Running in live demo (fallback to fake mock transcripts if offline) |
+| **Timbre v3.0** | Text-to-speech: speaks questions and chunked read-backs (`POST /api/v1/tts/inference`) | Running in live demo (with server caching and split read-back) |
+| **Evon v3.3** | Reasoning LLM: field extraction and ambiguity resolution | Rule-based extraction in the demo, Evon integration prepared and planned (`server/llm/evonApi.js`, `server/llm/evonSelfHost.js`) |
+
+> **Credential Security:** The Gnani API key stays strictly on the Express server (`server/.env`) and is never transmitted to or exposed in the browser.
+
+---
+
+## Architecture
+
+```mermaid
+graph TD
+    subgraph Browser ["Client (React 19 + Vite)"]
+        UI[Kiosk / Mobile UI]
+        AudioRec[Web Audio API 16kHz PCM WAV]
+        StateMachine[Conversation State Machine]
+    end
+
+    subgraph Backend ["Server (Node.js + Express)"]
+        Routes[API Routes: /api/transcribe, /api/speak, /api/form]
+        TTSCache[In-Memory Audio Cache]
+        ExtractionEngine[Swappable Extractor: Rules baseline / Evon routes]
+        FormEngine[pension.json Schema Engine]
+    end
+
+    subgraph GnaniCloud ["Gnani AI Platform"]
+        Prisma[Prisma v2.5 STT]
+        Timbre[Timbre v3.0 TTS]
+        Evon[Evon v3.3 Planned]
+    end
+
+    UI --> StateMachine
+    StateMachine --> AudioRec
+    AudioRec -->|WAV Audio| Routes
+    Routes -->|Cached Audio| UI
+    Routes -->|STT Request| Prisma
+    Routes -->|TTS Request| Timbre
+    Routes -.->|Optional LLM| Evon
+    Routes --> ExtractionEngine
+    ExtractionEngine --> FormEngine
 ```
 
-See [docs/EXTRACTION_REPORT.md](docs/EXTRACTION_REPORT.md) and [docs/NUMBER_DATE_REPORT.md](docs/NUMBER_DATE_REPORT.md) for full baseline comparisons, breakdown tables, and failure analyses.
+### Folder Structure (2 levels)
 
-## Number & Date Understanding (Phase 10)
-
-- **Pure Number Parser (`server/llm/numbers/parse.js`):** Parses English/Tamil number words, repetition patterns ("double five" -> 55, "triple zero" -> 000), Indian scales (lakh/crore/nooru/aayiram), and digit sequences.
-- **"Never Accept Long Numbers Silently":** Sensitive identifiers (Aadhaar, Phone, Bank Account, IFSC) always enforce confirmation (`confirm: "always"`), format validation, and masked presentation (`XXXX 1234`).
-- **Chunked Readback (`server/llm/numbers/chunk.js`):** Grouped speech with natural pauses for Timbre TTS (phone 5+5, Aadhaar 4+4+4, bank account groups of 4). Partial captures prompt for remaining digits.
-- **Spell-Out Mode (`server/llm/extractors/spell.js`):** Letter-by-letter spelling mode ("M U T H U", "K dot M U T H U") for low-confidence applicant names.
-
-
-## Scope
-
-The product boundary, priorities, limitations, and intended users are defined in [docs/SCOPE.md](docs/SCOPE.md).
-
-## Form
-
-The current inventory is in [docs/FORM_FIELDS.md](docs/FORM_FIELDS.md). It remains UNVERIFIED until a public blank source form is supplied.
-
-## Form definition
-
-The single source of truth for the pension form is `server/forms/pension.json`. It defines all 16 fields (12 spoken, 4 non-spoken physical form fields like photo and signature) with bilingual questions, help prompts, read-backs, validation rules, confirmation policies, sensitive flags, and PDF layout placeholders.
-
-See [docs/FORM_SCHEMA.md](docs/FORM_SCHEMA.md) for full schema specifications and validation rules.
-
-To validate the form schema and view the field table:
-```bash
-cd server
-npm run form:check
+```text
+SOLLI/
+├── client/                     # Frontend client application (React 19 + Vite)
+│   ├── public/                 # Static assets, favicon, and brand icons
+│   ├── scripts/                # Client utility scripts
+│   ├── src/                    # Source code (pages, components, state machine, styles)
+│   ├── tests/                  # Frontend kiosk security & safety tests (18 tests)
+│   └── package.json            # Client dependencies and npm scripts
+├── server/                     # Backend API server (Node.js + Express)
+│   ├── forms/                  # Declarative form schemas (pension.json)
+│   ├── llm/                    # Field extractors, normalization, commands, and Evon drivers
+│   ├── scripts/                # Evaluation & smoke test runners (extract, commands, smoke)
+│   ├── tests/                  # Backend unit and integration test suites (418 tests)
+│   └── package.json            # Server dependencies and npm scripts
+├── docs/                       # Technical specs, evaluation reports, and architecture guides
+│   ├── results/                # Baseline and evaluation run records
+│   ├── screenshots/            # Application screenshot assets and capture guide
+│   └── INDEX.md                # Master directory linking to all documentation
+├── samples/                    # Fake audio and synthetic sample fixtures
+├── tests/                      # Stratified test fixture datasets (dev, heldout, fake applicants)
+├── package.json                # Root package workspace scripts
+└── README.md                   # Project documentation and submission pitch
 ```
 
-## Voice Question Loop (`/app`)
+### Design Decisions
 
-The voice conversation loop runs at route `/app` (or click "Open Voice Form Helper" on the home page):
-1. **Autoplay Compliance:** Starts with a prominent "தொடங்கு / Start" button to initialize audio playback.
-2. **Conversation Flow:** Synthesizes question via Timbre TTS -> records applicant speech (with 15s auto-stop) -> transcribes with Prisma STT -> extracts & validates value -> stores in session memory -> queries next field via `/api/form/:id/next`.
-3. **Retry & Silence Rules:** Maximum 2 attempts per field. Silence plays help prompt once. Repeated failures or silence courteously defer with *"இதை அப்புறம் பார்க்கலாம் / Let us come back to this"* and advance to the next field, marking the question for operator help.
-4. **Zero-Credit Typed Test Mode:** In development mode, toggle **"Typed Test Mode"** and **"Mute Voice"** to complete the entire form with fake data using 0 API credits.
-5. **Credit Guard & Caching:** Static form questions hit an in-memory cache (`X-Cache: HIT`), and live calls are guarded by `MAX_LIVE_CALLS_PER_HOUR=120` returning 429 before exhausting credits.
+1. **Key stays server-side:** All calls to Gnani AI route through `server/gnani.js`. The client never handles credentials.
+2. **Zero persistent storage:** No database, browser storage, or cookies. Data lives in volatile memory during the active session only.
+3. **Rules plus swappable LLM:** Deterministic rule-based extraction baseline runs in under 1 ms with 0 credit cost; Evon LLM routes are swappable via `EVON_PROVIDER` with an automatic fallback guard.
+4. **Form definition in JSON:** The entire form schema (`server/forms/pension.json`) is declarative. Adding fields or languages does not require altering core state machine code.
 
-See [docs/CONVERSATION_FLOW.md](docs/CONVERSATION_FLOW.md) for the complete state machine diagram and transition table.
+---
 
-## Read-back, Confirmation & Review (Phase 11)
+## Getting started
 
-- **Confirmation Policy (`server/forms/confirmPolicy.js`):** Pure matrix (`shouldConfirm`) based on field schema (`always`, `if_uncertain`, `never`), extraction confidence, and self-corrections. Critical identifiers always require confirmation.
-- **Split Read-Back Audio:** Dynamically synthesized values are decoupled from static confirmation prompts. The static prompt (`"இது சரியா? ஆம் அல்லது இல்லை என்று சொல்லுங்கள்."`) achieves a 100% cache HIT on subsequent fields, preserving the 5,000 credit budget.
-- **Accessible Touch Fallbacks:** Prominent on-screen **"👍 ஆம் / Yes"** and **"👎 இல்லை / No"** buttons are visible during all confirmation steps, allowing instant tap-based verification with zero latency and 0 API calls.
-- **Confirmation Loop Guardrails:** Silence during confirmation is strictly treated as unclear (never as "yes"). A maximum of 3 confirmation rounds per field prevents endless loops; unresolved fields are marked `needsOperatorHelp`.
-- **Review Screen & Single-Field Tap Edit:** After the last field, an interactive review screen lists all fields with masked sensitive values, status badges, and tap-based "Edit" buttons. "Read everything to me" speaks the summary with pause/stop controls and character budget capping (`MAX_SUMMARY_CHARS=1200`). Final confirmation leads to `readyForPdf`.
+### Prerequisites
 
-See [docs/CONFIRMATION_POLICY.md](docs/CONFIRMATION_POLICY.md) for the policy matrix, read-back rules, and privacy trade-offs.
+- **Node.js:** Node.js 18+ (Node.js 20+ recommended)
+- **Package Manager:** npm (bundled with Node)
+- **Gnani AI API Key:** A valid API key from [app.gnani.ai](https://app.gnani.ai) (for live speech features)
 
-## Voice Commands & Field Editing (Phase 12)
+### Installation
 
-Solli provides a "false-positives first" voice command detection and field targeting layer (`server/llm/commands/`):
-- **Safety First:** A command misheard as an answer, or an answer misheard as a command, never corrupts data. Utterances > 6 words are strictly treated as answers.
-- **In-Answer Partial Corrections:** Supports whole-value contrast resolution ("Madurai not Salem", "Salem illa Madurai") and digit-level edits ("last digit is 7") on numeric fields with mandatory read-back confirmation.
-- **Zero-Network Command Evaluation:** Benchmark command detection accuracy and false-positive rates with `npm run commands:eval`.
-- **Review Screen Voice Editing:** Tap "Speak a change" on the review screen to record an 8-second clip, resolve target field aliases, and immediately jump to edit.
+1. **Clone the repository:**
+   ```bash
+   git clone <repo-url>
+   cd SOLLI
+   ```
 
-### Voice Commands Quick Reference for Helpdesk Operators
+2. **Install dependencies:**
+   ```bash
+   npm --prefix server install
+   npm --prefix client install
+   ```
+
+3. **Configure environment variables:**
+   ```bash
+   cp server/.env.example server/.env
+   ```
+   Open `server/.env` and add your Gnani API key:
+   ```env
+   GNANI_API_KEY=your_gnani_api_key_here
+   PORT=5000
+   ```
+
+4. **Start the server (Terminal 1):**
+   ```bash
+   npm --prefix server run dev
+   ```
+
+5. **Start the client (Terminal 2):**
+   ```bash
+   npm --prefix client run dev
+   ```
+
+6. **Open the application:**
+   Navigate to `http://localhost:5173`. The client automatically proxies `/api` requests to the server on port 5000.
+
+> [!TIP]
+> **HTTPS for Phone Testing:** Mobile browsers require a secure origin (HTTPS or localhost) to allow microphone recording. When testing on a physical phone over local Wi-Fi, use a secure tunnel tool (e.g. `cloudflared`, `ngrok`, or `localtunnel`) to access the client over HTTPS.
+
+> [!NOTE]
+> **Demo Mode:** To test the application without consuming live Gnani API credits or using a microphone, start the client with:
+> ```bash
+> VITE_DEMO_MODE=true npm --prefix client run dev
+> ```
+> This enables on-screen demo banners, pauses the inactivity timer, and allows typing answers via **Typed Test Mode**.
+
+---
+
+## Environment variables
+
+Configured in `server/.env` (derived from `server/.env.example`):
+
+| Variable | Required | Description | Example |
+|---|---|---|---|
+| `GNANI_API_KEY` | Yes (for live voice) | API key from app.gnani.ai for Prisma STT & Timbre TTS | `vach_live_sample_key...` |
+| `PORT` | Optional (default: 5000) | Port for the Express backend server | `5000` |
+| `EVON_PROVIDER` | Optional (default: rules) | Extraction driver: `rules`, `evon-api`, or `evon-selfhost` | `rules` |
+| `EVON_API_URL` | Optional | API endpoint if using closed beta Evon API | `https://api.vachana.ai/v1/chat/completions` |
+| `EVON_API_KEY` | Optional | Dedicated API key for Evon if distinct from GNANI_API_KEY | `evon_beta_sample_key...` |
+| `EVON_SELFHOST_URL` | Optional | Base URL for self-hosted OpenAI-compatible Evon instance | `http://localhost:8000/v1` |
+
+---
+
+## Usage guide
+
+### For applicants (what to say)
+- **Names:** Speak your full name or spell letters: *"K. Muthu"*, *"M U T H U"*.
+- **Dates of birth:** Speak naturally with month and year: *"May 5, 1958"*, *"1958 la May 5"*.
+- **Numbers:** Speak digits individually, in pairs, or in words: *"98401 23450"*, *"double nine four zero"*.
+- **Confirmations:** Say *"ஆம் / Yes"* to confirm, or *"இல்லை / No"* to re-take.
+
+### For operators
+- **Operator Bar:** Located at the top of `/app`. Allows instant language switching, muting voice synthesis, toggling typed test mode, adjusting contrast/font size, or restarting the session.
+- **Manual Corrections:** Tap any field on the review screen or use the on-screen buttons to correct values without re-speaking the entire form.
+
+### Voice commands reference
 
 | Command | English Examples | Tamil Examples (Roman & Script) | Safe Action |
 |---|---|---|---|
-| `repeat` | "repeat", "say again", "once more" | "thirumba sollunga", "meendum sollunga", "மீண்டும்", "ரிப்பீட்" | Replays question or read-back. Never counts as a failed attempt. |
-| `skip` | "skip", "next question", "pass" | "aduthadhu", "vittudunga", "idha thavir", "தவிர்" | Allowed on optional fields only (`nominee`). Refused on required fields. |
-| `dont_know` | "I don't know", "no idea", "not sure" | "theriyadhu", "theriyala", "puriyala", "தெரியாது", "ஐ டோன்ட் நோ" | Marks field `needsOperatorHelp` with reason `"dont_know"`. Never invents data. |
-| `back` | "back", "go back", "previous" | "munnadi ponga", "munthaiya kelvi", "முன்னாடி போங்க" | Re-asks previous spoken field, keeping current value visible. Halts at first field. |
-| `change_field` | "change the village", "change phone" | "ooru maathunga", "maathanum", "சேஞ்ச் த வில்லேஜ்", "மாத்துங்க" | Fuzzy matches target against all 12 spoken fields. Retains old value until new value confirmed. |
-| `help` | "help", "help me", "explain" | "udhavi venum", "vilakkam", "vilakkavum", "உதவி", "ஹெல்ப்" | Speaks field's `helpPrompt` then resumes listening. |
-| `operator` | "operator", "call operator", "staff" | "adhigaari venum", "panithalar", "ஆபரேட்டர்", "பணியாளர்" | Pauses loop, shows large "Operator Needed" banner, awaits resume tap. |
-| `stop` | "stop", "pause", "hold on", "wait" | "niruthunga", "nillu", "oru nimisham", "நிறுத்து", "வெயிட்" | Releases microphone, displays "Conversation Paused" banner with Resume button. |
-| `start_over` | "start over", "restart", "delete all" | "modhalla irundhu", "mutrilum azhi", "முதலில் இருந்து ஆரம்பி" | **High risk:** ALWAYS prompts modal confirmation ("Delete everything and start again?"). |
+| `repeat` | "repeat", "say again", "once more" | "thirumba sollunga", "meendum", "மீண்டும்" | Replays question or read-back. Never counts as a failed attempt. |
+| `skip` | "skip", "next question", "pass" | "aduthadhu", "vittudunga", "தவிர்" | Allowed on optional fields only (`nominee`). Refused on required fields. |
+| `dont_know` | "I don't know", "not sure" | "theriyadhu", "puriyala", "தெரியாது" | Marks field `needsOperatorHelp`. Never invents or guesses data. |
+| `back` | "back", "go back", "previous" | "munnadi ponga", "முன்னாடி போங்க" | Re-asks previous spoken field while preserving visible answers. |
+| `change_field` | "change the village", "change phone" | "ooru maathunga", "மாத்துங்க" | Fuzzy matches target field; preserves old value until replacement confirmed. |
+| `help` | "help", "help me", "explain" | "udhavi venum", "vilakkam", "உதவி" | Speaks field's `helpPrompt` then resumes listening. |
+| `operator` | "operator", "call operator", "staff" | "adhigaari venum", "ஆபரேட்டர்", "பணியாளர்" | Pauses loop, shows large "Operator Needed" banner, awaits resume tap. |
+| `stop` | "stop", "pause", "hold on", "wait" | "niruthunga", "நிறுத்து", "வெயிட்" | Releases microphone, displays "Conversation Paused" overlay with Resume button. |
+| `start_over` | "start over", "restart", "delete all" | "modhalla irundhu", "முதலில் இருந்து ஆரம்பி" | **High risk:** Always prompts modal confirmation before clearing data. |
 
-To run voice command evaluation:
-```bash
-cd server
-npm run commands:eval -- --set dev       # Accuracy: 100.0%, FPR: 0.0%, FNR: 0.0%
-npm run commands:eval -- --set heldout   # Held-out FPR: 0.0%, Accuracy: 41.7%
-```
+---
 
-See [docs/COMMANDS.md](docs/COMMANDS.md) for full phrase tables, safety gating, and architecture details.
+## Testing
 
-## Setup
+Solli includes automated test suites covering client kiosk safety, the state machine, API endpoints, number parsers, and command classifiers.
 
-Use two terminals from this folder.
+### Running tests
 
-```powershell
-cd server
-npm install
-npm run dev
-```
+- **Run all automated tests (client + server):**
+  ```bash
+  npm test
+  ```
+  *Executes 436 tests across 61 test suites (18 client + 418 server tests).*
 
-```powershell
-cd client
-npm install
-npm run dev
-```
+- **Run client tests only:**
+  ```bash
+  npm --prefix client test
+  ```
 
-Open the local address Vite prints (normally http://localhost:5173). The client proxies `/api` requests to the server on port 5000.
+- **Run server tests only:**
+  ```bash
+  npm --prefix server test
+  ```
 
-This is a prototype: use only fake sample data. Do not enter real personal information.
+- **Run field extraction evaluation:**
+  ```bash
+  npm --prefix server run extract:eval -- --set dev
+  npm --prefix server run extract:eval -- --set heldout
+  ```
 
+- **Run voice command safety evaluation:**
+  ```bash
+  npm --prefix server run commands:eval -- --set dev
+  npm --prefix server run commands:eval -- --set heldout
+  ```
 
-## Real-World Deployment & Data Privacy Architecture
+### Results
 
-For production deployment models, Chrome Extension Side Panel integration, zero-persistence privacy safeguards, and step-by-step instructions for adding custom real-world forms, see **[docs/REAL_WORLD_ARCHITECTURE.md](docs/REAL_WORLD_ARCHITECTURE.md)**.
+| Benchmark / Evaluation Suite | Sample Size | Measured Pass Rate / Accuracy | Status |
+|---|---|---|---|
+| **Automated Test Suite (Full Stack)** | 436 tests (61 suites) | **100%** (436 / 436 passed) | Verified (`npm test`) |
+| **Field Extraction (Dev Set)** | 53 synthetic items | **100.0%** (53 / 53) | Verified (`extract:eval`) |
+| **Field Extraction (Strict Held-Out)** | 25 synthetic items | **96.0%** (24 / 25) | Verified (`extract:eval`, 1 fixture artifact) |
+| **Command Classification (Dev Set)** | 28 synthetic items | **100.0%** (28 / 28) | Verified (`commands:eval`) |
+| **Command False Positive Rate** | 21 negative cases | **0.0%** FPR | Verified (0 data corruption) |
+| **Live Microphone Acoustic Accuracy (Quiet)** | N/A | **Not yet measured** | Planned for live field pilot |
+| **Live Microphone Acoustic Accuracy (Noisy)** | N/A | **Not yet measured** | Planned for live field pilot |
+
+> [!IMPORTANT]
+> **Code Verification vs. Acoustic Accuracy:** Automated tests and evaluation scripts verify software logic, regular expressions, number parsing, state transitions, and zero-storage security constraints using synthetic text fixtures. They do not measure live acoustic microphone accuracy across varied village accents and ambient background noise.
+
+---
+
+## Privacy and security
+
+- **No persistent data storage:** Answers exist exclusively in temporary memory while the form is being completed. No database, server disk storage, or cookies are used.
+- **Zero browser storage of answers:** Client tests (`client/tests/frontendKioskSafety.test.js`) enforce that no form data or transcripts are written to browser storage.
+- **Masked sensitive values:** Sensitive numbers (Aadhaar, phone number, bank account) display only their last 4 digits on screen (`XXXX 1234`).
+- **Inactivity wipe:** The session timer automatically resets and purges in-memory answers after prolonged inactivity.
+- **Credentials protected:** The Gnani API key stays on the backend server and is never sent to the browser.
+- **Synthetic demo data:** All automated tests, sample fixtures, and video demonstrations use fake data only.
+- **Format checking only:** Solli checks whether numbers and dates match expected lengths and formats. It does not verify records against live government databases.
+
+---
+
+## Honest limitations
+
+- **Student prototype:** Solli is an independent student prototype built for the Great Indian AI Internship Challenge. It is not an official government service.
+- **No official submissions:** Solli assists with collecting and reviewing information; it does not submit applications to any government portal.
+- **Acoustic accuracy unmeasured:** Speech recognition accuracy under varying real-world background noise and rural dialect conditions has not yet been quantitatively measured.
+- **Language depth:** Speech understanding rules and test suites were built and verified for Tamil and English (including Tanglish). Support for other regional languages is currently an early UI and voice synthesis preview.
+- **Extraction engine:** Answer extraction currently uses a rule-based engine. Gnani Evon v3.3 integration is architected and planned.
+- **Synthetic data only:** Demos and automated tests use fake sample personas.
+
+---
+
+## Roadmap
+
+- [Planned] **Browser Extension:** A companion browser extension that scans existing web forms on public portals and allows applicants to fill them by voice, featuring a side-by-side verification table and no automated submission.
+- [Planned] **Printable PDF Output:** Direct generation of standard blank-overlay application PDFs from confirmed in-memory field values.
+- [Planned] **Acoustic & Dialect Verification:** Rigorous testing and tuning across regional dialects (Kongu, Madurai, Nellai) and additional Indian languages.
+- [Planned] **Multi-Form Expansion:** Additional public welfare form schemas (scholarships, rural housing, disability assistance).
+
+---
+
+## Contest and credits
+
+- **Contest:** Built for the **Great Indian AI Internship Challenge**, organized by **Gnani AI**.
+- **Models:** Powered by Gnani AI's **Prisma v2.5** (STT) and **Timbre v3.0** (TTS), with **Evon v3.3** integration planned.
+- **Hashtags:** `#GnaniAI #GreatIndianAIInternshipChallenge`
+- **Author:** Built by **Dhanushkumar G**, student at [COLLEGE NAME].
+
+---
+
+## Contributing
+
+Feedback and contributions are welcome. Please open an issue to discuss proposed enhancements, keep pull requests focused, and ensure all tests pass with `npm test` before submitting.
+
+---
+
+## License
+
+License: [TBD] *(A standard open-source license will be selected upon final submission)*.
+
+---
+
+## Disclaimer
+
+Solli is an independent student prototype created solely for the Great Indian AI Internship Challenge. It is not affiliated with, endorsed by, or operated by any government department, public welfare agency, or official portal. Solli does not submit applications, make welfare eligibility determinations, or verify legal identity records. All demonstrations, screenshots, and test suites use synthetic fake data only.

@@ -10,7 +10,7 @@ Paper forms can be difficult for elderly and first-time rural applicants to comp
 
 ## 120-word version
 
-Paper forms can be difficult for elderly and first-time rural applicants to complete without help. At a CSC or panchayat helpdesk, an operator may need to repeat questions, type each answer, and check details before printing. Solli is a prototype for that assistance flow. It will ask questions aloud, accept Tamil-English mixed spoken answers, and prepare one old-age pension application for review. The operator or applicant can hear the answers, correct unclear details, and create a printable PDF using fake data in the demo. Solli is designed for organisations that assist applicants, not for direct government submission. It will not store personal data, verify Aadhaar, make eligibility decisions, or replace the operator. The official form remains TBD in Phase 4.
+Paper forms can be difficult for elderly and first-time rural applicants to complete without help. At a CSC or panchayat helpdesk, an operator may need to repeat questions, type each answer, and check details before printing. Solli is a prototype for that assistance flow. It will ask questions aloud, accept Tamil-English mixed spoken answers, and prepare one old-age pension application for review. The operator or applicant can hear the answers, correct unclear details, and create a printable PDF using fake data in the demo. Solli is designed for organisations that assist applicants, not for direct government submission. It will not store personal data, verify Aadhaar, make eligibility decisions, or replace the operator. The example form schema is defined in `server/forms/pension.json`.
 
 ## Why now / why voice
 

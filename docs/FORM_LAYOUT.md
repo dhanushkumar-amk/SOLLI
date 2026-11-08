@@ -19,4 +19,4 @@
 
 ## PDF strategy
 
-Tentatively choose **(a) overlay text on the original form** once a public blank source is supplied: it preserves the official layout. This is conditional; measure coordinates in Phase 14. Reassess if the source cannot be used as a background.
+Tentatively choose **(a) overlay text on the original form** once a public blank source is supplied: it preserves the original layout. This is conditional; measure coordinates in Phase 14. Reassess if the source cannot be used as a background.

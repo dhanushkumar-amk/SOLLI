@@ -33,5 +33,5 @@ Solli is a mobile-friendly web prototype for organisations that help people comp
 - This is a prototype and uses fake sample data only.
 - [CONFIRM AFTER PHASE 14] It prepares a form for printing but does not submit it to any government or other portal.
 - Testing will use a small sample; no accuracy claim is made yet.
-- The exact official blank form is TBD in Phase 4.
+- The exact example blank form is defined in `server/forms/pension.json`.
 - Evon API access is uncertain; the fallback is rule-based extraction.
