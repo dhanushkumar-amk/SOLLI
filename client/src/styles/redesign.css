@@ -37,9 +37,10 @@
   --color-danger-pale: rgba(225, 29, 72, 0.18);
   --color-danger-border: rgba(225, 29, 72, 0.35);
 
-  /* Typography: Neue Montreal */
-  --font-ui: 'Neue Montreal', -apple-system, BlinkMacSystemFont, 'Inter', 'DM Sans', sans-serif;
-  --font-display: 'Neue Montreal', -apple-system, BlinkMacSystemFont, 'Inter', 'Plus Jakarta Sans', sans-serif;
+  /* Typography: Geist & Geist Mono */
+  --font-ui: 'Geist', -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', system-ui, sans-serif;
+  --font-display: 'Geist', -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-size-ui: 0.875rem;
   --font-size-small-ui: 0.75rem;
 

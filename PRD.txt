@@ -1,0 +1,331 @@
+================================================================================
+SOLLI (சொல்லி) — PRODUCT REQUIREMENTS DOCUMENT (PRD)
+================================================================================
+Project Name:       Solli (சொல்லி) — Voice-First Civic Pension & Web Form Assistant
+Department/Domain:  Government of Tamil Nadu · Social Welfare & Women Empowerment
+Scheme:             Indira Gandhi National Old Age Pension Scheme (IGNOAPS) /
+                    முதியோர் ஓய்வூதியத் திட்டம்
+Document Version:   2.5.0
+Release Status:     Production Ready
+Test Coverage:      436 / 436 Automated Unit & Integration Tests Passing (100%)
+================================================================================
+
+1. EXECUTIVE SUMMARY & PRODUCT VISION
+--------------------------------------------------------------------------------
+Solli (Tamil for "Speak it" or "Tell me") is a bilingual (Tamil / English) voice-
+first civic kiosk application engineered specifically for rural, semi-literate,
+and elderly citizens in Tamil Nadu to independently complete government welfare
+and pension applications without bureaucratic friction or commercial exploitation.
+
+Traditional civic web portals fail elderly and rural applicants due to:
+  • Complex nested desktop layouts requiring keyboard and mouse navigation.
+  • Uncompromising English/technical jargon unfamiliar to vernacular speakers.
+  • Strict field constraints (e.g., date pickers, unformatted digit strings).
+  • Dependence on predatory middlemen or unassisted cyber café operators.
+
+Solli addresses this by pairing an ambient voice-directed conversation agent
+with a live civic registry ledger. As the applicant speaks in conversational
+Tamil (or Indian English), Solli:
+  1. Acknowledges voice input using a real-time 12-bar acoustic visualizer.
+  2. Transcribes and normalizes vernacular utterances via Gnani.ai STT.
+  3. Extracts entities (names, dates, addresses, Aadhaar, phone numbers).
+  4. Confirms noisy or high-consequence values with spoken readback.
+  5. Live-populates the official civic registry ledger in real time.
+  6. Generates an official, printable acknowledgment receipt upon completion.
+
+
+2. TARGET AUDIENCE & USER PERSONAS
+--------------------------------------------------------------------------------
+A. Primary User: Rural Elderly Citizen (Thatha / Paati)
+   • Age: 60 to 85+ years.
+   • Language: Native colloquial Tamil (Madurai, Kongu, Chennai, Tirunelveli).
+   • Tech Literacy: Zero to minimal smartphone exposure; unable to type.
+   • Challenges: Cataracts/low vision, trembling hands, dialectal phrasing,
+     accustomed to conversational back-and-forth rather than form filling.
+
+B. Secondary User: e-Sevai Kendra Operator / Village Administrative Officer (VAO)
+   • Role: Supervises public kiosks at Taluk offices or Gram Panchayat buildings.
+   • Needs: Quick manual overrides, font magnification for elders, high-contrast
+     toggles, network telemetry, and privacy isolation between applicants.
+
+
+3. SYSTEM ARCHITECTURE & TECH STACK
+--------------------------------------------------------------------------------
+Frontend Stack:
+  • Framework: React 19 + Vite (ESM)
+  • Styling: Tailwind CSS v4 (@theme tokens) + Pure CSS Redesign Engine
+  • Component Library: Shadcn/UI (18 modular accessible UI components)
+  • Iconography: Lucide React (1.5px stroke, official civic iconography)
+  • Typography: Geist (Sans) + Geist Mono (Tabular Telemetry Numbers)
+  • Color Palette: Ember Obsidian Dark Theme:
+      - Primary Accent:       #FF6D29 (Warm Ember Orange)
+      - Structural Rule:      #453027 (Rich Umber / Espresso Bronze)
+      - Canvas Base:          #161316 (Deep Obsidian Black)
+      - Secondary Text:       #BABABA (Refined Ash Silver)
+      - Foreground Text:      #FFFFFF (Pure White)
+
+Backend Stack:
+  • Runtime: Node.js 20+ / Express 5.1
+  • STT Engine: Gnani.ai Speech-to-Text API (Tamil ta-IN & Indian English en-IN)
+  • TTS Engine: Gnani.ai Text-to-Speech API (Model: timbre-v3.0, Voice: Chetana)
+    with local Web Speech Synthesis fallback.
+  • Extraction Pipeline: Hybrid dual-tier engine:
+      Tier 1: Fast deterministic RegExp, phonetic mapping, and Tamil lexicon.
+      Tier 2: High-context LLM Extraction (Evon / Prisma with graceful fallback).
+  • PDF Engine: pdf-lib for dynamic civic receipt and acknowledgment generation.
+
+
+4. BILINGUAL FORM SCHEMA & DATA SPECIFICATIONS (IGNOAPS)
+--------------------------------------------------------------------------------
+Solli models the official 16-field IGNOAPS pension form with strict field-level
+validation, phonetic normalization, and localized prompt strings:
+
+Field 01: applicant_name (விண்ணப்பதாரர் பெயர் / Applicant Name)
+  • Type: Text / Full Name
+  • Prompt (TA): உங்கள் பெயர் என்ன? (What is your name?)
+  • Prompt (EN): What is your full name?
+
+Field 02: parent_spouse_name (தந்தை அல்லது கணவர் பெயர் / Parent/Spouse Name)
+  • Type: Text / Relative Name
+  • Prompt (TA): உங்கள் தந்தை அல்லது கணவரின் பெயர் என்ன?
+
+Field 03: gender (பாலினம் / Gender)
+  • Type: Choice (ஆண் / பெண் / மூன்றாம் பாலினம் — Male / Female / Other)
+  • Prompt (TA): உங்கள் பாலினம் என்ன? ஆண் அல்லது பெண்?
+
+Field 04: age (வயது / Age)
+  • Type: Number (Threshold: >= 60 for IGNOAPS)
+  • Prompt (TA): உங்கள் வயது என்ன?
+
+Field 05: dob (பிறந்த தேதி / Date of Birth)
+  • Type: Date (DD/MM/YYYY)
+  • Prompt (TA): உங்கள் பிறந்த தேதி என்ன?
+
+Field 06: marital_status (திருமண நிலை / Marital Status)
+  • Type: Choice (திருமணமானவர், விதவை, கணவரால் கைவிடப்பட்டவர், திருமணமாகாதவர்)
+  • Prompt (TA): உங்கள் திருமண நிலை என்ன?
+
+Field 07: address (முகவரி / Residential Address)
+  • Type: Text / Address
+  • Prompt (TA): நீங்கள் வசிக்கும் முகவரி என்ன?
+
+Field 08: village (கிராமம் / Village or Ward)
+  • Type: Text / Locality
+  • Prompt (TA): உங்கள் கிராமத்தின் பெயர் என்ன?
+
+Field 09: taluk (வட்டம் / Taluk)
+  • Type: Text / Taluk Name
+  • Prompt (TA): உங்கள் தாலுகா அல்லது வட்டம் எது?
+
+Field 10: district (மாவட்டம் / District)
+  • Type: Text / District (Auto-matched across all 38 Tamil Nadu districts)
+  • Prompt (TA): உங்கள் மாவட்டம் எது?
+
+Field 11: pincode (அஞ்சல் குறியீட்டு எண் / Pin Code)
+  • Type: Digits (6 digits, matching 6xxxxx for Tamil Nadu)
+  • Prompt (TA): உங்கள் அஞ்சல் குறியீட்டு எண் (Pin Code) என்ன?
+
+Field 12: aadhaar_number (ஆதார் எண் / Aadhaar Number)
+  • Type: Digits (12 digits, grouped into 4-4-4)
+  • Prompt (TA): உங்கள் 12 இலக்க ஆதார் எண் என்ன?
+
+Field 13: ration_card (குடும்ப அட்டை எண் / Smart Ration Card)
+  • Type: Alphanumeric (e.g. 05/G/0123456)
+  • Prompt (TA): உங்கள் ரேஷன் அட்டை எண் என்ன?
+
+Field 14: phone (தொலைபேசி எண் / Mobile Number)
+  • Type: Digits (10 digits, Indian mobile 6-9 prefix, grouped 5-5 or 3-3-4)
+  • Prompt (TA): உங்கள் தொலைபேசி அல்லது மொபைல் எண் என்ன?
+
+Field 15: bank_account (வங்கி கணக்கு எண் / Bank Account Number)
+  • Type: Digits (9 to 18 digits, grouped into chunks of 4)
+  • Prompt (TA): உங்கள் வங்கி கணக்கு எண் என்ன?
+
+Field 16: ifsc_code (IFSC குறியீடு / Bank IFSC Code)
+  • Type: Alphanumeric (4 letters + '0' + 6 alphanumeric digits)
+  • Prompt (TA): உங்கள் வங்கியின் IFSC குறியீடு என்ன?
+
+
+5. CONVERSATIONAL FINITE STATE MACHINE (FSM)
+--------------------------------------------------------------------------------
+The dialogue loop is governed by a pure deterministic finite state machine
+preventing illegal transitions, conversational hangs, and race conditions:
+
+States:
+  • IDLE: Kiosk welcome screen with language selection and start CTA.
+  • LOADING_FORM: Ingests pension or custom schema into memory.
+  • SPEAKING_QUESTION: Synthesizes and plays the localized question audio.
+  • LISTENING: Microphone active; streams audio through 12-bar acoustic visualizer.
+  • PROCESSING_ANSWER: Dispatches transcript to entity extractors and LLM.
+  • CONFIRMING: Explicit readback verification for critical/ambiguous fields.
+  • REVIEW: Visual summary of all 16 fields with edit/re-take options.
+  • SUBMITTING: Dispatches payload to government backend or target form.
+  • DONE: Confirmation seal, submission ID, and receipt generation.
+  • ERROR: Graceful recovery screen with operator assistance trigger.
+
+Dialogue Escalation & Retry Protocol:
+  • Attempt 1 (Failure/Silence): Speaks gentle localized help prompt.
+  • Attempt 2 (Failure/Silence): Rephrases question with concrete example.
+  • Attempt 3 (Failure): Automatically flags field as `needsOperatorHelp`,
+    advances to the next question, and alerts the supervising operator.
+
+Voice Navigation & Global Interrupt Commands:
+  • "Repeat" / "மறுபடி": Replays the current field's question.
+  • "Later" / "பிறகு": Postpones current field and appends it to end of queue.
+  • "Skip" / "தவிர்": Skips optional fields safely.
+  • "Back" / "முந்தையது": Navigates back to edit the previous field.
+  • "Restart" / "மீண்டும்": Resets the entire session and wipes in-memory answers.
+
+
+6. ENTITY EXTRACTION & NORMALIZATION ENGINE
+--------------------------------------------------------------------------------
+A. Tamil Spoken Number Parsing:
+   • Supports direct script numbers: ஒன்று (1), இரண்டு (2), பத்து (10), நூறு (100).
+   • Supports Romanized spoken Tamil: "onnu", "rendu", "pathu", "aayiram".
+   • Compounding parsing: "இருபத்தி ஐந்து" -> 25, "ஆயிரத்து தொள்ளாயிரத்து" -> 1900.
+   • Mixed alphanumeric handling: "Double nine four zero" -> 9940.
+
+B. Structured Digit Grouping & Acoustic Readback:
+   • Phone Numbers: Grouped as 5 + 5 ("98401, 23456") or 3 + 3 + 4.
+   • Aadhaar Numbers: Grouped as 4 + 4 + 4 with masking ("XXXX, XXXX, 1234").
+   • Bank Accounts: Split into 4-digit groups with audible comma pauses in TTS.
+
+C. Yes/No Confirmation & Contrast Resolution:
+   • Resolves colloquial affirmatives: "ஆம்", "ஆமா", "சரி", "correct", "right".
+   • Resolves colloquial negatives: "இல்லை", "தவறு", "கிடையாது", "thappu", "wrong".
+   • Contrast Resolution: Handles conflicting statements like "sari, aana illai"
+     (yes, but no) by marking `needsConfirmation: true` and seeking clarity.
+
+
+7. DYNAMIC WEB FORM SCANNER & AUTO-FILL ENGINE
+--------------------------------------------------------------------------------
+Beyond the built-in pension schema, Solli contains an automated form scanner:
+  • Ingests external web forms and Google Forms via DOM extraction or URL parser.
+  • Automatically maps standard HTML inputs, textareas, and radios into Solli
+    conversational questions with localized Tamil translations.
+  • Feeds external fields through the exact same voice-first FSM loop.
+  • Safe offline fallback: built-in pension schema never throws network fetch errors.
+
+
+8. DESIGN SYSTEM & UI ARCHITECTURE
+--------------------------------------------------------------------------------
+A. Unslopped Design Methodology:
+   • Replaced amorphous floating surfaces with crisp hairline borders (#453027).
+   • Enforced 4px spatial baseline (8px, 12px, 16px, 20px, 24px, 32px).
+   • Eliminated bloated 9999px pill buttons on rectangular containers.
+   • Nested Radius Hierarchy: 14px Card -> 8px Controls -> 4px Status Badges.
+   • Calmed typography: Title weights restrained to 600 (Semibold); 500 (Medium).
+   • Tabular Numerics: All numbers, timers, and telemetry use tabular lining figures.
+
+B. Visual Identity & Acoustics:
+   • Tamil Nadu Government Secretariat Badge: தமிழ்நாடு அரசு · சமூக நலத்துறை /
+     IGNOAPS Kiosk Registry.
+   • 12-Bar Acoustic Telemetry Meter: Real-time dynamic visualizer reacting to live
+     microphone amplitude, styled in ember orange (#FF6D29) on deep obsidian (#161316).
+   • Zero white-flash loading: Dark theme persisted directly in root HTML DOM.
+
+C. Complete Shadcn/UI Suite:
+   1.  Button: Default, brand, secondary, outline, ghost, destructive.
+   2.  Card: Header, title, description, content, footer.
+   3.  Badge: Brand, success, warning, destructive, secondary.
+   4.  Input: Hairline border with ember glow focus ring.
+   5.  Label: Accessible HTML labels for inputs.
+   6.  Table: Ledger table for verified and pending application fields.
+   7.  Dialog: Accessible modal dialog with backdrop blur.
+   8.  Sheet: Bottom/side sliding panel for operator controls.
+   9.  Collapsible: Accordion drawer for technical metadata and model specs.
+   10. Tooltip: Contextual guidance on hovering table rows.
+   11. Switch: Tactile boolean toggles for kiosk settings.
+   12. Slider: Accessible range slider for font size and volume scaling.
+   13. Progress: Horizontal progress bar tracking form completion percentage.
+   14. Separator: Hairline rule divider.
+   15. Tabs: Segmented navigation for multi-category inspection.
+   16. Avatar: Operator and applicant profile glyphs.
+   17. Skeleton: Shimmer placeholders during async STT/TTS calls.
+   18. Alert: Semantic error, warning, and informational callout cards.
+
+
+9. KIOSK SAFETY, PRIVACY & ACCESSIBILITY
+--------------------------------------------------------------------------------
+A. Zero-PII Persistence Invariant:
+   • Absolutely NO applicant data (names, Aadhaar, bank details, phone numbers)
+     is permitted in `localStorage`, `sessionStorage`, or client cookies.
+   • All data resides exclusively in volatile React component state.
+
+B. Inactivity Auto-Reset:
+   • A 60-second inactivity watchdog triggers an automatic session wipe.
+   • If no voice or touch interaction occurs within 60s, a 10s countdown modal
+     appears. If unacknowledged, state purges to IDLE, protecting the elder's PII.
+
+C. Operator Accessibility Drawer:
+   • Accessible via discrete trigger for kiosk attendants.
+   • Font Scaling: Small (14px), Normal (16px), Large (18px) for low-vision elders.
+   • High Contrast Toggle: High-visibility black & amber tokens.
+   • Audio Mute Toggle: Disables TTS speaker output in noisy or quiet environments.
+   • Manual Correction: Allows the operator to tap and edit any misrecognized field.
+
+D. Acknowledgment Receipt Generator:
+   • Generates an official, printable bilingual receipt with Application Number,
+     Timestamp, Scheme Name, Verified Fields, and Seal Stamp.
+
+
+10. REST API SPECIFICATIONS
+--------------------------------------------------------------------------------
+Route: GET /api/form/:id
+  • Description: Retrieves the form schema (built-in 'pension' or custom ID).
+  • Response: 200 OK with schema JSON containing fields, labels, prompts, and rules.
+
+Route: POST /api/form/:id/answer
+  • Description: Normalizes and extracts an answer from an audio transcript.
+  • Body: { fieldId: string, transcript: string, language?: string }
+  • Response: 200 OK with { valid: boolean, value: any, display: string,
+    needsConfirmation: boolean, confidence: number }
+
+Route: POST /api/form/:id/next
+  • Description: Traverses sequentially to the next unfilled or postponed field.
+  • Body: { currentId: string, answers: object }
+  • Response: 200 OK with { nextField: object | null, isComplete: boolean }
+
+Route: POST /api/form/:id/command
+  • Description: Evaluates voice navigation commands (Repeat, Skip, Later, Restart).
+  • Body: { transcript: string, state: string, fieldId: string }
+  • Response: 200 OK with { command: string | null, targetFieldId?: string }
+
+Route: POST /api/form/:id/submit
+  • Description: Final submission of verified application payload.
+  • Body: { answers: object, language: string }
+  • Response: 200 OK with { success: boolean, applicationId: string, timestamp: string }
+
+Route: POST /api/tts
+  • Description: Synthesizes high-fidelity Indic voice prompts via Gnani.ai.
+  • Body: { text: string, language: string }
+  • Response: 200 OK with audio/wav binary stream or cached base64 audio.
+
+Route: POST /api/stt
+  • Description: Transcribes multipart audio buffer into localized text.
+  • Body: Multipart form data with audio blob.
+  • Response: 200 OK with { transcript: string, language: string, confidence: number }
+
+
+11. VERIFICATION & QUALITY ASSURANCE
+--------------------------------------------------------------------------------
+Testing Metrics:
+  • Total Tests: 436 automated unit & integration tests.
+  • Total Test Suites: 61 suites (Client: 3 suites; Server: 58 suites).
+  • Pass Rate: 100% (436 passing, 0 failing, 0 skipped).
+  • Key Test Suites:
+      - `client/tests/stateMachine.test.js`: Conversation state transitions & safety.
+      - `client/tests/inactivity.test.js`: 60s timeout & memory wipe assertions.
+      - `server/tests/identifiers.test.js`: Phone, Aadhaar, & Bank Account parsing.
+      - `server/tests/numbers.parse.test.js`: Tamil spoken words & compounding.
+      - `server/tests/yesno.test.js`: Vernacular affirmation & contrast resolution.
+      - `server/tests/heldout-guard.test.js`: Anti-leakage PII security guards.
+      - `server/tests/gnani.test.js`: Gnani STT & TTS resilience and fallback.
+
+Build Performance:
+  • Vite Production Client: Built cleanly in under 1.60s.
+  • Zero bundle circularities; dist output free of development tools or mocks.
+================================================================================
+END OF PRD — SOLLI (சொல்லி) VOICE APPLICATION
+================================================================================
+
