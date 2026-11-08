@@ -49,9 +49,9 @@ A multilingual voice assistant that helps people who find forms hard to read or 
 
 ---
 
-<!-- TODO: Hero screenshot or GIF (capture from demo mode and place in docs/screenshots/01-language-screen.png) -->
-> [!NOTE]
-> Application screenshots are being captured with synthetic demo data. See [docs/screenshots/README.md](docs/screenshots/README.md) for the 5-screen capture checklist.
+<div align="center">
+  <img src="docs/screenshots/hero-landing.png" alt="Solli Multilingual Voice Assistant Hero Interface" width="100%" />
+</div>
 
 ---
 
@@ -63,6 +63,10 @@ Many eligible applicants miss welfare pensions, scholarships, and public assista
 
 Solli turns welfare form filling into a calm, spoken conversation in the applicant's own language. The applicant selects their language, listens to each question spoken aloud in a natural regional voice, and replies naturally using conversational or code-mixed speech. Solli extracts clean values, verifies sensitive identifiers through chunked read-backs, and presents a complete review summary with zero typing required. Answers live purely in volatile memory during the active session and are never saved to a database or browser storage.
 
+<div align="center">
+  <img src="docs/screenshots/problem-solution.png" alt="Solli Problem and Solution Overview" width="100%" />
+</div>
+
 ---
 
 ## Who it is for
@@ -71,9 +75,17 @@ Solli turns welfare form filling into a calm, spoken conversation in the applica
 - **Applicants (The End User):** Elderly citizens, rural residents, first-time welfare applicants, and anyone who finds typing or reading formal administrative prose difficult.
 - **Operators (The Supervisor):** Helpdesk staff who supervise kiosks, assist when users are unsure, make manual corrections via touch or voice, and print final summaries.
 
+<div align="center">
+  <img src="docs/screenshots/kiosk-app.png" alt="Solli Kiosk Voice Assistant Application Interface" width="100%" />
+</div>
+
 ---
 
 ## How it works
+
+<div align="center">
+  <img src="docs/screenshots/how-it-works-diagram.png" alt="How Solli Works - Handwritten End-to-End Flow Diagram" width="100%" />
+</div>
 
 1. **Choose a language:** The applicant picks from 10 Indian languages (or Tanglish). Screen text and spoken voice switch together.
 2. **Solli asks:** Each question is spoken aloud in a natural, friendly regional voice.
@@ -176,37 +188,9 @@ stateDiagram-v2
 
 ## Architecture
 
-```mermaid
-graph TD
-    subgraph Browser ["Client (React 19 + Vite)"]
-        UI[Kiosk / Mobile UI]
-        AudioRec[Web Audio API 16kHz PCM WAV]
-        StateMachine[Conversation State Machine]
-    end
-
-    subgraph Backend ["Server (Node.js + Express)"]
-        Routes[API Routes: /api/transcribe, /api/speak, /api/form]
-        TTSCache[In-Memory Audio Cache]
-        ExtractionEngine[Swappable Extractor: Rules baseline / Evon routes]
-        FormEngine[pension.json Schema Engine]
-    end
-
-    subgraph GnaniCloud ["Gnani AI Platform"]
-        Prisma[Prisma v2.5 STT]
-        Timbre[Timbre v3.0 TTS]
-        Evon[Evon v3.3 Planned]
-    end
-
-    UI --> StateMachine
-    StateMachine --> AudioRec
-    AudioRec -->|WAV Audio| Routes
-    Routes -->|Cached Audio| UI
-    Routes -->|STT Request| Prisma
-    Routes -->|TTS Request| Timbre
-    Routes -.->|Optional LLM| Evon
-    Routes --> ExtractionEngine
-    ExtractionEngine --> FormEngine
-```
+<div align="center">
+  <img src="docs/screenshots/architecture-deep-dive.png" alt="Solli High-Level Design (HLD) Architecture Deep Dive" width="100%" />
+</div>
 
 ### Folder Structure (2 levels)
 
