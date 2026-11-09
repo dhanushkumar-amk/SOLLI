@@ -9,11 +9,14 @@
     "server": "node server/index.js",
     "dev:server": "npm --prefix server run dev",
     "dev:client": "npm --prefix client run dev",
-    "install:all": "npm --prefix client install && npm --prefix server install",
+    "install:all": "npm --prefix client install --include=dev && npm --prefix server install",
     "build": "npm --prefix client run build",
-    "build:all": "npm --prefix client install && npm --prefix server install && npm --prefix client run build",
+    "build:all": "npm --prefix client install --include=dev && npm --prefix server install && npm --prefix client run build",
     "test": "npm --prefix client test && npm --prefix server test",
     "test:client": "npm --prefix client test",
     "test:server": "npm --prefix server test"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
