@@ -617,6 +617,20 @@ app.use((err, _req, res, _next) => {
   res.status(statusCode).json({ error: safeMessage })
 })
 
+// Serve static frontend assets in production if client/dist exists
+if (process.env.NODE_ENV !== 'test') {
+  const clientDist = path.resolve(__dirname, '../client/dist')
+  if (fs.existsSync(clientDist)) {
+    app.use(express.static(clientDist))
+    app.use((req, res, next) => {
+      if (req.method === 'GET' && !req.path.startsWith('/api')) {
+        return res.sendFile(path.join(clientDist, 'index.html'))
+      }
+      next()
+    })
+  }
+}
+
 // Start server if run directly
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => console.log(`Solli server listening on port ${port}`))

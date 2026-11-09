@@ -265,6 +265,19 @@ SOLLI/
 
 ---
 
+## Deployment
+
+Solli can be deployed to the cloud in under 3 minutes with 1-click Render blueprint, Railway, Vercel, or on-premise village kiosk hardware with HTTPS tunneling.
+
+See the complete **[Production Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** for:
+- **1-Click Render Cloud Deployment:** Using `render.yaml` with automatic Let's Encrypt SSL and continuous deployment.
+- **Split Edge Hosting:** React frontend on Vercel Edge CDN + Express backend on Render/Railway.
+- **Self-Hosted Linux VPS:** Ubuntu Nginx reverse proxy with PM2 process supervisor and Certbot SSL.
+- **Local Kiosk / Panchayat Helpdesk:** Hardware setup with Cloudflare Tunnel HTTPS for mobile phone audio testing.
+- **Pre-flight & Smoke Tests:** 6-point post-deployment verification checklist and troubleshooting guide.
+
+---
+
 ## Environment variables
 
 Configured in `server/.env` (derived from `server/.env.example`):

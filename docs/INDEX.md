@@ -14,6 +14,7 @@ This directory contains the engineering specifications, evaluation reports, arch
 - [FORM_LAYOUT.md](FORM_LAYOUT.md) — Physical layout coordinates, overlay strategy, and printable export design.
 - [GNANI_USAGE.md](GNANI_USAGE.md) — Gnani AI model integrations (Prisma v2.5 STT, Timbre v3.0 TTS, Evon v3.3 LLM) and audio formats.
 - [REAL_WORLD_ARCHITECTURE.md](REAL_WORLD_ARCHITECTURE.md) — Production deployment architecture, browser extension integration, and data privacy safeguards.
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) — Production deployment manual for Render (1-click blueprint), Railway, Vercel, VPS, and local kiosk hardware with HTTPS tunneling.
 
 ## Evaluation & Reports
 - [EXTRACTION_REPORT.md](EXTRACTION_REPORT.md) — Speech-to-field extraction evaluation results across dev, held-out, and empirical datasets.
