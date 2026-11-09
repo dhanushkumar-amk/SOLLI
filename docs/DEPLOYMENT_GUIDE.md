@@ -92,6 +92,9 @@ Render provides free hosting for Node.js web services with automatic HTTPS certi
 6. Wait for the build logs to show `✓ built in X.XXs` and `Solli server listening on port 5000`.
 7. Your app is live at `https://<your-service-name>.onrender.com`!
 
+> [!TIP]
+> **Live Production Reference**: Solli is running live in production at [https://solli.dhanushkumar.in/](https://solli.dhanushkumar.in/) with custom domain and TLS/SSL certificates enabled.
+
 > [!NOTE]
 > On Render's free tier, instances spin down after 15 minutes of inactivity. The first request after sleep takes ~30–45 seconds to spin up. Subsequent voice interactions are instantaneous.
 

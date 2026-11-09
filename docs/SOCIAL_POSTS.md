@@ -32,6 +32,13 @@ My Solli demo is ready: a voice form-filler prototype for CSCs and panchayat hel
 
 Solli demo: a voice form-filler prototype for CSCs and panchayat helpdesks, focused on one pension form with fake data. [CONFIRMED DEMO FLOW]. It prepares a PDF; it does not submit forms. [GNANI AI HANDLE - verify on LinkedIn/X] #GnaniAI #GreatIndianAIInternshipChallenge [LINK]
 
+## Published Submission Post
+
+- **LinkedIn Post:** [https://lnkd.in/p/gkzDGDrD](https://lnkd.in/p/gkzDGDrD)
+- **Live Application:** [https://solli.dhanushkumar.in/](https://solli.dhanushkumar.in/)
+
+---
+
 ## Rules for every post
 
 - Tag [GNANI AI HANDLE - verify on LinkedIn/X] and include `#GnaniAI` and `#GreatIndianAIInternshipChallenge`.

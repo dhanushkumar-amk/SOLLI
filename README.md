@@ -12,6 +12,7 @@ A multilingual voice assistant that helps people who find forms hard to read or 
   <a href="#disclaimer"><img src="https://img.shields.io/badge/status-prototype-orange.svg" alt="Prototype" /></a>
   <a href="#contest-and-credits"><img src="https://img.shields.io/badge/contest-Great%20Indian%20AI%20Internship%20Challenge-purple.svg" alt="Challenge" /></a>
   <a href="#testing"><img src="https://img.shields.io/badge/CI%2FCD-passing-brightgreen.svg" alt="CI/CD" /></a>
+  <a href="https://solli.dhanushkumar.in/"><img src="https://img.shields.io/badge/live%20demo-solli.dhanushkumar.in-2ea44f.svg" alt="Live Demo" /></a>
 </p>
 
 </div>
@@ -22,8 +23,8 @@ A multilingual voice assistant that helps people who find forms hard to read or 
 
 - **Pitch (PDF):** `PITCH.pdf` (coming soon)
 - **Demo Video:** [Coming soon / Paste link]
-- **LinkedIn Post:** [Coming soon / Paste link]
-- **Live Demo:** [Coming soon / Paste link]
+- **LinkedIn Post:** [View Submission Announcement on LinkedIn](https://lnkd.in/p/gkzDGDrD)
+- **Live Demo:** [https://solli.dhanushkumar.in/](https://solli.dhanushkumar.in/)
 
 ---
 
@@ -269,7 +270,11 @@ SOLLI/
 
 ## Deployment
 
-Solli can be deployed to the cloud in under 3 minutes with 1-click Render blueprint, Railway, Vercel, or on-premise village kiosk hardware with HTTPS tunneling.
+Solli is deployed live in production with a custom domain and secure SSL:
+- **Production URL:** [https://solli.dhanushkumar.in/](https://solli.dhanushkumar.in/)
+- **LinkedIn Submission Post:** [https://lnkd.in/p/gkzDGDrD](https://lnkd.in/p/gkzDGDrD)
+
+Solli can also be deployed to any cloud host in under 3 minutes with 1-click Render blueprint, Railway, Vercel, or on-premise village kiosk hardware with HTTPS tunneling.
 
 See the complete **[Production Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** for:
 - **1-Click Render Cloud Deployment:** Using `render.yaml` with automatic Let's Encrypt SSL and continuous deployment.
