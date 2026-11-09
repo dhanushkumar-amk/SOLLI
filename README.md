@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="solli-icon.png" width="120" height="120" alt="Solli Icon" style="border-radius: 28px;" />
+
 # Solli / சொல்லி
 
 **Just say it. We'll fill the form.**

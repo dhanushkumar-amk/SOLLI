@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Solli GitHub Icon</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  html, body {
+    width: 1024px;
+    height: 1024px;
+    overflow: hidden;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  svg {
+    display: block;
+    width: 1024px;
+    height: 1024px;
+  }
+</style>
+</head>
+<body>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Radial Gradients -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#241B1F" />
+      <stop offset="50%" stop-color="#161316" />
+      <stop offset="100%" stop-color="#0E0C0E" />
+    </radialGradient>
+    
+    <radialGradient id="emberGlow" cx="50%" cy="46%" r="48%">
+      <stop offset="0%" stop-color="#FF6D29" stop-opacity="0.22" />
+      <stop offset="55%" stop-color="#FF6D29" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#FF6D29" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Speech Shield Fill -->
+    <linearGradient id="shieldFill" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#261E22" />
+      <stop offset="100%" stop-color="#141114" />
+    </linearGradient>
+
+    <!-- Ember Stroke Gradient -->
+    <linearGradient id="emberStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFA066" />
+      <stop offset="40%" stop-color="#FF6D29" />
+      <stop offset="100%" stop-color="#D9480F" />
+    </linearGradient>
+
+    <!-- Center White Voice Bar Gradient -->
+    <linearGradient id="whiteBarGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E4E4E7" />
+    </linearGradient>
+
+    <!-- Ember Voice Bar Gradient -->
+    <linearGradient id="emberBarGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FF8A4C" />
+      <stop offset="100%" stop-color="#FF5712" />
+    </linearGradient>
+
+    <!-- Ash Voice Bar Gradient -->
+    <linearGradient id="ashBarGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#D4D4D8" />
+      <stop offset="100%" stop-color="#A1A1AA" />
+    </linearGradient>
+
+    <!-- Glow and Depth Filters -->
+    <filter id="voiceGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="shieldShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#000000" flood-opacity="0.75" />
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#FF6D29" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Outer Squircle Container (App Icon Shape) -->
+  <rect x="24" y="24" width="976" height="976" rx="224" fill="url(#bgGlow)" />
+  <rect x="24" y="24" width="976" height="976" rx="224" fill="url(#emberGlow)" />
+
+  <!-- Dual Outer Borders (Umber Structural + Ember Rim) -->
+  <rect x="24" y="24" width="976" height="976" rx="224" stroke="#453027" stroke-width="4.5" stroke-opacity="0.85" />
+  <rect x="30" y="30" width="964" height="964" rx="218" stroke="#FF6D29" stroke-width="1.5" stroke-opacity="0.25" />
+
+  <!-- Sovereign Seal Concentric Circles -->
+  <circle cx="512" cy="512" r="380" stroke="#453027" stroke-width="3" stroke-dasharray="8 12" stroke-opacity="0.6" />
+  <circle cx="512" cy="512" r="410" stroke="#FF6D29" stroke-width="1.5" stroke-dasharray="3 9" stroke-opacity="0.25" />
+
+  <!-- Center Speech Shield Core with Drop Shadow -->
+  <g filter="url(#shieldShadow)">
+    <path d="M512 260
+             C372 260 258 358 258 480
+             C258 549 294 610 350 651
+             L328 756
+             L435 695
+             C459 700 485 702 512 702
+             C652 702 766 603 766 480
+             C766 358 652 260 512 260 Z"
+          fill="url(#shieldFill)"
+          stroke="url(#emberStroke)"
+          stroke-width="15"
+          stroke-linejoin="round"
+          stroke-linecap="round" />
+  </g>
+
+  <!-- Inner Subtle Shield Rim Glow -->
+  <path d="M512 276
+           C381 276 274 368 274 480
+           C274 544 307 601 359 639
+           L340 735
+           L439 679
+           C462 684 486 686 512 686
+           C643 686 750 594 750 480
+           C750 368 643 276 512 276 Z"
+        fill="none"
+        stroke="#FF6D29"
+        stroke-width="1.5"
+        stroke-opacity="0.2" />
+
+  <!-- Acoustic Voice Bars (Solli Soundwaves) -->
+  <g filter="url(#voiceGlow)">
+    <!-- Bar 1 (Outer Left - Ash Silver) -->
+    <rect x="362" y="438" width="36" height="86" rx="18" fill="url(#ashBarGrad)" />
+    
+    <!-- Bar 2 (Mid Left - Ember Orange) -->
+    <rect x="428" y="394" width="36" height="174" rx="18" fill="url(#emberBarGrad)" />
+    
+    <!-- Bar 3 (Center - Radiant White) -->
+    <rect x="494" y="348" width="36" height="266" rx="18" fill="url(#whiteBarGrad)" />
+    
+    <!-- Bar 4 (Mid Right - Ember Orange) -->
+    <rect x="560" y="394" width="36" height="174" rx="18" fill="url(#emberBarGrad)" />
+    
+    <!-- Bar 5 (Outer Right - Ash Silver) -->
+    <rect x="626" y="438" width="36" height="86" rx="18" fill="url(#ashBarGrad)" />
+  </g>
+</svg>
+</body>
+</html>
