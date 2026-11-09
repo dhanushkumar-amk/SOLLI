@@ -13,6 +13,7 @@ A multilingual voice assistant that helps people who find forms hard to read or 
   <a href="#contest-and-credits"><img src="https://img.shields.io/badge/contest-Great%20Indian%20AI%20Internship%20Challenge-purple.svg" alt="Challenge" /></a>
   <a href="#testing"><img src="https://img.shields.io/badge/CI%2FCD-passing-brightgreen.svg" alt="CI/CD" /></a>
   <a href="https://solli.dhanushkumar.in/"><img src="https://img.shields.io/badge/live%20demo-solli.dhanushkumar.in-2ea44f.svg" alt="Live Demo" /></a>
+  <a href="PITCH.pdf"><img src="https://img.shields.io/badge/pitch-PITCH.pdf-8a2be2.svg" alt="1-Page Pitch PDF" /></a>
 </p>
 
 </div>
@@ -21,10 +22,10 @@ A multilingual voice assistant that helps people who find forms hard to read or 
 
 ### Quick Links
 
-- **Pitch (PDF):** `PITCH.pdf` (coming soon)
+- **Pitch (PDF):** [📄 PITCH.pdf](PITCH.pdf) (1-page pitch for judges & evaluators)
+- **Live Demo:** [🌐 https://solli.dhanushkumar.in/](https://solli.dhanushkumar.in/)
+- **LinkedIn Post:** [💼 View Submission Announcement on LinkedIn](https://lnkd.in/p/gkzDGDrD)
 - **Demo Video:** [Coming soon / Paste link]
-- **LinkedIn Post:** [View Submission Announcement on LinkedIn](https://lnkd.in/p/gkzDGDrD)
-- **Live Demo:** [https://solli.dhanushkumar.in/](https://solli.dhanushkumar.in/)
 
 ---
 
@@ -416,6 +417,7 @@ Solli includes automated test suites covering client kiosk safety, the state mac
 ## Contest and credits
 
 - **Contest:** Built for the **Great Indian AI Internship Challenge**, organized by **Gnani AI**.
+- **1-Page Pitch:** See [📄 PITCH.pdf](PITCH.pdf) for the concise 1-page summary designed for judges.
 - **Models:** Powered by Gnani AI's **Prisma v2.5** (STT) and **Timbre v3.0** (TTS), with **Evon v3.3** integration planned.
 - **Hashtags:** `#GnaniAI #GreatIndianAIInternshipChallenge`
 - **Author:** Built by **Dhanushkumar G**, student at [COLLEGE NAME].

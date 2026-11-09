@@ -24,6 +24,7 @@ This directory contains the engineering specifications, evaluation reports, arch
 - [SUCCESS_METRICS.md](SUCCESS_METRICS.md) — Quantitative and qualitative success criteria for evaluating Solli.
 
 ## Product & Contest Planning
+- [PITCH.pdf](../PITCH.pdf) — 1-page contest submission pitch document for judges and evaluators.
 - [SCOPE.md](SCOPE.md) — Product boundary, must/should/nice-to-have features, and explicit out-of-scope items.
 - [PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md) — Detailed problem analysis of rural welfare form accessibility barriers.
 - [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) — Comprehensive project summary, core user personas, and solution framing.
