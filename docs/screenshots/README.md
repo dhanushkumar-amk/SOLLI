@@ -1,8 +1,8 @@
 # Screenshots and Architecture Diagrams for Solli
 
-This folder contains high-resolution UI captures and architectural diagrams used across the repository and documentation.
+This folder contains high-resolution UI captures, architectural diagrams, and generated document previews used across the repository and documentation.
 
-> **Safety Notice:** All screenshots were captured in **Demo Mode** using synthetic fake sample data only. Never commit or capture real personal identification numbers, real phone numbers, or real citizen data.
+> **Safety Notice:** All screenshots and sample receipts were created in **Demo Mode** using synthetic fake sample data only. Never commit or capture real personal identification numbers, real phone numbers, or real citizen data.
 
 ---
 
@@ -14,6 +14,7 @@ This folder contains high-resolution UI captures and architectural diagrams used
 | [`problem-solution.png`](problem-solution.png) | The Problem & The Solution | Side-by-side cards highlighting bureaucratic paperwork barriers and the conversational voice solution. |
 | [`kiosk-app.png`](kiosk-app.png) | Who It Is For / Kiosk UI | Active voice kiosk interface (`/app`) showing the form fields ledger, progress counter, and Tamil voice panel. |
 | [`how-it-works-diagram.png`](how-it-works-diagram.png) | How It Works | Handwritten chalkboard/napkin architectural diagram illustrating the 8-step conversational pipeline. |
+| [`receipt-preview.png`](receipt-preview.png) | How It Works & Output | Printable bilingual application acknowledgment receipt with verification seal and masked sensitive identifiers. |
 | [`architecture-deep-dive.png`](architecture-deep-dive.png) | Architecture | High-Level Design (HLD) architecture deep dive detailing Client, Express Server, and Gnani Cloud tiers. |
 
 ---

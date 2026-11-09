@@ -6,12 +6,11 @@
 
 A multilingual voice assistant that helps people who find forms hard to read or type fill them in by speaking in their own language.
 
-[![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org)
-[![React](https://img.shields.io/badge/react-19-blue.svg)](https://react.dev)
-[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-passing-brightgreen.svg)](#testing)
-[![Status](https://img.shields.io/badge/status-prototype-orange.svg)](#disclaimer)
-[![Challenge](https://img.shields.io/badge/contest-Great%20Indian%20AI%20Internship%20Challenge-purple.svg)](#contest-and-credits)
-[![License](https://img.shields.io/badge/license-TBD-lightgrey.svg)](#license)
+<p>
+  <a href="#disclaimer"><img src="https://img.shields.io/badge/status-prototype-orange.svg" alt="Prototype" /></a>
+  <a href="#contest-and-credits"><img src="https://img.shields.io/badge/contest-Great%20Indian%20AI%20Internship%20Challenge-purple.svg" alt="Challenge" /></a>
+  <a href="#testing"><img src="https://img.shields.io/badge/CI%2FCD-passing-brightgreen.svg" alt="CI/CD" /></a>
+</p>
 
 </div>
 
@@ -95,26 +94,11 @@ Solli turns welfare form filling into a calm, spoken conversation in the applica
 5. **Solli confirms:** Important names, dates, and long numbers are read back in small rhythmic groups. The applicant confirms by voice or taps on-screen buttons.
 6. **The person controls the flow:** Voice commands like "repeat", "go back", "skip", "I don't know", or "change the village" steer the session.
 7. **Review:** A final review ledger lists every field with a status badge; any field can be edited by voice or by tapping.
-8. **Finish:** The session generates a printable receipt summary and safely clears all applicant data from volatile memory.
+8. **Finish & Printable Receipt:** Generates a bilingual printable acknowledgment receipt and clears all session data safely from volatile memory.
 
-```mermaid
-stateDiagram-v2
-    [*] --> Idle: User opens kiosk
-    Idle --> SpeakingQuestion: Tap "Start" (Autoplay ready)
-    SpeakingQuestion --> Listening: Question audio finishes
-    Listening --> Transcribing: Speech recorded (or 15s auto-stop)
-    Transcribing --> Processing: Prisma STT transcript
-    Processing --> SpeakingReadback: Needs confirmation (numbers, dates)
-    Processing --> SpeakingQuestion: Confident non-critical field -> Next question
-    SpeakingReadback --> ListeningConfirm: Read-back audio finishes
-    ListeningConfirm --> SpeakingQuestion: Confirmed ("Yes" / button) -> Next question
-    ListeningConfirm --> SpeakingError: Rejected ("No" / button) -> Clear & re-ask
-    Listening --> SpeakingQuestion: Voice commands (repeat, back, skip, help)
-    Listening --> Review: Last field completed
-    SpeakingQuestion --> Review: Last field completed
-    Review --> ReadyForReceipt: User confirms summary
-    ReadyForReceipt --> Idle: Printable receipt generated & memory purged
-```
+<div align="center">
+  <img src="docs/screenshots/receipt-preview.png" alt="Solli Printable Application Acknowledgment Receipt" width="75%" />
+</div>
 
 ---
 
