@@ -349,3 +349,4 @@ Open `https://<your-deployment-url>/` in a web browser. The dark-themed landing 
 * **Observation**: The app takes ~40 seconds to open on the very first morning visit.
 * **Explanation**: Render's free tier spins down containers after 15 minutes of zero traffic. Once awake, performance returns to normal.
 * **Pro-tip**: Ping `https://<your-app>.onrender.com/api/health` 1 minute before presenting your pitch to wake the instance up!
+
