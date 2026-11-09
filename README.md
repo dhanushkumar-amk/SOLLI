@@ -94,11 +94,7 @@ Solli turns welfare form filling into a calm, spoken conversation in the applica
 5. **Solli confirms:** Important names, dates, and long numbers are read back in small rhythmic groups. The applicant confirms by voice or taps on-screen buttons.
 6. **The person controls the flow:** Voice commands like "repeat", "go back", "skip", "I don't know", or "change the village" steer the session.
 7. **Review:** A final review ledger lists every field with a status badge; any field can be edited by voice or by tapping.
-8. **Finish & Printable Receipt:** Generates a bilingual printable acknowledgment receipt and clears all session data safely from volatile memory.
-
-<div align="center">
-  <img src="docs/screenshots/receipt-preview.png" alt="Solli Printable Application Acknowledgment Receipt" width="75%" />
-</div>
+8. **Finish:** Generates a printable receipt summary and safely clears all applicant data from volatile memory.
 
 ---
 

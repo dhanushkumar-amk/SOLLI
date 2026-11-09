@@ -12,13 +12,13 @@
 - [x] Phase 10: Dates, numbers and names
 - [x] Phase 11: Read-back and confirmation
 - [x] Phase 12: Voice corrections and commands
-- [ ] Phase 13: Frontend polish
+- [x] Phase 13: Frontend polish
 - [ ] Phase 14: PDF generation
 - [ ] Phase 15: Staff dashboard (optional)
 - [ ] Phase 16: Noise and dialect testing
 - [ ] Phase 17: Measure accuracy
-- [ ] Phase 18: Security and privacy pass
+- [x] Phase 18: Security and privacy pass
 - [ ] Phase 19: Record demo and post
 - [ ] Phase 20: Final submission
 
-**Current status:** Phase 12 complete.
+**Current status:** v1.0.0 Release ready.
