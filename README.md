@@ -25,7 +25,7 @@ A multilingual voice assistant that helps people who find forms hard to read or 
 - **Pitch (PDF):** [📄 PITCH.pdf](PITCH.pdf) (1-page pitch for judges & evaluators)
 - **Live Demo:** [🌐 https://solli.dhanushkumar.in/](https://solli.dhanushkumar.in/)
 - **LinkedIn Post:** [💼 View Submission Announcement on LinkedIn](https://lnkd.in/p/gkzDGDrD)
-- **Demo Video:** [Coming soon / Paste link]
+- **Demo Video:** [✅ Youtube](https://youtu.be/H_8GeFImA7I)
 
 ---
 
